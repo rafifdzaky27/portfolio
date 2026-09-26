@@ -10,4 +10,7 @@ export default defineConfig({
   trailingSlash: 'ignore',
   build: { format: 'directory' },
   devToolbar: { enabled: false },
+  // Content-Security-Policy is added after the build by scripts/csp.mjs
+  // (script hashes computed from the final HTML). Other security headers
+  // live in the Caddyfile: see docs/SECURITY.md.
 });

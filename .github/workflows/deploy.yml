@@ -19,17 +19,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Host details are secrets (not plain env) so they're masked in the
+    # public Actions logs of this public repository.
     env:
-      DEPLOY_HOST: 192.168.18.14
-      DEPLOY_USER: portfolio-deploy
-      DEPLOY_ROOT: /srv/www/portfolio
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_ROOT: ${{ secrets.DEPLOY_ROOT }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22.19.0"
           cache: npm
@@ -47,7 +49,7 @@ jobs:
           echo "PASS: Astro production artifact exists"
 
       - name: Connect runner to Tailscale
-        uses: tailscale/github-action@v4
+        uses: tailscale/github-action@d1b6cd204f8dceda5b3eaad7f1f767be390056cd # v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
@@ -55,18 +57,23 @@ jobs:
 
       - name: Verify SSH connectivity
         run: |
-          nc -vz "$DEPLOY_HOST" 22
+          nc -z -w 10 "$DEPLOY_HOST" 22
+          echo "PASS: deploy host reachable over the tailnet"
 
       - name: Configure deployment SSH key
+        # Secrets enter through env, never spliced into the script source.
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           install -d -m 700 ~/.ssh
 
-          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" \
+          printf '%s\n' "$SSH_KEY" \
             > ~/.ssh/portfolio_deploy
 
           chmod 600 ~/.ssh/portfolio_deploy
 
-          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" \
+          printf '%s\n' "$KNOWN_HOSTS" \
             > ~/.ssh/known_hosts
 
           chmod 600 ~/.ssh/known_hosts
@@ -134,3 +141,17 @@ jobs:
           grep -q 'Rafif Dzaky Daniswara'
 
           echo "PASS: public website is healthy"
+
+      - name: Verify security headers
+        run: |
+          headers="$(curl -sSI https://rafifdzaky.com/)"
+          for h in strict-transport-security x-content-type-options x-frame-options referrer-policy; do
+            grep -qi "^$h:" <<<"$headers" || { echo "::warning::missing header: $h"; }
+          done
+          curl -sS https://rafifdzaky.com/ | grep -q 'http-equiv="content-security-policy"' \
+            || { echo "::error::CSP meta tag missing from homepage"; exit 1; }
+          echo "PASS: CSP present"
+
+      - name: Remove deployment key
+        if: always()
+        run: rm -f ~/.ssh/portfolio_deploy
