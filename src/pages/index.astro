@@ -34,7 +34,7 @@ const facts = [
   { k: 'coffee uptime', v: '99.9%' },
   { k: 'root cause', v: 'DNS, always' },
   { k: 'chmod 777', v: 'never' },
-  { k: 'served from', v: 'homelab' },
+  { k: 'served from', v: 'homelab', href: '#trace' },
   { k: 'fri deploys', v: 'approved' },
 ];
 
@@ -104,7 +104,15 @@ const profileSchema = {
       {
         facts.map((f) => (
           <li>
-            <span class="k">{f.k}</span> <span class="v">{f.v}</span>
+            {f.href ? (
+              <a href={f.href} title="See the live request trace">
+                <span class="k">{f.k}</span> <span class="v">{f.v}</span>
+              </a>
+            ) : (
+              <>
+                <span class="k">{f.k}</span> <span class="v">{f.v}</span>
+              </>
+            )}
           </li>
         ))
       }
@@ -342,8 +350,12 @@ const profileSchema = {
 
   <!-- ============ OFF THE CLOCK ============ -->
   <section class="section wrap" id="off-the-clock" aria-labelledby="otc-title">
-    <SectionHead index="06" label="Off the clock" title="Q3 · Three sectors outside work" id="otc-title">
-      <p class="lede">Pick a driver on the tower. The leader is, obviously, Formula 1.</p>
+    <SectionHead index="06" label="Off the clock" title="Outside work: Formula 1, Liverpool and tennis" id="otc-title">
+      <p class="lede">
+        These are my hobbies, not part of my job. I've laid them out like an F1 qualifying broadcast: each row on the timing
+        tower is one hobby. Click a row to switch, and keep the sound on to hear the team radio.
+      </p>
+      <p class="otc-fineprint">Lap times, tyres and radio clips are fan-made and just for fun. Not real team radio.</p>
     </SectionHead>
     <OffTheClock />
   </section>
@@ -380,6 +392,12 @@ const profileSchema = {
 </script>
 
 <style>
+  .otc-fineprint {
+    margin-top: var(--s-2);
+    font: 400 0.78rem / 1.4 var(--font-mono);
+    color: var(--muted);
+  }
+
   /* ---------- hero ---------- */
   .hero {
     padding-block: var(--s-7) var(--s-7);
@@ -433,6 +451,20 @@ const profileSchema = {
 
   .facts .k {
     color: var(--muted);
+  }
+
+  .facts a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .facts li:has(a):hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .facts li:has(a):hover .k {
+    color: inherit;
   }
 
   .facts .k::after {

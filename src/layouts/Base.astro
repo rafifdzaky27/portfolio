@@ -6,6 +6,7 @@ import '@fontsource/ibm-plex-mono/latin-500.css';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Terminal from '../components/Terminal.astro';
 import { person } from '../data/profile';
 
 interface Props {
@@ -76,5 +77,17 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       <slot />
     </main>
     <Footer />
+    <Terminal />
+    <script>
+      // For whoever opens DevTools.
+      console.log(
+        "%c rafif.ops %c DevOps Engineer · served from a homelab through Cloudflare Tunnel → Caddy",
+        "background:#0f766e;color:#fff;padding:2px 6px;border-radius:3px;font-weight:600",
+        "color:inherit",
+      );
+      console.log(
+        ['Hiring? rafifdzaky27@gmail.com', 'In a real terminal: curl -sL rafifdzaky.com', 'On this page: press / for a shell.'].join('\n'),
+      );
+    </script>
   </body>
 </html>

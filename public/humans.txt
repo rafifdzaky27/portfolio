@@ -1,0 +1,11 @@
+/* TEAM */
+Built, deployed and on call: Rafif Dzaky Daniswara
+Role: DevOps Engineer
+Contact: rafifdzaky27 [at] gmail.com
+From: West Java, Indonesia
+
+/* SITE */
+Stack: Astro 7, static HTML, no trackers
+Hosting: my homelab, Cloudflare Tunnel -> Caddy
+Pipeline: GitHub Actions -> Tailscale -> rsync -> atomic symlink
+Try: curl -sL rafifdzaky.com

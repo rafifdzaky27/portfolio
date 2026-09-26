@@ -9,6 +9,10 @@ import logoRedBull from '../assets/logos/red-bull-racing-car.png';
 import logoLiverpool from '../assets/logos/liverpool-fc.png';
 import logoRedBullBulls from '../assets/logos/red-bull-logo.png';
 import logoF1 from '../assets/logos/f1-logo-white.png';
+// Team radio clips: F1 radio beep + voice line, merged and loudness-matched.
+import radioF1 from '../assets/audio/radio-f1.mp3';
+import radioLfc from '../assets/audio/radio-lfc.mp3';
+import radioTennis from '../assets/audio/radio-tennis.mp3';
 
 export const person = {
   name: 'Rafif Dzaky Daniswara',
@@ -230,7 +234,8 @@ export interface Sector {
   logo?: ImageMetadata;
   logoAlt?: string;
   logoWide?: boolean;
-  radio: { driver: string; reply: string };
+  /** audio is the clip of the driver line */
+  radio: { driver: string; reply: string; audio?: string };
 }
 
 export const offTheClock: Sector[] = [
@@ -257,6 +262,7 @@ export const offTheClock: Sector[] = [
     radio: {
       driver: 'Mate, the queue workers are stuck again. Box, box.',
       reply: 'Copy. Horizon restarted. Lights out in five.',
+      audio: radioF1,
     },
   },
   {
@@ -281,6 +287,7 @@ export const offTheClock: Sector[] = [
     radio: {
       driver: 'Is that the fixture list? Okay. No deploys on matchday.',
       reply: 'Understood. Change freeze is in place.',
+      audio: radioLfc,
     },
   },
   {
@@ -303,6 +310,7 @@ export const offTheClock: Sector[] = [
     radio: {
       driver: 'Backhand still feels off. One small change at a time.',
       reply: 'Copy. Box this lap, coach is ready for you.',
+      audio: radioTennis,
     },
   },
 ];

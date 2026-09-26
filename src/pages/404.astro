@@ -1,14 +1,54 @@
 ---
 import Base from '../layouts/Base.astro';
+import { build } from '../data/build';
+
+// Styled like an outage status page: every hop is healthy, only the page is missing.
+const nodes = [
+  { key: 'you', name: 'You', role: 'Browser', state: 'ok', note: 'Working' },
+  { key: 'edge', name: 'Cloudflare', role: 'Edge', state: 'ok', note: 'Working' },
+  { key: 'lab', name: 'Homelab', role: 'Caddy origin', state: 'ok', note: 'Working' },
+  { key: 'page', name: 'This page', role: 'dist/', state: 'bad', note: '404 Not found' },
+];
 ---
 
 <Base title="Page not found" description="This page could not be found. Explore Rafif Dzaky Daniswara's work, homelab and research instead." current="other" noindex>
   <section class="wrap nf">
-    <p class="kicker">HTTP 404 · gate not found</p>
-    <h1>This flight doesn't exist.</h1>
-    <p class="lede">The page may have moved. Work, homelab and contact are one step away.</p>
+    <p class="kicker">HTTP 404 · incident opened <time data-now></time></p>
+    <h1>Every hop is up. This page just isn't.</h1>
+
+    <ol class="chain" aria-label="Request path">
+      {
+        nodes.map((n) => (
+          <li class={`node node--${n.state}`} data-node={n.key}>
+            <span class="ic" aria-hidden="true">{n.state === 'ok' ? '✓' : '✕'}</span>
+            <p class="nm">{n.name}</p>
+            <p class="rl" data-role>{n.role}</p>
+            <p class="st">{n.note}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="post">
+      <div>
+        <h2>What happened?</h2>
+        <p>
+          Your request reached the homelab fine. Caddy looked for <code data-path>this path</code>{' '}in release{' '}
+          <a href={build.commitUrl} rel="noopener" target="_blank"><code>{build.sha}</code></a> and found nothing.
+        </p>
+      </div>
+      <div>
+        <h2>Runbook</h2>
+        <ol class="steps">
+          <li>Check the URL for a typo.</li>
+          <li>Go back to a page that exists: <a href="/">home</a>, <a href="/#work">work</a> or <a href="/#contact">contact</a>.</li>
+          <li>Or press <kbd>/</kbd> and type <code>ls</code>.</li>
+        </ol>
+      </div>
+    </div>
+
     <p class="actions">
-      <a class="btn btn--primary" href="/">Home</a>
+      <a class="btn btn--primary" href="/">Roll back to home</a>
       <a class="btn" href="/#work">Work</a>
       <a class="btn" href="/#contact">Contact</a>
     </p>
@@ -18,20 +58,175 @@ import Base from '../layouts/Base.astro';
 <style>
   .nf {
     min-height: 60vh;
-    padding-block: var(--s-9);
+    padding-block: var(--s-8) var(--s-9);
   }
+
   h1 {
     margin-top: var(--s-4);
     font-size: var(--step-4);
-    max-width: 18ch;
+    max-width: 20ch;
   }
-  .lede {
-    margin-top: var(--s-4);
+
+  .chain {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-4);
+    margin-top: var(--s-7);
+    list-style: none;
   }
+
+  .node {
+    position: relative;
+    padding: var(--s-4);
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+
+  /* connector to the next node */
+  .node + .node::before {
+    content: '';
+    position: absolute;
+    top: 2.1rem;
+    right: 100%;
+    width: var(--s-4);
+    height: var(--rule);
+    background: var(--ink);
+  }
+
+  .ic {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background: #22a06b;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .node--bad {
+    border-color: #c0392b;
+    background: #fdf1ef;
+  }
+
+  .node--bad .ic {
+    background: #c0392b;
+  }
+
+  .node--skip .ic {
+    background: var(--muted);
+  }
+
+  .node--skip .st {
+    color: var(--muted);
+  }
+
+  .nm {
+    margin-top: var(--s-3);
+    font-weight: 600;
+    font-size: var(--step-1);
+  }
+
+  .rl {
+    font: 400 0.8rem / 1.4 var(--font-mono);
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .st {
+    margin-top: var(--s-2);
+    font: 500 0.78rem / 1.3 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1a7f52;
+  }
+
+  .node--bad .st {
+    color: #c0392b;
+  }
+
+  .post {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-6);
+    margin-top: var(--s-7);
+    max-width: 60rem;
+  }
+
+  .post h2 {
+    font-size: var(--step-1);
+    margin-bottom: var(--s-2);
+  }
+
+  .post p,
+  .steps {
+    color: var(--muted);
+  }
+
+  .steps {
+    padding-left: 1.2rem;
+  }
+
+  .steps li + li {
+    margin-top: var(--s-1);
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+  }
+
+  kbd {
+    padding: 0 0.35rem;
+    border: var(--hair) solid var(--muted);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+  }
+
   .actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--s-3);
-    margin-top: var(--s-6);
+    margin-top: var(--s-7);
+  }
+
+  @media (max-width: 48rem) {
+    .chain {
+      grid-template-columns: 1fr 1fr;
+    }
+    .node:nth-child(3)::before {
+      display: none;
+    }
+    .post {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
+
+<script>
+  import { getTrace } from '../scripts/trace';
+
+  const path = document.querySelector<HTMLElement>('[data-path]')!;
+  path.textContent = location.pathname;
+  document.querySelector('[data-node="page"] [data-role]')!.textContent = location.pathname;
+
+  const now = document.querySelector<HTMLTimeElement>('[data-now]')!;
+  const d = new Date();
+  now.dateTime = d.toISOString();
+  now.textContent = `${d.toISOString().slice(11, 16)} UTC`;
+
+  getTrace().then((t) => {
+    const edge = document.querySelector('[data-node="edge"] [data-role]')!;
+    if (t.edge) edge.textContent = `Edge · ${[t.colo, t.city].filter(Boolean).join(' ')}`;
+    else {
+      edge.textContent = 'local preview';
+      const node = document.querySelector('[data-node="edge"]')!;
+      node.classList.add('node--skip');
+      node.querySelector('.st')!.textContent = 'Skipped';
+      node.querySelector('.ic')!.textContent = '–';
+    }
+  });
+</script>

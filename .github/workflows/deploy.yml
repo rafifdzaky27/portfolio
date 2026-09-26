@@ -152,6 +152,17 @@ jobs:
             || { echo "::error::CSP meta tag missing from homepage"; exit 1; }
           echo "PASS: CSP present"
 
+      - name: Verify terminal résumé
+        run: |
+          # Needs the @cli rewrite in the Caddyfile (docs/SECURITY.md). Warn, don't fail.
+          if curl -sSL -A "curl/8" https://rafifdzaky.com/ | grep -q "cat experience.log"; then
+            echo "PASS: curl rafifdzaky.com serves the terminal résumé"
+          else
+            echo "::warning::curl rafifdzaky.com still returns HTML; add the @cli rewrite to Caddy"
+          fi
+          curl -sSf https://rafifdzaky.com/cli.txt -o /dev/null
+          echo "PASS: /cli.txt deployed"
+
       - name: Remove deployment key
         if: always()
         run: rm -f ~/.ssh/portfolio_deploy

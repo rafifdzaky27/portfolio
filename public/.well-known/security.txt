@@ -1,0 +1,5 @@
+# Found something? Thank you. Please tell me before telling anyone else.
+Contact: mailto:rafifdzaky27@gmail.com
+Expires: 2027-09-27T00:00:00.000Z
+Preferred-Languages: en, id
+Canonical: https://rafifdzaky.com/.well-known/security.txt
