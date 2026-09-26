@@ -48,13 +48,22 @@ what actually happened, and delete any you'd struggle to talk about in an interv
 ## Playful copy (jokes, but make sure you're comfortable with them)
 
 - [ ] Fun facts: "coffee uptime 99.9%", "favourite exit code 0", "it's always DNS", "last chmod 777: never", "on-time departures 98%+ on core services" (derived from <2%).
-- [ ] F1 line: "Sebastian Vettel is my all-time favourite; Max Verstappen is who I watch now. Red Bull Racing, mostly." and "race weekends: blocked in the calendar".
+- [ ] F1 line: "Max Verstappen is my all-time favourite, and Red Bull Racing is my team." and "race weekends: blocked in the calendar".
 - [ ] Liverpool line: "the deploy calendar gets checked against the fixture list" and "matchday: no deploys, ideally".
 - [ ] Tennis line: "Still fixing my backhand the way I fix pipelines: one small change at a time."
+
+## Terminal, footer and 404 (new)
+
+- [ ] Terminal `uptime` jokes: "load average 0.60 0.98 1.00" is explained on screen as 60% auto-deploy, 98% on-time, coffee.
+- [ ] Terminal `ssh`/`dig`/`neofetch` describe the setup: origin has no public IP, Caddy on localhost only, CI reaches one host on port 22 over Tailscale. True only once the Caddy/Tailscale changes in docs/SECURITY.md are applied.
+- [ ] Terminal `kubectl`: says k3s is on the roadmap and not claimed yet. Update when it runs.
+- [ ] Footer release line links the commit on the public repo, and shows build time, page count and size.
+- [ ] `curl -sL rafifdzaky.com` needs the `@cli` rewrite and the `X-Hire-Me` header in your real Caddyfile (see docs/SECURITY.md).
 
 ## Team logos
 
 - [ ] The Red Bull car and the Liverpool crest are trademarks, used here only as fan references in Off the clock, from files you supplied. They're not part of the site's branding. Remove them if an employer or the clubs ever object.
+- [ ] The team-radio clips (`src/assets/audio/`) use a voice made to sound like Max Verstappen, reading lines you wrote. The page labels them fan-made and not real team radio. A synthetic voice of a real person is the riskiest item on the page: if it ever causes trouble, remove the three `audio:` entries in `src/data/profile.ts` (and the files) and the radio card keeps working as text.
 - [ ] Sector times (28.033 / 31.906 / 25.418, lap 1:25.357) are decorative, not real data.
 
 ## Research

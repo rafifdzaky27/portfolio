@@ -1,0 +1,657 @@
+---
+// A small shell on every page. Opens with "/" or Ctrl/⌘+K, or the >_ button in the header.
+// All output is built with textContent, so nothing typed here is ever parsed as HTML.
+import { getCollection } from 'astro:content';
+import { person, experience, skills, education, credentials } from '../data/profile';
+import { careerStart, devopsStart } from '../data/time';
+import { build } from '../data/build';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+const flat = (g: { groups: { items: string[] }[] }) => g.groups.flatMap((x) => x.items);
+
+const data = {
+  person: {
+    name: person.name,
+    role: person.role,
+    employer: person.employer,
+    location: person.location,
+    email: person.email,
+    phone: person.phone,
+    github: person.github,
+    linkedin: person.linkedin,
+    resumePage: person.resumePage,
+    resumePdf: person.resumePdf,
+  },
+  careerStart,
+  devopsStart,
+  sections: ['about', 'work', 'experience', 'homelab', 'research', 'off-the-clock', 'contact'],
+  projects: work.map((w) => ({ slug: w.id, title: w.data.title, kicker: w.data.kicker })),
+  experience: experience.map((r) => ({ title: r.title, org: r.org, period: r.period })),
+  skills: { work: flat(skills.work), lab: flat(skills.lab), learning: flat(skills.learning) },
+  education: { degree: education.degree, school: education.school, gpa: education.gpa, honours: education.honours },
+  certs: credentials.map((c) => `${c.name} · ${c.issuer}`),
+  build: {
+    sha: build.sha,
+    commitUrl: build.commitUrl,
+    builtAt: build.builtAt,
+    buildMs: build.buildMs,
+    pages: build.pages,
+    size: build.size,
+    run: build.run,
+    ci: build.ci,
+    pipeline: build.pipeline,
+  },
+};
+const json = JSON.stringify(data).replace(/</g, '\\u003c');
+const chips = ['help', 'whoami', 'neofetch', 'ls work', 'ping', 'sudo hire rafif'];
+---
+
+<dialog class="term" aria-label="rafif.ops shell">
+  <div class="term-bar">
+    <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    <p>recruiter@rafif.ops: ~</p>
+    <button type="button" class="term-x" data-term-close aria-label="Close terminal">esc</button>
+  </div>
+  <div class="term-out" role="log" aria-live="polite"></div>
+  <form class="term-in" method="dialog">
+    <label>
+      <span class="ps1" aria-hidden="true">recruiter@rafif.ops:~$</span>
+      <input name="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" aria-label="Command" />
+    </label>
+  </form>
+  <p class="term-chips">
+    {chips.map((c) => <button type="button" data-run={c}>{c}</button>)}
+  </p>
+</dialog>
+<script type="application/json" id="term-data" set:html={json} />
+
+<style>
+  .term {
+    --t-bg: #15151e;
+    --t-fg: #e6ece9;
+    --t-dim: #8d9699;
+    --t-teal: #5cc8b8;
+    --t-green: #7bd88f;
+    --t-red: #ff7a70;
+    --t-yellow: #f5d76e;
+    width: min(46rem, calc(100vw - 2rem));
+    height: min(32rem, calc(100dvh - 4rem));
+    margin: auto;
+    padding: 0;
+    border: var(--rule) solid var(--ink);
+    border-radius: 10px;
+    background: var(--t-bg);
+    color: var(--t-fg);
+    font: 400 0.85rem / 1.55 var(--font-mono);
+    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+  }
+
+  .term[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .term::backdrop {
+    background: rgba(21, 21, 30, 0.45);
+    backdrop-filter: blur(2px);
+  }
+
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: 0.55rem 0.8rem;
+    background: #1f1f2b;
+    color: var(--t-dim);
+    font-size: 0.75rem;
+  }
+
+  .term-bar p {
+    flex: 1;
+    text-align: center;
+  }
+
+  .dots {
+    display: inline-flex;
+    gap: 0.4rem;
+  }
+
+  .dots i {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: #ff5f57;
+  }
+
+  .dots i:nth-child(2) {
+    background: #febc2e;
+  }
+
+  .dots i:nth-child(3) {
+    background: #28c840;
+  }
+
+  .term-x {
+    padding: 0.1rem 0.45rem;
+    border: 1px solid #3a3a4a;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--t-dim);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .term-x:hover {
+    color: var(--t-fg);
+  }
+
+  .term-out {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.8rem 1rem 0.2rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .term-out :global(p) {
+    min-height: 1.55em;
+  }
+
+  .term-out :global(a) {
+    color: var(--t-teal);
+  }
+
+  .term-out :global(.c-dim) {
+    color: var(--t-dim);
+  }
+  .term-out :global(.c-teal) {
+    color: var(--t-teal);
+  }
+  .term-out :global(.c-green) {
+    color: var(--t-green);
+  }
+  .term-out :global(.c-red) {
+    color: var(--t-red);
+  }
+  .term-out :global(.c-yellow) {
+    color: var(--t-yellow);
+  }
+  .term-out :global(.c-bold) {
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .term-in label {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.35rem 1rem 0.6rem;
+  }
+
+  .ps1 {
+    color: var(--t-green);
+    white-space: nowrap;
+  }
+
+  .term-in input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--t-fg);
+    font: inherit;
+    caret-color: var(--t-teal);
+  }
+
+  .term-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem 0.7rem;
+    border-top: 1px solid #2a2a38;
+  }
+
+  .term-chips button {
+    padding: 0.15rem 0.55rem;
+    border: 1px solid #3a3a4a;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--t-dim);
+    font: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+
+  .term-chips button:hover,
+  .term-chips button:focus-visible {
+    border-color: var(--t-teal);
+    color: var(--t-fg);
+  }
+
+  @media (max-width: 30rem) {
+    .ps1 {
+      display: none;
+    }
+    .term-in label::before {
+      content: '$';
+      color: var(--t-green);
+    }
+  }
+</style>
+
+<script>
+  import { getTrace, ago } from '../scripts/trace';
+  import { monthsSince, formatDuration } from '../data/time';
+
+  type Part = string | { t: string; c?: string; href?: string };
+
+  const dlg = document.querySelector<HTMLDialogElement>('dialog.term')!;
+  const out = dlg.querySelector<HTMLElement>('.term-out')!;
+  const form = dlg.querySelector<HTMLFormElement>('.term-in')!;
+  const input = form.querySelector<HTMLInputElement>('input')!;
+  const D = JSON.parse(document.getElementById('term-data')!.textContent || '{}');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+  const onHome = location.pathname === '/';
+  const past: string[] = [];
+  let hIdx = 0;
+  let busy = false;
+  let greeted = false;
+
+  /* ---------- output ---------- */
+  const print = (...parts: Part[]) => {
+    const p = document.createElement('p');
+    for (const part of parts) {
+      if (typeof part === 'string') p.append(part);
+      else {
+        const el = document.createElement(part.href ? 'a' : 'span');
+        el.textContent = part.t;
+        if (part.c) el.className = part.c.split(' ').map((x) => `c-${x}`).join(' ');
+        if (part.href && el instanceof HTMLAnchorElement) {
+          el.href = part.href;
+          if (/^https?:/.test(part.href)) {
+            el.target = '_blank';
+            el.rel = 'noopener';
+          }
+        }
+        p.append(el);
+      }
+    }
+    out.append(p);
+    out.scrollTop = out.scrollHeight;
+    return p;
+  };
+  const dim = (t: string): Part => ({ t, c: 'dim' });
+  const teal = (t: string): Part => ({ t, c: 'teal' });
+  const green = (t: string): Part => ({ t, c: 'green' });
+  const red = (t: string): Part => ({ t, c: 'red' });
+  const bold = (t: string): Part => ({ t, c: 'bold' });
+  const link = (t: string, href: string): Part => ({ t, href });
+
+  const go = (hash: string) => {
+    dlg.close();
+    if (onHome) {
+      const el = hash ? document.getElementById(hash) : null;
+      if (el) el.scrollIntoView();
+      else window.scrollTo(0, 0);
+      if (hash) history.replaceState?.(null, '', `#${hash}`);
+    } else location.href = hash ? `/#${hash}` : '/';
+  };
+
+  const career = () => formatDuration(monthsSince(D.careerStart));
+  const devops = () => formatDuration(monthsSince(D.devopsStart));
+
+  /* ---------- commands ---------- */
+  const cmds: Record<string, { help?: string; run: (args: string[], raw: string) => unknown }> = {
+    help: {
+      help: 'this list',
+      run: () => {
+        print(bold('Available commands'));
+        for (const [name, c] of Object.entries(cmds)) if (c.help) print(teal(name.padEnd(14)), dim(c.help));
+        print(dim('Tab completes, ↑/↓ for history, Esc closes. Some commands are not listed.'));
+      },
+    },
+    whoami: {
+      help: 'who runs this site',
+      run: () => {
+        print(bold(D.person.name), ' · ', D.person.role, ' @ ', D.person.employer);
+        print(dim(`${D.person.location} · ${career()} in software, ${devops()} in DevOps`));
+        print('CI/CD, Linux & VPS ops, DNS & SSL, access, monitoring and incidents for 20+ production services.');
+      },
+    },
+    uptime: {
+      help: 'how long I have been at it',
+      run: () => {
+        const t = new Date().toTimeString().slice(0, 8);
+        print(`${t} up ${career()}, devops for ${devops()}, 20+ services, load average: 0.60 0.98 1.00`);
+        print(dim('(0.60 = the share of services that deploy automatically. 0.98 = on-time. 1.00 = coffee.)'));
+      },
+    },
+    ls: {
+      help: 'list sections, or: ls work | ls certs',
+      run: ([dir]) => {
+        if (!dir || dir === '~' || dir === '/') {
+          print(...D.sections.flatMap((s: string) => [teal(`${s}/`), '  ']), 'resume.pdf');
+        } else if (/^work|projects/.test(dir)) {
+          D.projects.forEach((p: { slug: string; title: string; kicker: string }) =>
+            print(link(p.slug, `/work/${p.slug}`), ' '.repeat(Math.max(1, 12 - p.slug.length)), dim(p.kicker), ' — ', p.title),
+          );
+          print(dim('open <name> to read one'));
+        } else if (/^cert/.test(dir)) D.certs.forEach((c: string) => print(c));
+        else print(red(`ls: cannot access '${dir}': No such file or directory`));
+      },
+    },
+    cd: {
+      help: 'jump to a section: cd homelab',
+      run: ([dir = '']) => {
+        const d = dir.replace(/\/$/, '').toLowerCase();
+        if (!d || d === '~' || d === '..' || d === '/') return go('');
+        const hit = D.sections.find((s: string) => s === d || s.startsWith(d));
+        if (hit) go(hit);
+        else print(red(`cd: ${dir}: No such file or directory`), dim('  (try ls)'));
+      },
+    },
+    open: {
+      help: 'open a case study, resume, github, linkedin',
+      run: ([what = '']) => {
+        const p = D.projects.find((x: { slug: string }) => x.slug === what || x.slug.startsWith(what));
+        const map: Record<string, string> = {
+          resume: D.person.resumePage,
+          github: D.person.github,
+          linkedin: D.person.linkedin,
+          homelab: '/homelab',
+          research: '/research',
+        };
+        const href = what && p ? `/work/${p.slug}` : map[what];
+        if (!href) return print(red(`open: ${what || '?'}: not found`), dim('  (try ls work)'));
+        print(dim(`opening ${href} …`));
+        if (/^https?:/.test(href)) window.open(href, '_blank', 'noopener');
+        else location.href = href;
+      },
+    },
+    cat: {
+      help: 'cat resume | skills | contact | education',
+      run: ([f = '']) => {
+        if (/^resume/.test(f)) {
+          D.experience.forEach((r: { title: string; org: string; period: string }) =>
+            print(green('▸ '), bold(r.title), dim(' @ '), r.org, dim(` (${r.period})`)),
+          );
+          print(dim('full version: '), link('open resume', D.person.resumePage), dim(' · or in a real terminal: curl -sL rafifdzaky.com'));
+        } else if (/^skill/.test(f)) {
+          print(teal('used_at_work: '), D.skills.work.join(', '));
+          print(teal('built_in_homelab: '), D.skills.lab.join(', '));
+          print(teal('learning: '), D.skills.learning.join(', '), dim('  # direction, not experience'));
+        } else if (/^contact/.test(f)) {
+          print('email     ', link(D.person.email, `mailto:${D.person.email}`));
+          print('phone     ', D.person.phone);
+          print('linkedin  ', link(D.person.linkedin, D.person.linkedin));
+          print('github    ', link(D.person.github, D.person.github));
+        } else if (/^edu/.test(f)) {
+          print(bold(D.education.degree), ', ', D.education.school);
+          print(`GPA ${D.education.gpa} · ${D.education.honours}`);
+        } else print(red(`cat: ${f || '?'}: No such file or directory`));
+      },
+    },
+    neofetch: {
+      help: 'system info',
+      run: () => {
+        const logo = ['┌──────┬──────┐', '│  R   │   D  │', '│      │      │', '└──────┴──────┘'];
+        const info: Part[][] = [
+          [bold('recruiter@rafif.ops')],
+          [dim('───────────────────')],
+          [teal('OS: '), 'Astro 7, static HTML'],
+          [teal('Host: '), 'homelab VM, behind Cloudflare Tunnel'],
+          [teal('Web server: '), 'Caddy (localhost only)'],
+          [teal('Uptime: '), `${career()} (DevOps ${devops()})`],
+          [teal('Packages: '), '20+ production services'],
+          [teal('Shell: '), 'this one'],
+          [teal('Release: '), link(D.build.sha, D.build.commitUrl)],
+        ];
+        info.forEach((row, i) => print(teal((logo[i] ?? '').padEnd(17)), ...row));
+      },
+    },
+    ping: {
+      help: 'real round trips to this site',
+      run: async ([host = 'rafifdzaky.com']) => {
+        print(`PING ${host} (HTTP, same origin)`);
+        const times: number[] = [];
+        for (let i = 1; i <= 4; i++) {
+          const t0 = performance.now();
+          try {
+            await fetch(`/favicon.svg?ping=${Date.now()}`, { cache: 'no-store' });
+            const ms = performance.now() - t0;
+            times.push(ms);
+            print(`reply from ${host}: seq=${i} time=${ms.toFixed(1)} ms`);
+          } catch {
+            print(red(`request timeout for seq ${i}`));
+          }
+          await sleep(350);
+        }
+        if (times.length) {
+          const avg = times.reduce((a, b) => a + b, 0) / times.length;
+          print(dim(`--- ${times.length}/4 received, 0% loss, avg ${avg.toFixed(1)} ms ---`));
+        }
+      },
+    },
+    traceroute: {
+      help: 'how your request got here',
+      run: async () => {
+        const t = await getTrace();
+        const meta = [t.http, t.tls, t.ttfb && `TTFB ${t.ttfb} ms`].filter(Boolean).join(' · ');
+        const hops: Part[][] = [
+          ['you', dim(t.loc ? ` (${t.loc})` : '')],
+          t.edge ? ['Cloudflare edge ', teal(t.colo || ''), dim(t.city ? ` ${t.city}` : '')] : [dim('no edge: local preview')],
+          ['cloudflared tunnel', dim(' (outbound only, no open ports)')],
+          ['Caddy', dim(' on 127.0.0.1, homelab')],
+          [green('200 OK'), dim(meta ? `  ${meta}` : '')],
+        ];
+        for (let i = 0; i < hops.length; i++) {
+          print(dim(` ${i + 1}  `), ...hops[i]);
+          await sleep(250);
+        }
+      },
+    },
+    dig: {
+      help: 'where does this domain point',
+      run: () => {
+        print(dim(';; ANSWER SECTION:'));
+        print('rafifdzaky.com.   300  IN  A   ', teal('Cloudflare anycast (proxied)'));
+        print(dim(';; the origin has no public IP. It dials out to Cloudflare through a tunnel,'));
+        print(dim(';; so there is nothing at home to scan. That is the point.'));
+      },
+    },
+    'git': {
+      help: 'git log: the release you are reading',
+      run: ([sub]) => {
+        if (sub && sub !== 'log') return print(red(`git: '${sub}' is not available here. Try git log.`));
+        print(teal('commit '), link(D.build.sha, D.build.commitUrl), dim(D.build.run ? `  (Actions run #${D.build.run})` : ''));
+        print(`Built:  ${new Date(D.build.builtAt).toUTCString()} (${ago(D.build.builtAt)})`);
+        print(`Stats:  ${D.build.pages} pages, ${D.build.size}, built in ${D.build.buildMs}`);
+        print(`Path:   ${D.build.ci ? D.build.pipeline.join(' → ') : 'local build'}`);
+      },
+    },
+    deploy: {
+      help: 'run the pipeline',
+      run: async () => {
+        const steps = ['checkout', 'npm ci', 'astro build + CSP hashes', 'link check', 'tailscale up (tag:ci)', 'rsync → releases/', 'ln -sfn current', 'verify origin + headers'];
+        for (const s of steps) {
+          const line = print(dim('  … '), s);
+          await sleep(260);
+          line.firstChild!.textContent = '  ✓ ';
+          (line.firstChild as HTMLElement).className = 'c-green';
+        }
+        print(green('Already up to date: '), link(D.build.sha, D.build.commitUrl), ` is live (built ${ago(D.build.builtAt)}).`);
+      },
+    },
+    rollback: {
+      run: () => {
+        print(`current → ${D.build.sha} is healthy, nothing to roll back.`);
+        print(dim('(a rollback here is one `ln -sfn` to the previous release directory, about a second.)'));
+      },
+    },
+    curl: {
+      help: 'the résumé, for your real terminal',
+      run: async () => {
+        const c = 'curl -sL rafifdzaky.com';
+        try {
+          await navigator.clipboard.writeText(c);
+          print('Copied. Paste it into a real terminal: ', teal(c));
+        } catch {
+          print('Run this in a real terminal: ', teal(c));
+        }
+      },
+    },
+    sudo: {
+      help: 'try: sudo hire rafif',
+      run: async (args) => {
+        const rest = args.join(' ');
+        if (/^hire( rafif)?$/.test(rest)) {
+          const p = print('[sudo] password for recruiter: ');
+          for (let i = 0; i < 8; i++) {
+            p.append('*');
+            await sleep(70);
+          }
+          await sleep(250);
+          print(green('✓ access granted.'), ' Opening a mail to Rafif …');
+          await sleep(500);
+          location.href = `mailto:${D.person.email}?subject=${encodeURIComponent('Saw your portfolio: a DevOps role')}`;
+        } else if (/rm\s+-rf/.test(rest)) {
+          print(red('Nice try.'), ' This shell has no root, the CSP blocks eval, and the origin has no open ports.');
+        } else {
+          print(red('recruiter is not in the sudoers file. This incident will be reported.'));
+          print(dim('(hint: sudo hire rafif)'));
+        }
+      },
+    },
+    rm: { run: () => print(red('rm: permission denied.'), ' Releases are immutable. Try ', teal('rollback'), '.') },
+    chmod: { run: () => print('chmod 777? ', bold('Never.')) },
+    ssh: {
+      run: () => {
+        print(red('ssh: connect to host homelab port 22: filtered'));
+        print(dim('Only the deploy runner gets in: tag:ci over Tailscale, one host, one port.'));
+      },
+    },
+    kubectl: {
+      run: () => {
+        print(red('kubectl: command not found'));
+        print(dim('k3s is on my homelab roadmap and on the learning list. Not claiming it until it runs.'));
+      },
+    },
+    coffee: { run: () => print('brewing … ', green('done.'), dim(' coffee uptime: 99.9%')) },
+    date: { run: () => print(new Date().toString()) },
+    pwd: { run: () => print(onHome ? '/home/recruiter' : `/home/recruiter${location.pathname}`) },
+    echo: { run: (_a, raw) => print(raw.replace(/^echo\s?/, '')) },
+    history: { run: () => past.forEach((h, i) => print(dim(String(i + 1).padStart(4) + '  '), h)) },
+    clear: { help: 'clear the screen', run: () => out.replaceChildren() },
+    exit: { help: 'close (or press Esc)', run: () => dlg.close() },
+    f1: { run: () => print('Max Verstappen, Red Bull. More in ', teal('cd off-the-clock'), '.') },
+    vim: { run: () => print('You will never leave. Try ', teal('exit'), '.') },
+  };
+  const alias: Record<string, string> = {
+    '?': 'help', man: 'help', dir: 'ls', ll: 'ls', la: 'ls', cls: 'clear', quit: 'exit', logout: 'exit',
+    tracert: 'traceroute', nslookup: 'dig', fastfetch: 'neofetch', helm: 'kubectl', k9s: 'kubectl', k3s: 'kubectl',
+    nano: 'vim', emacs: 'vim', wget: 'curl', hire: 'sudo', htop: 'uptime', top: 'uptime', max: 'f1', verstappen: 'f1',
+  };
+
+  const run = async (raw: string) => {
+    const line = raw.trim();
+    print(green('$ '), line);
+    if (!line) return;
+    past.push(line);
+    hIdx = past.length;
+    let [name, ...args] = line.split(/\s+/);
+    name = name.toLowerCase();
+    if (name === 'hire') args = ['hire', ...args];
+    const c = cmds[alias[name] ?? name];
+    if (!c) {
+      print(red(`command not found: ${name}`), dim('  (type help)'));
+      return;
+    }
+    busy = true;
+    try {
+      await c.run(args, line);
+    } finally {
+      busy = false;
+    }
+  };
+
+  /* ---------- open / close ---------- */
+  const open = () => {
+    if (dlg.open) return;
+    dlg.showModal();
+    if (!greeted) {
+      greeted = true;
+      print(bold('rafif.ops shell'), dim(' · a working terminal, not a video. Type '), teal('help'), dim('.'));
+      print(dim(`Last login: ${new Date().toDateString()} · release ${D.build.sha}`));
+      print('');
+    }
+    input.focus();
+  };
+
+  document.querySelectorAll('[data-term-open]').forEach((b) => b.addEventListener('click', open));
+  dlg.querySelector('[data-term-close]')!.addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', (e) => {
+    if (e.target === dlg) dlg.close(); // click on the backdrop
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    const typing = t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName);
+    if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      dlg.open ? dlg.close() : open();
+    } else if (e.key === '/' && !typing && !dlg.open && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      open();
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (busy) return;
+    const v = input.value;
+    input.value = '';
+    await run(v);
+  });
+
+  dlg.querySelectorAll<HTMLButtonElement>('[data-run]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      if (busy) return;
+      await run(b.dataset.run!);
+      input.focus();
+    }),
+  );
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      hIdx = Math.max(0, Math.min(past.length, hIdx + (e.key === 'ArrowUp' ? -1 : 1)));
+      input.value = past[hIdx] ?? '';
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const [head, ...rest] = input.value.split(' ');
+      const pool = rest.length
+        ? head === 'cd'
+          ? D.sections
+          : head === 'open'
+            ? [...D.projects.map((p: { slug: string }) => p.slug), 'resume', 'github', 'linkedin', 'homelab', 'research']
+            : head === 'cat'
+              ? ['resume', 'skills', 'contact', 'education']
+              : head === 'ls'
+                ? ['work', 'certs']
+                : []
+        : Object.keys(cmds);
+      const word = rest.length ? rest[rest.length - 1] : head;
+      const hits = pool.filter((x: string) => x.startsWith(word));
+      if (hits.length === 1) input.value = rest.length ? `${head} ${hits[0]}` : `${hits[0]} `;
+      else if (hits.length > 1) print(dim(hits.join('   ')));
+    } else if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      out.replaceChildren();
+    } else if (e.key === 'c' && e.ctrlKey && input.selectionStart === input.selectionEnd) {
+      print(green('$ '), input.value, dim('^C'));
+      input.value = '';
+    }
+  });
+</script>

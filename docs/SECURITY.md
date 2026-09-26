@@ -49,6 +49,15 @@ http://rafifdzaky.com:8081, http://www.rafifdzaky.com:8081 {
 
 	root * {$SITE_ROOT}/current
 	encode zstd gzip
+
+	# `curl rafifdzaky.com` gets the résumé as coloured terminal text.
+	@cli {
+		path /
+		header_regexp User-Agent ^(curl|Wget|HTTPie|xh)/
+	}
+	rewrite @cli /cli.txt
+	header / Vary User-Agent
+
 	file_server
 
 	header {
@@ -59,6 +68,9 @@ http://rafifdzaky.com:8081, http://www.rafifdzaky.com:8081 {
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
 		Cross-Origin-Opener-Policy "same-origin"
 		Cross-Origin-Resource-Policy "same-origin"
+		# easter eggs for whoever reads response headers
+		X-Hire-Me "rafifdzaky27@gmail.com"
+		X-Served-By "homelab, via Cloudflare Tunnel and Caddy"
 		-Server
 	}
 
@@ -75,6 +87,9 @@ http://rafifdzaky.com:8081, http://www.rafifdzaky.com:8081 {
 	}
 }
 ```
+
+The `@cli` rewrite only works while Cloudflare doesn't cache `/`, which is
+the default for HTML. If you ever add a "Cache Everything" rule, exclude `/`.
 
 `SITE_ROOT` is an environment variable for the Caddy service (the same
 directory as the `DEPLOY_ROOT` secret). Validate with `caddy validate --config /etc/caddy/Caddyfile`
@@ -129,5 +144,7 @@ disappear after the run.
 curl -sI https://rafifdzaky.com | grep -iE 'strict-transport|x-frame|content-type-options|server'
 curl -s -o /dev/null -w '%{http_code}\n' http://rafifdzaky.com/        # expect 301/308
 curl -s -o /dev/null -w '%{http_code}\n' https://rafifdzaky.com/.git/HEAD   # expect 404
+curl -sL rafifdzaky.com | head -5                                        # expect the terminal résumé
+curl -sI https://rafifdzaky.com | grep -i x-hire-me                       # expect the easter egg
 curl -s --tlsv1.1 --tls-max 1.1 https://rafifdzaky.com/ -o /dev/null && echo "TLS 1.1 still accepted"
 ```

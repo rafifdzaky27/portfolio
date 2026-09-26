@@ -29,6 +29,10 @@ const pageFor: Record<string, string> = { work: 'work', homelab: 'homelab', rese
       <span>rafif<span class="dot">.</span>ops</span>
     </a>
 
+    <button class="term-btn" type="button" data-term-open aria-label="Open the terminal (shortcut: /)" title="Terminal ( / )">
+      <span aria-hidden="true">&gt;_</span>
+    </button>
+
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">
       <span class="menu-icon" aria-hidden="true"></span>
       <span class="menu-label">Menu</span>
@@ -77,6 +81,7 @@ const pageFor: Record<string, string> = { work: 'work', homelab: 'homelab', rese
   }
 
   .brand {
+    margin-right: auto;
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
@@ -148,7 +153,32 @@ const pageFor: Record<string, string> = { work: 'work', homelab: 'homelab', rese
     background: var(--accent-deep);
   }
 
+  /* terminal button: last on desktop, next to Menu on mobile */
+  .term-btn {
+    order: 3;
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.6rem;
+    min-height: 2.4rem;
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--card);
+    color: var(--ink);
+    font: 600 0.9rem / 1 var(--font-mono);
+    cursor: pointer;
+  }
+
+  .term-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  :global(html:not(.js)) .term-btn {
+    display: none;
+  }
+
   .menu-btn {
+    order: 4;
     display: none;
     align-items: center;
     gap: var(--s-2);

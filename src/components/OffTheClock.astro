@@ -58,6 +58,14 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
 
     <div class="radio">
       <div class="radio-head">
+        <button type="button" class="radio-sound" data-sound="on" aria-pressed="true" aria-label="Team radio sound">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M4 9h3l5-4v14l-5-4H4z" fill="currentColor"></path>
+            <path class="rs-on" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+            <path class="rs-off" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+          </svg>
+          <span class="rs-text">Sound on</span>
+        </button>
         <p class="radio-name">{person.name.split(' ')[0]}</p>
         <p class="radio-sub">
           <Image src={first.badge!} alt="" height={40} format="webp" class="radio-bulls" />
@@ -115,6 +123,7 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
                 <SectorIcon kind={s.icon} />
               )}
             </div>
+            <p class="card-kind">Hobby {s.pos} of {offTheClock.length}</p>
             <h3>{s.title}</h3>
             <p class="card-line">{s.line}</p>
             <p class="card-note">{s.note}</p>
@@ -344,6 +353,79 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
     background: linear-gradient(180deg, #1e3170, #16244f);
   }
 
+  .radio-head {
+    position: relative;
+  }
+
+  .radio-sound {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.5rem 0.25rem 0.4rem;
+    border: 1px solid rgba(143, 180, 234, 0.55);
+    border-radius: 999px;
+    background: rgba(11, 11, 16, 0.35);
+    color: #cfe0ff;
+    font: normal 500 0.6rem / 1 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .radio-sound:hover {
+    background: rgba(143, 180, 234, 0.18);
+  }
+
+  .radio-sound:focus-visible {
+    outline: 2px solid var(--rb-sky);
+    outline-offset: 2px;
+  }
+
+  .radio-sound .rs-off,
+  .radio-sound[data-sound='off'] .rs-on {
+    display: none;
+  }
+
+  .radio-sound[data-sound='off'] .rs-off {
+    display: inline;
+  }
+
+  .radio-sound[data-sound='off'] {
+    color: rgba(207, 224, 255, 0.6);
+  }
+
+  .radio-sound[data-sound='blocked'] {
+    border-color: #cfe0ff;
+    background: var(--rb-blue);
+    color: #fff;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .radio-sound[data-sound='blocked'] {
+      animation: nudge 1.6s ease-in-out infinite;
+    }
+    @keyframes nudge {
+      50% {
+        box-shadow: 0 0 0 5px rgba(111, 160, 236, 0.3);
+      }
+    }
+  }
+
+  :global(html:not(.js)) .radio-sound {
+    display: none;
+  }
+
+  /* narrow cards: the pill gets its own line above the name */
+  @media (max-width: 30rem) {
+    .radio-sound {
+      position: static;
+      margin-bottom: 0.45rem;
+    }
+  }
+
   .radio-name {
     font: italic 800 1.55rem / 1 var(--font-sans);
     letter-spacing: 0.01em;
@@ -384,8 +466,13 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
     transform-origin: center;
   }
 
+  /* the reply comes in once the driver has finished talking */
+  .otc.is-waiting .msg--reply {
+    opacity: 0.2;
+  }
+
   @media (prefers-reduced-motion: no-preference) {
-    .otc.is-talking .wave i {
+    .otc.is-talking:not(.is-live) .wave i {
       animation: talk 0.55s var(--d) ease-in-out infinite alternate;
     }
     @keyframes talk {
@@ -633,6 +720,13 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
     height: 4.5rem;
   }
 
+  .card-kind {
+    font: 500 0.72rem / 1.3 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
   .card h3 {
     font-size: var(--step-2);
   }
@@ -689,17 +783,134 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
     const pins = JSON.parse(pin.dataset.pins || '{}');
     const driver = root.querySelector('[data-radio="driver"]')!;
     const reply = root.querySelector('[data-radio="reply"]')!;
+    const soundBtn = root.querySelector<HTMLButtonElement>('.radio-sound')!;
+    const soundText = soundBtn.querySelector('.rs-text')!;
+    const bars = [...root.querySelectorAll<HTMLElement>('.wave i')];
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     let talkTimer: number | undefined;
 
+    /* ---------- team radio audio ----------
+       One <audio> element for the whole board, so two clips can never overlap.
+       It plays when the board comes into view, switches clip when another row
+       is chosen, and stops as soon as the board leaves the screen or the tab
+       is hidden. Browsers only allow sound after the visitor has interacted
+       with the page, so if autoplay is refused the button asks for a tap. */
+    const audio = new Audio();
+    audio.preload = 'none';
+    audio.volume = 0.7;
+    let soundOn = true;
+    try {
+      soundOn = localStorage.getItem('otc-radio') !== 'off';
+    } catch {}
+    let inView = false;
+
+    const setSound = (state: 'on' | 'off' | 'blocked') => {
+      soundBtn.dataset.sound = state;
+      soundBtn.setAttribute('aria-pressed', String(state !== 'off'));
+      soundText.textContent = state === 'on' ? 'Sound on' : state === 'off' ? 'Muted' : 'Tap to listen';
+    };
+    setSound(soundOn ? 'on' : 'off');
+
+    // Real-signal soundwave: an analyser drives the bars while a clip plays.
+    // Only set up inside a click or keypress, because an AudioContext created
+    // without one starts suspended and would silence the clip.
+    let analyser: AnalyserNode | undefined;
+    let ctx: AudioContext | undefined;
+    let raf = 0;
+    const hookAnalyser = () => {
+      if (analyser || reduce.matches || !('AudioContext' in window)) return;
+      try {
+        ctx = new AudioContext();
+        const src = ctx.createMediaElementSource(audio);
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 128;
+        analyser.smoothingTimeConstant = 0.6;
+        src.connect(analyser);
+        analyser.connect(ctx.destination);
+      } catch {
+        analyser = undefined;
+      }
+    };
+    const draw = () => {
+      if (!analyser) return;
+      const bins = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(bins);
+      const mid = (bars.length - 1) / 2;
+      bars.forEach((b, i) => {
+        // speech energy sits in the low bins: put those in the middle
+        const v = bins[2 + Math.round(Math.abs(i - mid) * 1.1)] / 255;
+        b.style.transform = `scaleY(${Math.max(0.12, v).toFixed(2)})`;
+      });
+      raf = requestAnimationFrame(draw);
+    };
+    const stopDraw = () => {
+      cancelAnimationFrame(raf);
+      bars.forEach((b) => (b.style.transform = ''));
+      root.classList.remove('is-live');
+    };
+
+    const stop = () => {
+      if (!audio.paused) audio.pause();
+      stopDraw();
+      root.classList.remove('is-talking', 'is-waiting');
+    };
+
+    const play = (key: string) => {
+      const url = data[key]?.audio;
+      if (!soundOn || !inView || !url) return;
+      stop();
+      if (!audio.src.endsWith(url)) audio.src = url;
+      audio.currentTime = 0;
+      ctx?.resume();
+      root.classList.add('is-waiting');
+      audio.play().then(
+        () => setSound('on'),
+        (err: DOMException) => {
+          root.classList.remove('is-waiting');
+          if (err.name === 'NotAllowedError') setSound('blocked');
+        },
+      );
+    };
+
+    audio.addEventListener('playing', () => {
+      window.clearTimeout(talkTimer);
+      root.classList.add('is-talking');
+      if (analyser && ctx?.state === 'running') {
+        root.classList.add('is-live');
+        cancelAnimationFrame(raf);
+        draw();
+      }
+    });
+    audio.addEventListener('ended', stop);
+    audio.addEventListener('pause', stopDraw);
+
+    // Unlock sound and the analyser on the visitor's first interaction.
+    const unlock = () => {
+      hookAnalyser();
+      ctx?.resume();
+    };
+    ['pointerdown', 'keydown'].forEach((t) => document.addEventListener(t, unlock, { once: true, capture: true }));
+
+    soundBtn.addEventListener('click', () => {
+      const wasBlocked = soundBtn.dataset.sound === 'blocked';
+      soundOn = wasBlocked || !soundOn;
+      try {
+        localStorage.setItem('otc-radio', soundOn ? 'on' : 'off');
+      } catch {}
+      setSound(soundOn ? 'on' : 'off');
+      if (soundOn) play(root.dataset.active!);
+      else stop();
+    });
+
+    // Visual-only "talking" when there's no sound.
     const talk = () => {
-      if (reduce.matches) return;
+      if (reduce.matches || !audio.paused) return;
       root.classList.add('is-talking');
       window.clearTimeout(talkTimer);
       talkTimer = window.setTimeout(() => root.classList.remove('is-talking'), 3200);
     };
 
-    const select = (key: string) => {
+    const select = (key: string, withSound = true) => {
       const d = data[key];
       if (!d) return;
       rows.forEach((r) => {
@@ -714,17 +925,19 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
       });
       const [x, y] = pins[d.sector];
       pin.style.transform = `translate(${x}px, ${y}px)`;
+      root.dataset.active = key;
 
+      if (withSound) play(key);
       root.classList.add('is-switching');
       window.setTimeout(() => {
         driver.textContent = `"${d.driver}"`;
         reply.textContent = `"${d.reply}"`;
         root.classList.remove('is-switching');
-        talk();
+        if (inView) talk();
       }, reduce.matches ? 0 : 180);
-      root.dataset.active = key;
     };
 
+    // Clicking the row that's already on replays its radio.
     rows.forEach((r) => r.addEventListener('click', () => select(r.dataset.key!)));
 
     // Up/Down arrows move through the tower like a list.
@@ -739,19 +952,51 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
       select(next.dataset.key!);
     });
 
-    // Start with S1 highlighted, and play the radio once when the board scrolls into view.
-    select(rows[0].dataset.key!);
+    select(rows[0].dataset.key!, false);
+
     if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver(
+      // Fetch the current clip shortly before the board arrives.
+      const near = new IntersectionObserver(
         (entries) => {
-          if (entries.some((e) => e.isIntersecting)) {
-            talk();
-            io.disconnect();
-          }
+          if (!entries.some((e) => e.isIntersecting)) return;
+          audio.preload = 'auto';
+          audio.src = data[root.dataset.active!]?.audio;
+          near.disconnect();
         },
-        { threshold: 0.4 },
+        { rootMargin: '600px 0px' },
       );
-      io.observe(root);
+      near.observe(root);
+
+      // The radio belongs to whatever sits in the middle of the screen.
+      // It starts once the board reaches the middle 20% of the viewport and
+      // stops once it has left the middle 60%, so a neighbouring section that
+      // takes over the screen always silences it. The gap between the two
+      // bands keeps it from restarting when someone parks at the edge.
+      const enter = new IntersectionObserver(
+        (entries) => {
+          if (inView || !entries.some((e) => e.isIntersecting)) return;
+          inView = true;
+          talk();
+          play(root.dataset.active!);
+        },
+        { rootMargin: '-40% 0px -40% 0px' },
+      );
+      const leave = new IntersectionObserver(
+        (entries) => {
+          if (!inView || entries.some((e) => e.isIntersecting)) return;
+          inView = false;
+          stop();
+          if (soundBtn.dataset.sound === 'blocked') setSound('on');
+        },
+        { rootMargin: '-20% 0px -20% 0px' },
+      );
+      enter.observe(root);
+      leave.observe(root);
     }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+    });
+    window.addEventListener('pagehide', stop);
   }
 </script>

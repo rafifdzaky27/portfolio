@@ -1,18 +1,59 @@
 ---
 import { person } from '../data/profile';
+import { build } from '../data/build';
 const year = new Date().getFullYear();
+const curlCmd = 'curl -sL rafifdzaky.com';
 ---
 
 <footer class="site-footer">
-  <div class="wrap foot">
-    <p class="meta">© {year} {person.name} · {person.location}</p>
-    <ul class="meta">
-      <li><a href={`mailto:${person.email}`}>{person.email}</a></li>
-      <li><a href={person.phoneHref}>{person.phone}</a></li>
-      <li><a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a></li>
-      <li><a href={person.github} rel="me noopener" target="_blank">GitHub</a></li>
-      <li><a href={person.resumePage}>Resume</a></li>
-    </ul>
+  <div class="wrap">
+    <!-- A status bar with real numbers: how this request reached you, and which release you're reading. -->
+    <section class="statusbar" id="trace" aria-label="Site status">
+      <div class="st-row">
+        <p class="st-k"><i class="led" aria-hidden="true"></i>Request trace</p>
+        <ol class="hops" data-trace aria-live="polite">
+          <li class="hop is-on"><span class="hop-n">you</span></li>
+          <li class="hop" data-hop="edge"><span class="hop-n">Cloudflare edge</span><span class="hop-d" data-edge></span></li>
+          <li class="hop"><span class="hop-n">Tunnel</span><span class="hop-d">no open ports</span></li>
+          <li class="hop"><span class="hop-n">Caddy</span><span class="hop-d">homelab</span></li>
+          <li class="hop hop--end"><span class="hop-n">200 OK</span><span class="hop-d" data-meta></span></li>
+        </ol>
+      </div>
+
+      <div class="st-row">
+        <p class="st-k">Release</p>
+        <p class="st-v">
+          <a href={build.commitUrl} rel="noopener" target="_blank" class="sha">{build.sha}</a>
+          {build.run && <span>run #{build.run}</span>}
+          <span>
+            built <time datetime={build.builtAt} data-ago>{build.builtAt.slice(0, 10)}</time> in {build.buildMs}
+          </span>
+          <span>{build.pages} pages · {build.size}</span>
+          <span class="pipe">{build.ci ? build.pipeline.join(' → ') : 'local build'}</span>
+        </p>
+      </div>
+
+      <div class="st-row">
+        <p class="st-k">Terminal?</p>
+        <p class="st-v">
+          <code class="cmd"><span aria-hidden="true">$ </span>{curlCmd}</code>
+          <button type="button" class="copy" data-copy={curlCmd}>copy</button>
+          <span class="or or--keys">or press <kbd>/</kbd> for a shell on this page</span>
+          <span class="or or--touch">or tap <kbd>&gt;_</kbd> at the top for a shell on this page</span>
+        </p>
+      </div>
+    </section>
+
+    <div class="foot">
+      <p class="meta">© {year} {person.name} · {person.location}</p>
+      <ul class="meta">
+        <li><a href={`mailto:${person.email}`}>{person.email}</a></li>
+        <li><a href={person.phoneHref}>{person.phone}</a></li>
+        <li><a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a></li>
+        <li><a href={person.github} rel="me noopener" target="_blank">GitHub</a></li>
+        <li><a href={person.resumePage}>Resume</a></li>
+      </ul>
+    </div>
   </div>
 </footer>
 
@@ -22,6 +63,189 @@ const year = new Date().getFullYear();
     padding-block: var(--s-6);
   }
 
+  /* ---------- status bar ---------- */
+  .statusbar {
+    display: grid;
+    margin-bottom: var(--s-6);
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--card);
+    font: 400 0.8rem / 1.5 var(--font-mono);
+  }
+
+  .st-row {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--s-3);
+    padding: 0.7rem var(--s-4);
+  }
+
+  .st-row + .st-row {
+    border-top: var(--hair) solid var(--line);
+  }
+
+  .st-k {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .led {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: #22a06b;
+    box-shadow: 0 0 0 3px rgba(34, 160, 107, 0.18);
+  }
+
+  .st-v {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 1.1rem;
+  }
+
+  .sha {
+    padding: 0.05rem 0.4rem;
+    border-radius: 3px;
+    background: var(--ink);
+    color: var(--paper);
+    text-decoration: none;
+  }
+
+  .sha:hover {
+    background: var(--accent-deep);
+  }
+
+  .pipe {
+    color: var(--muted);
+  }
+
+  /* hops */
+  .hops {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0;
+    list-style: none;
+  }
+
+  .hop {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    opacity: 0.35;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  .hop + .hop::before {
+    content: '──▶';
+    margin: 0 0.55rem;
+    color: var(--line);
+    letter-spacing: -0.1em;
+  }
+
+  .hop.is-on {
+    opacity: 1;
+  }
+
+  .hop.is-on + .hop.is-on::before {
+    color: var(--accent);
+  }
+
+  .hop-n {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .hop-d {
+    color: var(--muted);
+  }
+
+  .hop-d:empty {
+    display: none;
+  }
+
+  .hop--end .hop-n {
+    color: #1a7f52;
+  }
+
+  :global(html:not(.js)) .hop {
+    opacity: 1;
+  }
+
+  /* curl row */
+  .cmd {
+    padding: 0.1rem 0.45rem;
+    border-radius: 3px;
+    background: #15151e;
+    color: #e8f1ef;
+  }
+
+  .copy {
+    padding: 0.1rem 0.5rem;
+    border: var(--hair) solid var(--ink);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+
+  .copy:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  :global(html:not(.js)) .copy {
+    display: none;
+  }
+
+  .or {
+    color: var(--muted);
+  }
+
+  .or--touch,
+  :global(html:not(.js)) .or {
+    display: none;
+  }
+
+  @media (pointer: coarse) {
+    .or--keys {
+      display: none;
+    }
+    .or--touch {
+      display: inline;
+    }
+  }
+
+  kbd {
+    padding: 0 0.35rem;
+    border: var(--hair) solid var(--muted);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    font: inherit;
+    color: var(--ink);
+  }
+
+  @media (max-width: 40rem) {
+    .st-row {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+    .hop + .hop::before {
+      content: '▶';
+      margin: 0 0.45rem;
+    }
+  }
+
+  /* ---------- links ---------- */
   .foot {
     display: flex;
     flex-wrap: wrap;
@@ -37,7 +261,53 @@ const year = new Date().getFullYear();
     list-style: none;
   }
 
-  a {
+  .foot a {
     color: var(--ink);
   }
 </style>
+
+<script>
+  import { getTrace, ago } from '../scripts/trace';
+
+  const hops = [...document.querySelectorAll<HTMLElement>('[data-trace] .hop')];
+  const edge = document.querySelector<HTMLElement>('[data-edge]')!;
+  const meta = document.querySelector<HTMLElement>('[data-meta]')!;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Light the hops one after another once the status bar is on screen.
+  const run = async () => {
+    const t = await getTrace();
+    if (t.edge) edge.textContent = [t.colo, t.city].filter(Boolean).join(' · ');
+    else {
+      edge.textContent = 'skipped: local preview';
+      hops[1].querySelector('.hop-n')!.textContent = 'no edge';
+    }
+    meta.textContent = [t.http, t.tls, t.ttfb && `TTFB ${t.ttfb} ms`].filter(Boolean).join(' · ');
+    hops.forEach((h, i) => window.setTimeout(() => h.classList.add('is-on'), reduce ? 0 : i * 260));
+  };
+
+  const bar = document.getElementById('trace');
+  if (bar && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) {
+        io.disconnect();
+        run();
+      }
+    });
+    io.observe(bar);
+  } else run();
+
+  document.querySelectorAll<HTMLTimeElement>('[data-ago]').forEach((el) => (el.textContent = ago(el.dateTime)));
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(b.dataset.copy!);
+        b.textContent = 'copied';
+      } catch {
+        b.textContent = 'select & copy';
+      }
+      window.setTimeout(() => (b.textContent = 'copy'), 1600);
+    }),
+  );
+</script>
