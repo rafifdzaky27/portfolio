@@ -1,0 +1,416 @@
+---
+import { Image } from 'astro:assets';
+import portrait from '../assets/rafif.jpg';
+import { person, education, careerStart, monthsSince, formatDuration } from '../data/profile';
+
+const duration = formatDuration(monthsSince(careerStart));
+
+const fields = [
+  { k: 'Passenger', v: person.short },
+  { k: 'Role', v: person.role },
+  { k: 'Flight time', v: duration, duration: true },
+  { k: 'Gate', v: '20+ prod services' },
+  { k: 'Carrier', v: `${person.employerShort} · Jakarta` },
+  { k: 'Delays', v: '<2% failed deploys' },
+  { k: 'Baggage', v: 'Linux · Docker · GH Actions' },
+  { k: 'Base', v: 'West Java, ID' },
+];
+---
+
+<div class="pass ticket">
+  <div class="pass-photo">
+    <Image
+      src={portrait}
+      alt={`Portrait of ${person.name}, arms crossed, in a dark shirt`}
+      widths={[320, 480, 640]}
+      sizes="(max-width: 52rem) 90vw, 300px"
+      loading="eager"
+      fetchpriority="high"
+    />
+  </div>
+
+  <div class="pass-main">
+    <div class="route" aria-label="Route: from commit to production">
+      <p class="city"><span class="lbl">From</span>commit</p>
+      <div class="track" aria-hidden="true">
+        <span class="plane">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M2.5 13.5 21 6.2c.9-.3 1.4.8.6 1.3L14 12.5l-1.6 7.3c-.2.8-1.3.9-1.6.1l-2.2-5.2-5.6-.4c-.9-.1-1.1-1.3-.5-1.8Z" fill="currentColor"></path></svg>
+        </span>
+      </div>
+      <p class="city"><span class="lbl">To</span>production</p>
+    </div>
+
+    <dl class="fields">
+      {
+        fields.map((f) => (
+          <div>
+            <dt>{f.k}</dt>
+            <dd {...(f.duration ? { 'data-duration': '' } : {})}>{f.v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="actions">
+      <a class="btn btn--primary" href="#work">View work</a>
+      <a class="btn" href={person.resumePage}>View resume</a>
+      <a class="btn" href="#contact">Get in touch</a>
+    </div>
+  </div>
+
+  <div class="pass-stub">
+    <p class="stub-top"><span class="lbl">Boarding pass</span>RDD · 2026</p>
+    <span class="barcode" aria-hidden="true"></span>
+    <div
+      class="stamp hero-stamp"
+      role="img"
+      aria-label={`${education.school}, ${education.degree}, GPA ${education.gpa}, ${education.honours}`}
+    >
+      <span>Telkom Univ.<strong>S.Kom</strong>GPA 3.87<br />Cum laude</span>
+    </div>
+    <p class="stub-bottom"><span class="lbl">Seat</span>on-call, aisle</p>
+    <button class="hold" type="button" aria-pressed="false">
+      <span class="hold-on">❚❚ Hold departure</span><span class="hold-off">▶ Resume boarding</span>
+    </button>
+  </div>
+
+  <span class="notch n1" aria-hidden="true"></span><span class="notch n2" aria-hidden="true"></span>
+  <span class="notch n3" aria-hidden="true"></span><span class="notch n4" aria-hidden="true"></span>
+</div>
+
+<style>
+  .pass {
+    --photo-w: 17.5rem;
+    --stub-w: 15rem;
+    display: grid;
+    grid-template-columns: var(--photo-w) minmax(0, 1fr) var(--stub-w);
+    min-height: 26rem;
+    box-shadow: 0 30px 50px -40px rgba(31, 42, 46, 0.5);
+  }
+
+  .pass-photo {
+    overflow: hidden;
+    border-right: var(--rule) dashed var(--ink);
+    border-radius: calc(var(--radius-ticket) - 2px) 0 0 calc(var(--radius-ticket) - 2px);
+  }
+
+  .pass-photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 15%;
+    mix-blend-mode: multiply; /* the portrait's white backdrop takes the card colour */
+  }
+
+  .pass-main {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: var(--s-5);
+    padding: var(--s-6) clamp(1.25rem, 2.5vw, 2.5rem);
+  }
+
+  .lbl {
+    display: block;
+    font: 500 0.7rem / 1.4 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---- route ---- */
+  .route {
+    display: grid;
+    grid-template-columns: auto minmax(3rem, 1fr) auto;
+    align-items: end;
+    gap: var(--s-4);
+  }
+
+  .city {
+    font-size: clamp(1.7rem, 1.2rem + 1.6vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .track {
+    position: relative;
+    height: 2px;
+    margin-bottom: 0.9rem;
+    background: repeating-linear-gradient(90deg, var(--accent) 0 10px, transparent 10px 18px);
+  }
+
+  .track::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .plane {
+    position: absolute;
+    top: -11px;
+    left: 0;
+    color: var(--ink);
+    offset-anchor: center;
+    animation: fly 5.5s var(--ease) infinite;
+  }
+
+  @keyframes fly {
+    0% {
+      left: 0;
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    70% {
+      left: calc(100% - 22px);
+      opacity: 1;
+    }
+    82%,
+    100% {
+      left: calc(100% - 22px);
+      opacity: 0;
+    }
+  }
+
+  .pass.is-held .plane {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plane {
+      animation: none;
+      left: calc(50% - 11px);
+    }
+    .hold {
+      display: none;
+    }
+  }
+
+  /* ---- fields ---- */
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-4) var(--s-5);
+    align-content: center;
+  }
+
+  .fields dt {
+    font: 500 0.7rem / 1.4 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .fields dd {
+    margin-top: 0.15rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+  }
+
+  /* ---- stub ---- */
+  .pass-stub {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--s-4);
+    padding: var(--s-6) var(--s-5) var(--s-5);
+    border-left: var(--rule) dashed var(--ink);
+  }
+
+  .stub-top,
+  .stub-bottom {
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+
+  .stub-bottom {
+    margin-top: auto;
+  }
+
+  .barcode {
+    display: block;
+    height: 2.6rem;
+    width: 100%;
+    max-width: 10rem;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--ink) 0 3px,
+      transparent 3px 5px,
+      var(--ink) 5px 6px,
+      transparent 6px 10px,
+      var(--ink) 10px 14px,
+      transparent 14px 16px
+    );
+  }
+
+  .hero-stamp {
+    --stamp-size: 8.5rem;
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    translate: -45% -50%;
+    rotate: -12deg;
+  }
+
+  .hold {
+    align-self: flex-start;
+    padding: 0.35rem 0.55rem;
+    border: var(--hair) solid var(--line-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--muted);
+    font: 500 0.72rem / 1 var(--font-mono);
+    cursor: pointer;
+  }
+
+  .hold:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .hold-off,
+  .hold[aria-pressed='true'] .hold-on {
+    display: none;
+  }
+
+  .hold[aria-pressed='true'] .hold-off {
+    display: inline;
+  }
+
+  :global(html:not(.js)) .hold {
+    display: none;
+  }
+
+  /* ---- ticket notches at the perforations ---- */
+  .notch {
+    position: absolute;
+    width: 2rem;
+    height: 2rem;
+    border: var(--rule) solid var(--ink);
+    border-radius: 50%;
+    background: var(--paper);
+  }
+
+  .n1,
+  .n2 {
+    left: calc(var(--photo-w) - 1rem);
+  }
+
+  .n3,
+  .n4 {
+    right: calc(var(--stub-w) - 1rem);
+  }
+
+  .n1,
+  .n3 {
+    top: -1rem;
+    clip-path: inset(50% 0 0 0);
+  }
+
+  .n2,
+  .n4 {
+    bottom: -1rem;
+    clip-path: inset(0 0 50% 0);
+  }
+
+  /* ---- responsive ---- */
+  @media (max-width: 70rem) {
+    .pass {
+      --photo-w: 14rem;
+      --stub-w: 12.5rem;
+    }
+    .fields {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .pass {
+      grid-template-columns: 1fr;
+    }
+    .pass-photo {
+      height: 20rem;
+      border-right: 0;
+      border-bottom: var(--rule) dashed var(--ink);
+      border-radius: calc(var(--radius-ticket) - 2px) calc(var(--radius-ticket) - 2px) 0 0;
+    }
+    .pass-photo :global(img) {
+      object-position: center 18%;
+    }
+    .pass-stub {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      min-height: 11rem;
+      border-left: 0;
+      border-top: var(--rule) dashed var(--ink);
+    }
+    .barcode {
+      grid-column: 1;
+    }
+    .stub-bottom {
+      grid-column: 1;
+    }
+    .hold {
+      grid-column: 1;
+    }
+    .hero-stamp {
+      --stamp-size: 8rem;
+      top: 50%;
+      left: auto;
+      right: 0.75rem;
+      translate: 0 -50%;
+    }
+    .notch {
+      display: none;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .route {
+      grid-template-columns: 1fr;
+      gap: var(--s-2);
+    }
+    .track {
+      margin: var(--s-2) 0;
+    }
+    .fields dd {
+      font-size: 0.98rem;
+    }
+    .actions .btn {
+      flex: 1 1 auto;
+    }
+  }
+</style>
+
+<script>
+  import { careerStart, monthsSince, formatDuration } from '../data/time';
+
+  // Keep "flight time" current without a rebuild.
+  document.querySelectorAll('[data-duration]').forEach((el) => {
+    el.textContent = formatDuration(monthsSince(careerStart));
+  });
+
+  document.querySelectorAll<HTMLElement>('.pass').forEach((pass) => {
+    const hold = pass.querySelector<HTMLButtonElement>('.hold');
+    hold?.addEventListener('click', () => {
+      const held = hold.getAttribute('aria-pressed') !== 'true';
+      hold.setAttribute('aria-pressed', String(held));
+      pass.classList.toggle('is-held', held);
+    });
+  });
+</script>

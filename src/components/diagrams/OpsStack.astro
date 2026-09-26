@@ -1,0 +1,89 @@
+---
+// Responsibilities by layer on a typical Linode VPS. Generalized: not every
+// service uses every layer, and the real layout is not published.
+const layers = [
+  { layer: 'Domains, DNS & SSL', does: 'Domain provisioning, records, certificates and renewals' },
+  { layer: 'Web server', does: 'Nginx / Apache / Caddy virtual hosts, redirects, limits' },
+  { layer: 'Application', does: 'PHP-FPM releases, environment config, caches, reloads' },
+  { layer: 'Queues & schedule', does: 'Horizon / queue:work under Supervisor, cron, the Laravel scheduler' },
+  { layer: 'Docker workloads', does: 'Container lifecycle, images, logs, restarts' },
+  { layer: 'Databases', does: 'PostgreSQL & MySQL: users, grants, backups, connectivity' },
+  { layer: 'Linux', does: 'Users, IAM & SSH access, hardening, patching, disk' },
+  { layer: 'Linode VPS', does: 'Provisioning, sizing & scaling, snapshots, cost' },
+];
+---
+
+<figure class="os">
+  <ol class="os-stack">
+    {
+      layers.map((l) => (
+        <li>
+          <span class="os-layer">{l.layer}</span>
+          <span class="os-does">{l.does}</span>
+        </li>
+      ))
+    }
+  </ol>
+  <figcaption>Generalized. Not every service uses every layer; the real topology is not published.</figcaption>
+</figure>
+
+<style>
+  .os {
+    margin: var(--s-6) 0 !important;
+  }
+
+  .os-stack {
+    padding: 0 !important;
+    list-style: none;
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .os-stack li {
+    display: grid;
+    grid-template-columns: minmax(9rem, 13rem) 1fr;
+    gap: var(--s-4);
+    margin: 0 !important;
+    padding: var(--s-3) var(--s-4);
+    background: var(--card);
+  }
+
+  .os-stack li + li {
+    border-top: var(--hair) solid var(--line);
+  }
+
+  .os-stack li:last-child {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .os-stack li:last-child .os-does {
+    color: var(--line);
+  }
+
+  .os-layer {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  .os-does {
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+
+  figcaption {
+    margin-top: var(--s-3);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 36rem) {
+    .os-stack li {
+      grid-template-columns: 1fr;
+      gap: var(--s-1);
+    }
+  }
+</style>

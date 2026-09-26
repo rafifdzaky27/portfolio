@@ -1,0 +1,43 @@
+---
+import { person } from '../data/profile';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap foot">
+    <p class="meta">© {year} {person.name} · {person.location}</p>
+    <ul class="meta">
+      <li><a href={`mailto:${person.email}`}>{person.email}</a></li>
+      <li><a href={person.phoneHref}>{person.phone}</a></li>
+      <li><a href={person.linkedin} rel="me noopener" target="_blank">LinkedIn</a></li>
+      <li><a href={person.github} rel="me noopener" target="_blank">GitHub</a></li>
+      <li><a href={person.resumePage}>Resume</a></li>
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: var(--rule) solid var(--ink);
+    padding-block: var(--s-6);
+  }
+
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s-3) var(--s-6);
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-5);
+    list-style: none;
+  }
+
+  a {
+    color: var(--ink);
+  }
+</style>

@@ -1,0 +1,152 @@
+---
+// v2 template flow. Draft: not in production.
+const stages = [
+  { name: 'pull request', what: 'CI on every PR: Pint, ESLint, types, dependency audit, tests on PostgreSQL' },
+  { name: 'approve', what: 'GitHub Environment "production": a required reviewer approves; deploy secrets unlock only then' },
+  { name: 'release dir', what: 'Tested artifact unpacked to releases/<id>, linked to shared .env and storage/' },
+  { name: 'migrate', what: 'Backward-compatible migrations, run before traffic moves' },
+  { name: 'switch', what: 'current → releases/<id> by atomic rename; PHP-FPM reload; workers restarted' },
+  { name: 'health', what: 'Poll /up up to 10 times' },
+];
+---
+
+<figure class="pv2">
+  <p class="pv2-head"><span class="status status--planned">Draft</span> v2 release path</p>
+  <ol class="pv2-steps">
+    {
+      stages.map((s) => (
+        <li>
+          <span class="pv2-name">{s.name}</span>
+          <span class="pv2-what">{s.what}</span>
+        </li>
+      ))
+    }
+  </ol>
+  <div class="pv2-fork">
+    <p class="ok"><span class="pv2-name">200</span> release stays live · old releases pruned (keep 5)</p>
+    <p class="fail"><span class="pv2-name">fail</span> current → previous release, automatically</p>
+  </div>
+  <figcaption>The Docker variant follows the same shape. The unit is an image tag instead of a directory.</figcaption>
+</figure>
+
+<style>
+  .pv2 {
+    margin: var(--s-6) 0 !important;
+    padding: var(--s-5);
+    border: var(--hair) dashed var(--paper-meta);
+    background: var(--paper-raised);
+  }
+
+  .pv2-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-3);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--paper-meta);
+  }
+
+  .pv2-steps {
+    position: relative;
+    margin-top: var(--s-4) !important;
+    padding: 0 !important;
+    list-style: none;
+    counter-reset: st;
+  }
+
+  .pv2-steps::before {
+    content: '';
+    position: absolute;
+    left: 0.4rem;
+    top: 0.6rem;
+    bottom: 0.6rem;
+    width: 1px;
+    background: var(--paper-meta);
+  }
+
+  .pv2-steps li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: var(--s-3);
+    margin: 0 !important;
+    padding: 0.4rem 0 0.4rem 1.6rem;
+  }
+
+  .pv2-steps li::before {
+    content: '';
+    position: absolute;
+    left: 0.4rem;
+    top: 0.85rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border: 1.5px solid var(--paper-ink);
+    border-radius: 50%;
+    background: var(--paper-raised);
+    transform: translate(-50%, -50%);
+  }
+
+  .pv2-name {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .pv2-what {
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--paper-muted);
+  }
+
+  .pv2-fork {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-3);
+    margin-top: var(--s-3);
+    padding-left: 1.6rem;
+  }
+
+  .pv2-fork p {
+    display: grid;
+    gap: var(--s-1);
+    padding: var(--s-3);
+    border: var(--hair) solid var(--paper-line);
+    font-size: 0.88rem;
+    color: var(--paper-muted);
+  }
+
+  .pv2-fork .ok {
+    border-color: var(--paper-signal);
+  }
+
+  .pv2-fork .fail {
+    border-style: dashed;
+    border-color: #9a3b2a;
+  }
+
+  .pv2-fork .fail .pv2-name {
+    color: #9a3b2a;
+  }
+
+  .pv2-fork .ok .pv2-name {
+    color: var(--paper-signal);
+  }
+
+  figcaption {
+    margin-top: var(--s-4);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--paper-meta);
+  }
+
+  @media (max-width: 36rem) {
+    .pv2-steps li {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .pv2-fork {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

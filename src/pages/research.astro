@@ -1,0 +1,536 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { credentials, presenterCert } from '../data/profile';
+
+// All numbers from the paper (Tables I–VII). Pilot, n = 50.
+const effects = [
+  { path: 'SI → BI', label: 'Social influence → intention', f2: 0.204 },
+  { path: 'HM → BI', label: 'Hedonic motivation → intention', f2: 0.164 },
+  { path: 'PV → BI', label: 'Price value → intention', f2: 0.145 },
+  { path: 'BI → UB', label: 'Intention → use', f2: 0.113 },
+  { path: 'HT → UB', label: 'Habit → use', f2: 0.046 },
+  { path: 'EE → BI', label: 'Effort expectancy → intention', f2: 0.039 },
+  { path: 'FC → UB', label: 'Facilitating conditions → use', f2: 0.018 },
+  { path: 'PE → BI', label: 'Performance expectancy → intention', f2: 0.014 },
+  { path: 'FC → BI', label: 'Facilitating conditions → intention', f2: 0.001 },
+  { path: 'HT → BI', label: 'Habit → intention', f2: 0.001 },
+];
+const max = 0.25;
+const pct = (v: number) => `${(v / max) * 100}%`;
+
+const constructs = [
+  { c: 'Performance Expectancy', ca: 0.85, cr: 0.899, ave: 0.69 },
+  { c: 'Effort Expectancy', ca: 0.839, cr: 0.892, ave: 0.674 },
+  { c: 'Social Influence', ca: 0.708, cr: 0.836, ave: 0.631 },
+  { c: 'Facilitating Conditions', ca: 0.817, cr: 0.879, ave: 0.644 },
+  { c: 'Hedonic Motivation', ca: 0.728, cr: 0.847, ave: 0.649 },
+  { c: 'Price Value', ca: 0.802, cr: 0.884, ave: 0.718 },
+  { c: 'Habit', ca: 0.853, cr: 0.901, ave: 0.695 },
+  { c: 'Behavioral Intention', ca: 0.815, cr: 0.879, ave: 0.646 },
+  { c: 'Use Behavior', ca: 0.842, cr: 0.894, ave: 0.677 },
+];
+
+const removed = [
+  { id: 'PE4', loading: 0.707, why: 'fewer calculation errors reads as a basic expectation, not a performance gain' },
+  { id: 'SI1', loading: 0.678, why: 'broad social pressure matters less than business relevance to owners' },
+  { id: 'PV2', loading: 0.694, why: 'overlapped with the other value items' },
+  { id: 'HM3', loading: 0.625, why: 'an entertainment angle that functional, efficiency-driven MSMEs don’t weigh' },
+];
+
+const best = credentials.find((c) => c.name.startsWith('Best Presenter'))!;
+const certs = [
+  { key: 'best', label: 'Best Presenter certificate', image: best.image!, alt: best.alt! },
+  { key: 'presenter', label: 'Presenter certificate', image: presenterCert.image, alt: presenterCert.alt },
+];
+---
+
+<Base
+  title="Research"
+  description="Pilot study on digital POS adoption among MSMEs in Bandung Raya using UTAUT2 and PLS-SEM. Best Presenter at the 9th ICICoS 2026, Universitas Diponegoro."
+  current="research"
+>
+  <header class="r-head wrap">
+    <p class="award"><span aria-hidden="true">◆</span> Best Presenter · The 9th ICICoS 2026 · Room 8</p>
+    <h1>Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2</h1>
+    <p class="authors">
+      <strong>Rafif Dzaky Daniswara</strong>, Muhardi Saputra, Haryasena Panduwiyasa · Department of Information Systems,
+      Telkom University
+    </p>
+    <p class="meta">
+      Presented at the 9th International Conference on Informatics and Computational Sciences (ICICoS 2026), Universitas
+      Diponegoro, Semarang, 12–13 Aug 2026 · not yet published
+    </p>
+    <div class="cert-btns">
+      {
+        certs.map((c) => (
+          <button class="btn" type="button" data-cert-open={c.key} aria-haspopup="dialog">
+            View {c.label.toLowerCase()}
+          </button>
+        ))
+      }
+    </div>
+  </header>
+
+  <div class="wrap r-body">
+    <dl class="nums ticket">
+      <div><dt>MSME respondents</dt><dd>50</dd></div>
+      <div><dt>items kept</dt><dd>33 <span>/ 37</span></dd></div>
+      <div><dt>R² behavioral intention</dt><dd>0.844</dd></div>
+      <div><dt>R² use behavior</dt><dd>0.548</dd></div>
+    </dl>
+
+    <article class="prose">
+      <h2>The question</h2>
+      <p>
+        Most MSME digitalization research looks outward: e-commerce, social media, QRIS and digital payments. A
+        point-of-sale app is different. It's an <em>internal</em> tool for recording transactions, tracking stock and
+        reading sales. This pilot asks what drives MSMEs in Bandung Raya to adopt one. It applies UTAUT2 to that
+        internal setting, and it checks whether the survey instrument actually measures what it claims to before any
+        large survey is run.
+      </p>
+
+      <h2>Sample and method</h2>
+      <ul>
+        <li>
+          <strong>50 MSME practitioners</strong> with current or past POS use: 31 in Kota Bandung, 19 in Kabupaten
+          Bandung. 64% owners, 36% staff, ages 19–60. Most used Moka POS.
+        </li>
+        <li>
+          A <strong>37-item questionnaire</strong> adapted from prior UTAUT2 studies. It used a 4-point Likert scale, so
+          there was no neutral midpoint to hide in.
+        </li>
+        <li>
+          Nine constructs: performance expectancy, effort expectancy, social influence, facilitating conditions, hedonic
+          motivation, price value, habit, behavioral intention and use behavior. That gives ten hypothesized paths.
+        </li>
+        <li>
+          <strong>PLS-SEM in SmartPLS 4.0</strong>. The focus is the measurement model: indicator reliability, internal
+          consistency and convergent validity. The structural model is read only descriptively.
+        </li>
+      </ul>
+
+      <h2>Refining the instrument</h2>
+      <p>
+        Four items fell below the 0.708 outer-loading threshold. Each also fit the POS setting poorly, so they were
+        removed:
+      </p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Item</th><th>Loading</th><th>Why it didn't fit</th></tr></thead>
+          <tbody>
+            {removed.map((r) => (
+              <tr><td><code>{r.id}</code></td><td>{r.loading.toFixed(3)}</td><td>{r.why}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        After re-estimating with the 33 remaining items, every loading clears 0.708. Every construct has Cronbach's alpha
+        and composite reliability above 0.70 and AVE above 0.50.
+      </p>
+      <details class="more">
+        <summary>Refined construct reliability (Table V)</summary>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Construct</th><th>Cronbach's α</th><th>ρc</th><th>AVE</th></tr></thead>
+            <tbody>
+              {constructs.map((c) => (
+                <tr><td>{c.c}</td><td>{c.ca.toFixed(3)}</td><td>{c.cr.toFixed(3)}</td><td>{c.ave.toFixed(3)}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <h2>What the model shows</h2>
+      <p>
+        The refined model explains <strong>84.4%</strong> of the variance in behavioral intention and
+        <strong>54.8%</strong> in actual use. Three factors stand out on effect size:
+      </p>
+    </article>
+
+    <figure class="chart ticket" aria-labelledby="chart-title">
+      <figcaption>
+        <p id="chart-title" class="chart-title">Effect size (f²) by path</p>
+        <p class="meta">Pilot, n = 50. Descriptive, not a confirmatory test. Guide lines: 0.02 small · 0.15 medium.</p>
+      </figcaption>
+      <div class="bars" role="list">
+        <div class="guides" aria-hidden="true">
+          <span class="guide" style={`left: ${pct(0.02)}`}><i>0.02</i></span>
+          <span class="guide" style={`left: ${pct(0.15)}`}><i>0.15</i></span>
+        </div>
+        {
+          effects.map((e, i) => (
+            <div class={`bar-row ${i < 3 ? 'is-top' : ''}`} role="listitem" tabindex="0" aria-label={`${e.label}: f² ${e.f2}`}>
+              <span class="bar-label">
+                <span class="mono">{e.path}</span>
+                <span class="bar-desc">{e.label}</span>
+              </span>
+              <span class="bar-track">
+                <span class="bar" style={`width: max(3px, ${pct(e.f2)})`} />
+                <span class="bar-val">{e.f2.toFixed(3)}</span>
+              </span>
+              <span class="tip" role="tooltip">
+                <strong>{e.label}</strong>
+                <br />
+                f² = {e.f2.toFixed(3)}
+              </span>
+            </div>
+          ))
+        }
+      </div>
+      <details class="more">
+        <summary>Table view</summary>
+        <table>
+          <thead><tr><th>Path</th><th>Relationship</th><th>f²</th></tr></thead>
+          <tbody>{effects.map((e) => <tr><td>{e.path}</td><td>{e.label}</td><td>{e.f2.toFixed(3)}</td></tr>)}</tbody>
+        </table>
+      </details>
+    </figure>
+
+    <article class="prose">
+      <p>
+        <strong>Social influence (0.204), hedonic motivation (0.164) and price value (0.145)</strong> had the largest
+        effects on intention. Performance expectancy, effort expectancy, facilitating conditions and habit had small
+        ones.
+      </p>
+
+      <h2>What it suggests</h2>
+      <p>
+        One reading is Herzberg's hygiene–motivator split. In a maturing POS market, "it works and it's easy" is already
+        expected. What still separates adopters is what peers use, whether using it feels good, and whether the price
+        feels fair.
+      </p>
+      <p>
+        For POS providers and local digitalization programs, the tentative direction is: lean on social proof (peer
+        testimonials, referrals), make onboarding feel easy and rewarding, and communicate costs and savings concretely
+        instead of making broad productivity claims.
+      </p>
+
+      <h2>Limits</h2>
+      <ul>
+        <li>A pilot with 50 respondents. The structural paths are described, not formally tested.</li>
+        <li>Discriminant validity wasn't assessed, because HTMT is unstable at this sample size.</li>
+        <li>No demographic moderators (age, gender, experience). Those belong in the full-scale study.</li>
+      </ul>
+
+      <h2>Why it's on a DevOps portfolio</h2>
+      <p>
+        It's a different kind of evidence: framing a question, checking the measurement before trusting the results,
+        and explaining the findings clearly enough to win Best Presenter.
+      </p>
+    </article>
+  </div>
+
+  {
+    certs.map((c) => (
+      <dialog class="cert-dialog" data-cert-dialog={c.key} aria-label={c.label}>
+        <div class="cert-bar">
+          <p>
+            <strong>{c.label}</strong> <span class="meta">· ICICoS 2026 · number blurred</span>
+          </p>
+          <button class="cert-close btn" type="button" data-close>
+            Close ✕
+          </button>
+        </div>
+        <Image src={c.image} alt={c.alt} widths={[640, 1000, 1400]} sizes="(max-width: 60rem) 94vw, 60rem" loading="lazy" />
+      </dialog>
+    ))
+  }
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-cert-open]').forEach((btn) => {
+    const d = document.querySelector<HTMLDialogElement>(`[data-cert-dialog="${btn.dataset.certOpen}"]`);
+    if (!d) return;
+    btn.addEventListener('click', () => d.showModal());
+    d.querySelector('[data-close]')?.addEventListener('click', () => d.close());
+    d.addEventListener('click', (e) => e.target === d && d.close());
+    d.addEventListener('close', () => btn.focus());
+  });
+</script>
+
+<style>
+  .r-head {
+    padding-block: var(--s-7) var(--s-6);
+  }
+
+  .award {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border: var(--rule) solid var(--stamp);
+    border-radius: 2px;
+    color: var(--stamp);
+    font: 500 0.8rem / 1.2 var(--font-mono);
+    letter-spacing: 0.04em;
+    rotate: -1.5deg;
+  }
+
+  h1 {
+    max-width: 24ch;
+    margin-top: var(--s-5);
+    font-size: var(--step-3);
+  }
+
+  .authors {
+    margin-top: var(--s-4);
+    font-size: var(--step-1);
+  }
+
+  .r-head .meta {
+    margin-top: var(--s-2);
+    max-width: 50rem;
+  }
+
+  .cert-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-5);
+  }
+
+  .r-body {
+    padding-bottom: var(--s-8);
+  }
+
+  .nums {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: var(--s-7);
+  }
+
+  .nums div {
+    padding: var(--s-4) var(--s-5);
+  }
+
+  .nums div + div {
+    border-left: var(--rule) dashed var(--ink);
+  }
+
+  .nums dt {
+    font: 500 0.72rem / 1.4 var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .nums dd {
+    font-size: var(--step-2);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .nums dd span {
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 0.7em;
+  }
+
+  .more {
+    margin-top: var(--s-4);
+  }
+
+  .more summary {
+    cursor: pointer;
+    font: 500 0.85rem / 1.4 var(--font-mono);
+    color: var(--accent-deep);
+  }
+
+  .more table {
+    width: 100%;
+    margin-top: var(--s-3);
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .more th,
+  .more td {
+    padding: var(--s-2) var(--s-3) var(--s-2) 0;
+    border-bottom: var(--hair) solid var(--line);
+    text-align: left;
+  }
+
+  /* ---------- chart ---------- */
+  .chart {
+    max-width: 52rem;
+    margin: var(--s-5) 0;
+    padding: var(--s-5);
+  }
+
+  .chart-title {
+    font-weight: 650;
+  }
+
+  .bars {
+    position: relative;
+    display: grid;
+    gap: var(--s-2);
+    margin-top: var(--s-5);
+    --label-w: 17rem;
+  }
+
+  /* guide lines live over the bar-track column only, so % maps to f² */
+  .guides {
+    position: absolute;
+    top: -0.3rem;
+    bottom: 0;
+    left: calc(var(--label-w) + var(--s-3));
+    right: 0;
+    pointer-events: none;
+  }
+
+  .guide {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: var(--hair) solid var(--line);
+  }
+
+  .guide i {
+    position: absolute;
+    top: -1.1rem;
+    left: 0.2rem;
+    font: 400 0.68rem / 1 var(--font-mono);
+    font-style: normal;
+    color: var(--muted);
+  }
+
+  .bar-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--label-w) minmax(0, 1fr);
+    gap: var(--s-3);
+    align-items: center;
+    border-radius: var(--radius);
+    outline-offset: 2px;
+  }
+
+  .bar-label {
+    display: flex;
+    gap: var(--s-2);
+    align-items: baseline;
+    font-size: 0.86rem;
+    line-height: 1.3;
+  }
+
+  .bar-label .mono {
+    flex: none;
+    width: 4.6rem;
+    font-size: 0.78rem;
+  }
+
+  .bar-desc {
+    color: var(--muted);
+  }
+
+  .bar-track {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    height: 1.25rem;
+  }
+
+  .bar {
+    height: 1.1rem;
+    border-radius: 0 4px 4px 0;
+    background: #b7c4c6;
+  }
+
+  .is-top .bar {
+    background: var(--accent);
+  }
+
+  .bar-val {
+    position: relative;
+    z-index: 1;
+    padding: 0.1rem 0.2rem;
+    background: var(--card);
+    font: 400 0.76rem / 1 var(--font-mono);
+    color: var(--ink);
+  }
+
+  .tip {
+    position: absolute;
+    left: calc(var(--label-w) + var(--s-3));
+    bottom: calc(100% + 4px);
+    z-index: 2;
+    padding: 0.4rem 0.6rem;
+    border: var(--hair) solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--card);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-fast) var(--ease);
+  }
+
+  .bar-row:hover .tip,
+  .bar-row:focus-visible .tip {
+    opacity: 1;
+  }
+
+  .bar-row:hover .bar {
+    filter: brightness(0.92);
+  }
+
+  /* ---------- dialogs ---------- */
+  .cert-dialog {
+    width: min(60rem, 94vw);
+    max-height: 92vh;
+    padding: 0;
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius-ticket);
+    background: var(--card);
+    color: var(--ink);
+  }
+
+  .cert-dialog::backdrop {
+    background: rgba(31, 42, 46, 0.6);
+  }
+
+  .cert-bar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    border-bottom: var(--hair) solid var(--line);
+    background: var(--card);
+  }
+
+  .cert-close {
+    min-height: 2.4rem;
+  }
+
+  .cert-dialog :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 48rem) {
+    .nums {
+      grid-template-columns: 1fr 1fr;
+    }
+    .nums div:nth-child(3) {
+      border-left: 0;
+    }
+    .nums div:nth-child(n + 3) {
+      border-top: var(--rule) dashed var(--ink);
+    }
+    .bars {
+      --label-w: 4.6rem;
+    }
+    .bar-desc {
+      display: none;
+    }
+    .chart {
+      padding: var(--s-4);
+    }
+  }
+</style>

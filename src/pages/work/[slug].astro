@@ -1,0 +1,238 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { person } from '../../data/profile';
+
+export async function getStaticPaths() {
+  const cases = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+  return cases.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, next: cases[(i + 1) % cases.length] },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'work'>;
+  next: CollectionEntry<'work'>;
+}
+
+const { entry, next } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const index = String(d.order).padStart(2, '0');
+---
+
+<Base title={d.kicker} description={d.summary} current="work">
+  <header class="case-head wrap">
+    <p class="meta crumbs"><a href="/#work">Work</a> <span aria-hidden="true">/</span> {index} · {d.kicker}</p>
+    <h1>{d.title}</h1>
+    <p class="lede">{d.summary}</p>
+
+    <dl class="facts ticket">
+      <div><dt>Context</dt><dd>{d.context}</dd></div>
+      <div><dt>Period</dt><dd>{d.period}</dd></div>
+      <div class="wide"><dt>Role</dt><dd>{d.role}</dd></div>
+      <div class="wide">
+        <dt>Stack</dt>
+        <dd>
+          <ul class="stack">{d.stack.map((s) => <li>{s}</li>)}</ul>
+        </dd>
+      </div>
+    </dl>
+  </header>
+
+  <div class="case-body band">
+    <div class="wrap grid">
+      <article class="prose">
+        <Content />
+      </article>
+
+      <aside class="glance ticket" aria-label="At a glance">
+        <p class="kicker">At a glance</p>
+        <dl>
+          {
+            d.glance.map((g) => (
+              <div>
+                <dt>{g.k}</dt>
+                <dd>{g.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <p class="glance-cta">
+          Questions about this work?<br />
+          <a href={`mailto:${person.email}`}>{person.email}</a>
+        </p>
+      </aside>
+    </div>
+  </div>
+
+  <nav class="next wrap" aria-label="Next case study">
+    <a class="next-link ticket" href={`/work/${next.id}`}>
+      <span class="meta">Next case · {String(next.data.order).padStart(2, '0')} · {next.data.kicker}</span>
+      <span class="next-title">{next.data.title} →</span>
+    </a>
+  </nav>
+</Base>
+
+<style>
+  .case-head {
+    padding-block: var(--s-7) var(--s-6);
+  }
+
+  .crumbs a {
+    color: var(--accent-deep);
+  }
+
+  h1 {
+    max-width: 22ch;
+    margin-top: var(--s-4);
+    font-size: var(--step-4);
+  }
+
+  .lede {
+    margin-top: var(--s-5);
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--s-4) var(--s-6);
+    max-width: 56rem;
+    margin-top: var(--s-6);
+    padding: var(--s-5);
+  }
+
+  .facts .wide {
+    grid-column: 1 / -1;
+  }
+
+  .facts dt {
+    font: 500 0.72rem / 1.4 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .facts dd {
+    margin-top: var(--s-1);
+  }
+
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    list-style: none;
+  }
+
+  .stack li {
+    padding: 0.15rem 0.5rem;
+    border: var(--hair) solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--paper);
+    font: 400 0.78rem / 1.5 var(--font-mono);
+  }
+
+  .case-body {
+    padding-block: var(--s-7) var(--s-8);
+    border-block: var(--hair) solid var(--line);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, var(--measure)) 17rem;
+    justify-content: space-between;
+    gap: var(--s-7);
+    align-items: start;
+  }
+
+  .prose > :global(h2:first-child) {
+    margin-top: 0;
+  }
+
+  .glance {
+    position: sticky;
+    top: 6rem;
+    padding: var(--s-5);
+  }
+
+  .glance dl {
+    margin-top: var(--s-3);
+  }
+
+  .glance dl div + div {
+    margin-top: var(--s-4);
+  }
+
+  .glance dt {
+    font-weight: 650;
+    font-size: 0.92rem;
+  }
+
+  .glance dd {
+    margin-top: var(--s-1);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .glance-cta {
+    margin-top: var(--s-5);
+    padding-top: var(--s-4);
+    border-top: var(--hair) dashed var(--ink);
+    font-size: 0.9rem;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .glance-cta a {
+    color: var(--accent-deep);
+  }
+
+  .next {
+    padding-block: var(--s-7);
+  }
+
+  .next-link {
+    display: grid;
+    gap: var(--s-2);
+    padding: var(--s-5);
+    text-decoration: none;
+    transition:
+      transform var(--dur-fast) var(--ease),
+      box-shadow var(--dur-fast) var(--ease);
+  }
+
+  .next-link:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+
+  .next-title {
+    font-size: var(--step-2);
+    font-weight: 650;
+    line-height: var(--leading-snug);
+  }
+
+  @media (max-width: 60rem) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s-5);
+    }
+    .glance {
+      position: static;
+      order: -1;
+    }
+    .glance dl {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+      gap: var(--s-4);
+    }
+    .glance dl div + div {
+      margin-top: 0;
+    }
+    .glance-cta {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,324 @@
+---
+import { person } from '../data/profile';
+import LogoMark from './LogoMark.astro';
+
+interface Props {
+  current: 'home' | 'work' | 'homelab' | 'research' | 'resume' | 'other';
+}
+const { current } = Astro.props;
+const onHome = current === 'home';
+
+// On the home page these are in-page anchors (scroll-spy highlights them);
+// elsewhere they point back to the home sections.
+const links = [
+  { id: 'about', label: 'About' },
+  { id: 'work', label: 'Work' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'homelab', label: 'Homelab' },
+  { id: 'research', label: 'Research' },
+  { id: 'off-the-clock', label: 'Off the clock' },
+  { id: 'contact', label: 'Contact' },
+];
+const pageFor: Record<string, string> = { work: 'work', homelab: 'homelab', research: 'research' };
+---
+
+<header class="site-header" data-home={onHome ? 'true' : 'false'}>
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label={`${person.name}, home`}>
+      <LogoMark size={34} />
+      <span>rafif<span class="dot">.</span>ops</span>
+    </a>
+
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span class="menu-icon" aria-hidden="true"></span>
+      <span class="menu-label">Menu</span>
+    </button>
+
+    <nav id="site-nav" aria-label="Primary">
+      <ul>
+        {
+          links.map((l) => (
+            <li>
+              <a
+                href={onHome ? `#${l.id}` : `/#${l.id}`}
+                data-spy={l.id}
+                class={pageFor[l.id] === current ? 'is-active' : undefined}
+                aria-current={pageFor[l.id] === current ? 'page' : undefined}
+              >
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="resume-btn" href={person.resumePage} aria-current={current === 'resume' ? 'page' : undefined}>
+        Resume
+      </a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: var(--hair) solid var(--line);
+    background: color-mix(in srgb, var(--paper) 90%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    min-height: 4.25rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font: 500 1.2rem / 1 var(--font-mono);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .dot {
+    color: var(--accent);
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 2vw, 2.5rem);
+  }
+
+  nav ul {
+    display: flex;
+    gap: clamp(0.8rem, 1.6vw, 1.9rem);
+    list-style: none;
+  }
+
+  nav ul a {
+    position: relative;
+    display: inline-block;
+    padding-block: var(--s-2);
+    color: var(--muted);
+    font-size: 0.95rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--dur-fast) var(--ease);
+  }
+
+  nav ul a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.2rem;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur) var(--ease);
+  }
+
+  nav ul a:hover,
+  nav ul a.is-active {
+    color: var(--ink);
+  }
+
+  nav ul a.is-active::after {
+    transform: scaleX(1);
+  }
+
+  .resume-btn {
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius);
+    background: var(--ink);
+    color: var(--paper);
+    font: 500 0.88rem / 1 var(--font-mono);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .resume-btn:hover {
+    background: var(--accent-deep);
+  }
+
+  .menu-btn {
+    display: none;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: 2.75rem;
+    padding: 0 0.8rem;
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--card);
+    color: var(--ink);
+    font: 500 0.85rem / 1 var(--font-mono);
+    cursor: pointer;
+  }
+
+  .menu-icon,
+  .menu-icon::before,
+  .menu-icon::after {
+    display: block;
+    width: 1rem;
+    height: 1.5px;
+    background: currentColor;
+    transition: transform var(--dur-fast) var(--ease);
+  }
+
+  .menu-icon {
+    position: relative;
+  }
+
+  .menu-icon::before,
+  .menu-icon::after {
+    content: '';
+    position: absolute;
+    left: 0;
+  }
+
+  .menu-icon::before {
+    top: -5px;
+  }
+
+  .menu-icon::after {
+    top: 5px;
+  }
+
+  .menu-btn[aria-expanded='true'] .menu-icon {
+    background: transparent;
+  }
+
+  .menu-btn[aria-expanded='true'] .menu-icon::before {
+    transform: translateY(5px) rotate(45deg);
+  }
+
+  .menu-btn[aria-expanded='true'] .menu-icon::after {
+    transform: translateY(-5px) rotate(-45deg);
+  }
+
+  @media (max-width: 68rem) {
+    .menu-btn {
+      display: inline-flex;
+    }
+
+    nav {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--s-4);
+      padding: var(--s-4) var(--gutter) var(--s-5);
+      border-bottom: var(--rule) solid var(--ink);
+      background: var(--paper);
+    }
+
+    .site-header.is-open nav {
+      display: flex;
+    }
+
+    nav ul {
+      flex-direction: column;
+      gap: 0;
+    }
+
+    nav ul a {
+      display: block;
+      padding: var(--s-3) 0;
+      border-bottom: var(--hair) solid var(--line);
+      font-size: 1.05rem;
+    }
+
+    nav ul a::after {
+      display: none;
+    }
+
+    nav ul a.is-active {
+      color: var(--accent-deep);
+      font-weight: 600;
+    }
+
+    .resume-btn {
+      padding: 0.8rem 1rem;
+      text-align: center;
+    }
+  }
+
+  /* Without JS the menu button can't work, so show the links inline and let them wrap. */
+  :global(html:not(.js)) .menu-btn {
+    display: none;
+  }
+
+  @media (max-width: 68rem) {
+    :global(html:not(.js)) nav {
+      position: static;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      padding: 0 0 var(--s-3);
+      border: 0;
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header')!;
+  const btn = header.querySelector<HTMLButtonElement>('.menu-btn')!;
+  const nav = header.querySelector<HTMLElement>('#site-nav')!;
+
+  const setOpen = (open: boolean) => {
+    header.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', String(open));
+  };
+
+  btn.addEventListener('click', () => setOpen(btn.getAttribute('aria-expanded') !== 'true'));
+  nav.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && header.classList.contains('is-open')) {
+      setOpen(false);
+      btn.focus();
+    }
+  });
+
+  // Scroll-spy: highlight the section that crosses the middle band of the viewport.
+  if (header.dataset.home === 'true' && 'IntersectionObserver' in window) {
+    const links = new Map(
+      [...nav.querySelectorAll<HTMLAnchorElement>('[data-spy]')].map((a) => [a.dataset.spy!, a]),
+    );
+    const sections = [...links.keys()]
+      .map((id) => document.getElementById(id))
+      .filter((s): s is HTMLElement => !!s);
+
+    const activate = (id: string | null) => {
+      links.forEach((a, key) => {
+        const on = key === id;
+        a.classList.toggle('is-active', on);
+        if (on) a.setAttribute('aria-current', 'location');
+        else a.removeAttribute('aria-current');
+      });
+    };
+
+    const visible = new Set<string>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => (en.isIntersecting ? visible.add(en.target.id) : visible.delete(en.target.id)));
+        // Topmost visible section wins; the hero (above #about) clears the highlight.
+        const first = sections.find((s) => visible.has(s.id));
+        activate(first ? first.id : null);
+      },
+      { rootMargin: '-40% 0px -55% 0px' },
+    );
+    sections.forEach((s) => io.observe(s));
+  }
+</script>

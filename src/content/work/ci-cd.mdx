@@ -1,0 +1,225 @@
+---
+title: Every production service ships through a pipeline now
+kicker: CI/CD modernization
+summary: Moving 20+ Laravel production services off hand-run SSH sessions and onto GitHub Actions. About 60% deploy automatically, and production releases wait for my approval inside the same pipeline. Includes the sixteen failures that shaped the template, what v1 still gets wrong, and the v2 that fixes it.
+order: 1
+context: Professional · PT Pengembang Sistem Manajemen
+period: Jan 2026 – present
+role: DevOps Engineer. I built, debug and maintain the pipelines and approve every production run.
+stack: [GitHub Actions, Laravel, PHP-FPM, Vite, Pest, Supervisor, Horizon, Linode, SSH]
+glance:
+  - { k: Coverage, v: 'All 20+ production services release through GitHub Actions' }
+  - { k: Automation, v: '~60% deploy automatically; production runs are dispatched and confirmed by me' }
+  - { k: Failure rate, v: 'Under 2% of production deploy runs failed on core services (GitHub Actions run history)' }
+---
+
+import ReleaseCompare from '../../components/diagrams/ReleaseCompare.astro';
+import PipelineV2 from '../../components/diagrams/PipelineV2.astro';
+import Callout from '../../components/Callout.astro';
+import Incident from '../../components/Incident.astro';
+
+## Situation
+
+Before, releasing a service meant someone with server access opened an SSH session to the VPS, ran `git pull`, and then did whatever else that app needed by hand. The steps varied from person to person and from service to service. Developers had to wait for an operator to be free.
+
+## My role
+
+I built the pipelines, debugged them when they were unstable, and standardized the workflow templates they share. I also wrote the SOPs developers follow to release. Production is the one place I deliberately kept a human in the loop: nothing reaches production until I dispatch the run and confirm it.
+
+## What "60%" means
+
+**Every service has a pipeline.** The difference is how a run starts:
+
+- **~60% of services deploy automatically.** A change lands and the pipeline builds, checks and ships it without anyone touching it.
+- **The rest are production releases that I start by hand** (`workflow_dispatch`) and confirm. It's the same pipeline doing the same build, checks and deploy. The only manual part is the decision to go.
+
+So "manual" here means an approval step, not SSH and `git pull`. Nobody deploys by logging into a server anymore.
+
+## What the pipeline does today (v1)
+
+<ReleaseCompare />
+
+The steps below come from the real workflow files, with names and hosts removed. Pipelines differ a little from service to service, so this list combines the two most complete ones.
+
+1. **Gate.** Production runs start from `workflow_dispatch` and stop at once unless the operator types a confirmation word. A concurrency group stops two production deploys from overlapping, and the workflow token is read-only.
+2. **Build.** PHP and Node.js 22 are set up. Composer and npm dependencies are installed with caching, and Vite builds the frontend assets.
+3. **Check.** Laravel Pint, Prettier, ESLint with zero warnings allowed, a TypeScript type check, and the Pest test suite.
+4. **Package.** Production-only Composer packages go into one release tarball, excluding `.git`, tests, `node_modules` and `.env`.
+5. **Deploy.** The package is copied to the VPS over SSH. On the server the pipeline:
+   - backs up the previous `vendor/` and built assets (keeping the last ten)
+   - stops the queue workers and Horizon, then extracts the release
+   - resets `storage/` and `bootstrap/cache` permissions
+   - rebuilds the config, route, view and event caches
+   - runs migrations
+   - reloads PHP-FPM and restarts the workers
+6. **Verify.** It primes the scheduler heartbeat and then calls the health endpoint. Anything other than HTTP 200 or 302 fails the run. The SSH key is deleted in an always-run step, and a summary (commit, branch, who deployed) is written to the run page.
+
+## Sixteen failures that shaped the template
+
+Almost every step in the list above exists because something went wrong without it. These are the failure modes I hit while rolling pipelines out across the services, mostly on Laravel apps with background queues. Each one became a permanent step, so the fix no longer depends on someone remembering it.
+
+### Before it ships
+
+<Incident
+  title="Tests crashed on a missing Vite manifest"
+  symptom="Feature tests that render Inertia pages failed with 'Vite manifest not found'. They passed locally because my machine had a build folder."
+  fix="public/build isn't committed, so CI never had one. The pipeline now builds the frontend before running the tests."
+  step="npm run build  →  pest"
+/>
+<Incident
+  title="Type checks failed on route helpers that didn't exist yet"
+  symptom="ESLint and the TypeScript check failed on a fresh checkout, complaining about missing route imports."
+  fix="Wayfinder's generated route files aren't in git either. The pipeline now generates them before linting and building."
+  step="php artisan wayfinder:generate"
+/>
+<Incident
+  title="The test suite died halfway"
+  symptom="Larger suites stopped with PHP's 'Allowed memory size exhausted', seemingly at random."
+  fix="The test runner gets an explicit memory limit and stops at the first failure, so a real failure is clear and quick to find."
+  step="php -d memory_limit=512M pest --stop-on-failure"
+/>
+<Incident
+  title="Formatting and lint drift kept breaking builds later"
+  symptom="Code merged with style or lint problems passed review, then failed a later build."
+  fix="Quality gates run before anything is packaged: Pint, Prettier, ESLint with zero warnings allowed, and type checks."
+  step="pint --test · prettier --check · eslint --max-warnings=0"
+/>
+<Incident
+  title="The release tarball tried to include itself"
+  symptom="After an app moved to the repository root, the archive step started packing its own output file into itself."
+  fix="The tarball is written to /tmp, outside the directory being archived."
+  step="tar -czf /tmp/laravel-release.tar.gz -C . ."
+/>
+<Incident
+  title="Dev packages and tests ended up in production"
+  symptom="Release artifacts carried dev dependencies, test files and node_modules. They were bigger than needed and exposed things production doesn't need."
+  fix="Composer is reinstalled with --no-dev before packaging, and tests, node_modules, .git and .env are excluded."
+  step="composer install --no-dev --optimize-autoloader"
+/>
+<Incident
+  title="The pipeline still built a service that had moved out"
+  symptom="When the FastAPI backend was split into its own repository, the Laravel pipeline still carried its build and deploy steps."
+  fix="Each repository now owns exactly one service's pipeline, and the old steps were removed."
+/>
+
+### While it ships
+
+<Incident
+  title="Production deploys shouldn't be one click away"
+  symptom="A manual trigger with no guard makes an accidental production run too easy."
+  fix="A guard job fails the run unless the operator types the confirmation word. v2 replaces this with a real reviewer approval."
+  step="if inputs.confirm != 'DEPLOY' → exit 1"
+/>
+<Incident
+  title="Two deploys racing each other"
+  symptom="Two runs that overlap on one server can extract over each other halfway through."
+  fix="A concurrency group queues production deploys one at a time and never cancels one mid-flight."
+  step="concurrency: { group: production, cancel-in-progress: false }"
+/>
+<Incident
+  title="Permission denied on storage/ and bootstrap/cache"
+  symptom="The deploy failed, or the app threw errors right after, because Laravel couldn't write its cache or logs."
+  fix="Files there were owned by a different user, left by an earlier manual or elevated step. Every deploy now creates the storage directories, removes stale compiled cache files and resets ownership and permissions."
+/>
+<Incident
+  title="New code, old config"
+  symptom="After a release the app behaved as if the previous .env or routes were still live."
+  fix="Cached config, routes, views and events are cleared, then rebuilt from the new release on every deploy."
+  step="artisan optimize:clear  →  artisan optimize"
+/>
+<Incident
+  title="Queue workers kept running last release's code"
+  symptom="The deploy looked successful, but queued jobs still behaved like the old version."
+  fix="Horizon and queue workers are long-running processes under Supervisor. The pipeline now signals them to stop and Supervisor starts them on the new code."
+  step="artisan queue:restart · artisan horizon:terminate"
+/>
+<Incident
+  title="PHP served the old files after extraction"
+  symptom="Some requests still hit the previous code for a while after a release."
+  fix="OPcache was holding the old compiled files. PHP-FPM is config-tested and then gracefully reloaded after every release."
+  step="php-fpm -t && reload php-fpm"
+/>
+
+### After it ships
+
+<Incident
+  title="Green pipeline, broken site"
+  symptom="Every step passed, and the app still returned errors."
+  fix="The final step calls the app's health endpoint (with a fallback to the root URL) and fails the run on anything but 200/302."
+  step="curl -w '%{http_code}' https://…/up"
+/>
+<Incident
+  title="The scheduler looked dead right after a deploy"
+  symptom="Health checks flagged the scheduler as not running for the first minutes after a release."
+  fix="The pipeline primes the scheduler heartbeat before running health checks."
+  step="artisan health:schedule-check-heartbeat"
+/>
+<Incident
+  title="Secrets outliving the job"
+  symptom="The deploy key was written to disk on the runner and stayed there when a job failed."
+  fix="An always-run cleanup step deletes the key whether the job succeeds or fails."
+  step="if: always() → rm -f ~/.ssh/deploy_key"
+/>
+
+**How I narrow a failed run down:** first the failing step in the Actions log. Then, on the server, `laravel.log` and the worker status in Supervisor/Horizon. After that, file ownership on `storage/` and `bootstrap/cache`. Finally memory, on the Grafana dashboard and in the system logs.
+
+## Results
+
+- **All 20+ production services** release through GitHub Actions instead of SSH and `git pull`. About 60% deploy automatically; production releases go through my approval.
+- **Under 2% of production deploy runs failed** on core services, measured from GitHub Actions run history.
+- Release steps are written down, in the workflow and in the SOP, instead of living in one person's head.
+
+## What v1 still gets wrong
+
+I'd rather list these myself than have a reviewer find them:
+
+<div class="table-scroll">
+
+| v1 behaviour | Why it matters |
+|---|---|
+| Typed `DEPLOY` confirmation | A speed bump, not access control: anyone who can run workflows can type it. |
+| Extracts over the live directory | A failing step can leave a half-updated app, and there's no clean rollback. |
+| Several steps end in `\|\| true` | Real failures, including the app's own health check, get silently ignored. |
+| Failed health check only fails the job | The broken release stays live until someone steps in. |
+| `ssh-keyscan` on every run | Trusts whichever host answers first. |
+| Some pipelines deploy without tests | Build and deploy share one job, so nothing forces the tests to run first. |
+
+</div>
+
+## Next iteration: v2 template
+
+<Callout kind="draft" title="Written, not yet running in production">
+  <p>I've drafted v2 as a separate template. I'll prove it in my homelab first (roadmap P06 and P11), then move one real service onto it. Until then, treat everything below as design, not results.</p>
+</Callout>
+
+<PipelineV2 />
+
+- **Real approval.** A GitHub Environment with a required reviewer replaces the typed word. The deploy secrets are scoped to that environment, so they don't exist for the job until someone approves.
+- **Ship only what CI tested.** One reusable CI workflow runs on every pull request, testing against PostgreSQL rather than SQLite. The deploy calls that workflow and ships its artifact.
+- **Release directories and an atomic switch.** Each deploy goes to `releases/<id>`, and `current` flips with a single rename. If the health check fails, `current` is pointed back at the previous release automatically.
+- **Fail loudly.** `set -Eeuo pipefail` replaces `|| true`, and the host key is pinned. `sudo` is limited to a single `systemctl reload`.
+
+```bash
+# remote-deploy.sh (excerpt): one rename, no half-deployed state
+ln -sfn "$new" "$APP_ROOT/.current.tmp"
+mv -Tf "$APP_ROOT/.current.tmp" "$CURRENT"
+
+# from here on, any failure puts the previous release back
+trap 'switch_to "$previous"; reload_runtime || true' ERR
+reload_runtime
+trap - ERR
+```
+
+### The containerized variant
+
+For services that run in Docker, the same shape uses an image instead of a directory:
+
+- A multi-stage `Dockerfile` separates Composer dependencies, the Vite asset build and the runtime. PHP-FPM runs as a non-root user, and an unprivileged nginx image serves `public/`.
+- One app image runs PHP-FPM, the queue worker (or Horizon) and the scheduler. Docker's restart policy does the job Supervisor does on a plain VPS.
+- Images are tagged with the commit SHA, scanned with Trivy before they're pushed, and pulled from GitHub's container registry. `docker compose up --wait` blocks until healthchecks pass, and rolling back means starting the previous tag.
+
+**Known limit, in both variants:** rolling back restores the code, not the database. Migrations have to stay backward compatible with the previous release, so schema changes are split across two deploys.
+
+<Callout kind="confidential">
+  <p>Repository names, hosts, deploy paths and secrets are left out. The v1 steps above are taken from the real workflow files; I can walk through a sanitized copy in an interview.</p>
+</Callout>

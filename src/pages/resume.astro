@@ -1,0 +1,229 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import resumePage from '../assets/resume-page.jpg';
+import { person } from '../data/profile';
+
+// The page never fetches the PDF on its own. It only downloads when the visitor
+// clicks, so download managers (IDM etc.) don't pop up just from opening the page.
+// Text version below mirrors the PDF's wording for screen readers and search.
+---
+
+<Base
+  title="Resume"
+  description="One-page résumé of Rafif Dzaky Daniswara, DevOps Engineer. View it in the browser or download the PDF."
+  current="resume"
+>
+  <section class="wrap rs">
+    <div class="rs-head">
+      <div>
+        <p class="kicker">Boarding document · résumé</p>
+        <h1>{person.name}</h1>
+        <p class="meta">DevOps Engineer · one page · updated Aug 2026</p>
+      </div>
+      <div class="rs-actions">
+        <a class="btn btn--primary" href={person.resumePdf} download={person.resumeFile}>Download PDF</a>
+        <a class="btn" href="#resume-text">Text version</a>
+      </div>
+    </div>
+
+    <figure class="sheet">
+      <a href={resumePage.src} class="sheet-link" aria-label="Open the résumé image at full size">
+        <Image
+          src={resumePage}
+          alt={`Résumé of ${person.name}. The full text is in the text version below.`}
+          widths={[480, 800, 1200, 1555]}
+          sizes="(max-width: 64rem) 94vw, 58rem"
+          loading="eager"
+        />
+      </a>
+      <figcaption class="meta">Click the page to open it at full size.</figcaption>
+    </figure>
+
+    <details class="text ticket" id="resume-text">
+      <summary>Text version</summary>
+      <div class="text-body">
+        <h2>Rafif Dzaky Daniswara</h2>
+        <p>DevOps Engineer | CI/CD Automation & Infrastructure</p>
+        <p>
+          Bogor, West Java · <a href={person.phoneHref}>{person.phone}</a> · <a href={`mailto:${person.email}`}>{person.email}</a> ·
+          <a href={person.linkedin}>linkedin.com/in/rafifdzaky</a> · <a href={person.github}>github.com/rafifdzaky27</a>
+        </p>
+        <p>
+          Information Systems graduate with hands-on experience in software development, systems analysis, IT governance,
+          and technology operations. Contributed to the digitization of IT governance workflows at bank bjb and the delivery,
+          reliability, and monitoring of enterprise applications at PT. Pengembang Sistem Manajemen. Brings structured problem
+          solving, technical documentation, and cross-functional collaboration to digital transformation initiatives.
+        </p>
+
+        <h3>Professional experience</h3>
+        <h4>PT. Pengembang Sistem Manajemen, Jakarta · Jan 2025 – Present</h4>
+        <p><strong>DevOps Engineer</strong> · Jan 2026 – Present</p>
+        <ul>
+          <li>Replaced a fully manual deployment process, in which every release required SSH access and a manual git pull on the server, with automated CI/CD pipelines now covering roughly 60 percent of more than 20 production services.</li>
+          <li>Maintained a production deployment failure rate below 2 percent across key services while the team shipped at high frequency.</li>
+          <li>Diagnosed pipeline instability during initial rollout through iterative debugging, then standardized workflow templates across every repository to stop the same failures recurring.</li>
+          <li>Provisioned and administered Linode VPS instances for more than 20 services, covering Linux server configuration, Docker containerization, and ongoing maintenance.</li>
+          <li>Built monitoring with Prometheus, Grafana, and Uptime Kuma covering CPU, memory, disk, and service availability, surfacing degradation before users reported it.</li>
+          <li>Authored deployment SOPs and workflow documentation, enabling developers to release independently instead of routing every deployment through one engineer.</li>
+        </ul>
+        <p><strong>Full-stack Developer</strong> · Feb 2025 – Jun 2025</p>
+        <ul>
+          <li>Refactored the checkout flow with React.js and Node.js, moving participant data entry to the end of the process to shorten the path to payment.</li>
+          <li>Rebuilt the company homepage with a dynamic hero section that pulled promotional content from upcoming training dates, removing recurring manual content updates.</li>
+          <li>Developed a keyword-driven automation funnel in Node.js and React.js that triggered content broadcasts based on user intent.</li>
+        </ul>
+        <p><strong>Full-stack Developer Intern</strong> · Jan 2025 – Feb 2025</p>
+        <ul>
+          <li>Built a responsive lead-generation landing page and evaluated self-hosted large language models from OpenAI and Ollama on a Microsoft Azure VPS for internal product use.</li>
+        </ul>
+
+        <h4>bank bjb, Bandung · Jun 2025 – Aug 2025</h4>
+        <p><strong>Software Developer Intern, IT Architecture and Governance Division</strong></p>
+        <ul>
+          <li>Engineered and deployed more than 5 backend microservices for the AGW platform as part of its migration to a service-oriented architecture.</li>
+          <li>Identified and resolved more than 25 critical bugs in the existing codebase, improving platform stability and response times.</li>
+          <li>Developed frontend components that simplified data submission and review for the IT Architecture and Governance team.</li>
+          <li>Digitized manual approval and documentation workflows, replacing paper-based governance processes across the division.</li>
+        </ul>
+
+        <h4>Enterprise Application Development (EAD) Laboratory, Telkom University · Feb 2025 – Jun 2025</h4>
+        <p><strong>Practicum Assistant, Web Application Development</strong></p>
+        <ul>
+          <li>Co-authored a Laravel teaching module covering MVC architecture, database management, and API development, delivered to more than 400 students.</li>
+          <li>Administered the LMS practicum portal for more than 400 students, publishing over 30 materials and assignments at a 95 percent on-time delivery rate.</li>
+        </ul>
+
+        <h3>Technical skills</h3>
+        <ul>
+          <li><strong>CI/CD and Automation:</strong> GitHub Actions, pipeline design and standardization, automated deployment workflows, staging and production release management, deployment documentation and SOPs</li>
+          <li><strong>Infrastructure and Cloud:</strong> Linode, Linux server administration, VPS provisioning and configuration, Docker, environment configuration</li>
+          <li><strong>Monitoring and Observability:</strong> Prometheus, Grafana, Uptime Kuma, resource and uptime monitoring</li>
+          <li><strong>Backend:</strong> Node.js, Laravel, PHP, JavaScript, microservices architecture, REST API development</li>
+          <li><strong>Frontend:</strong> React.js, Next.js</li>
+          <li><strong>Databases and Tooling:</strong> MySQL, PostgreSQL, Git, GitHub</li>
+        </ul>
+
+        <h3>Education</h3>
+        <p>
+          <strong>Bachelor of Information Systems, Telkom University</strong> · 2022 – 2026<br />
+          Faculty of Industrial Engineering, Bandung · GPA 3.87 / 4.00<br />
+          Degree requirements completed August 2026. Commencement ceremony November 2026.
+        </p>
+
+        <h3>Certifications and achievements</h3>
+        <ul>
+          <li>System Analyst, Badan Nasional Sertifikasi Profesi (BNSP), valid November 2025 to November 2028</li>
+          <li>Junior Web Developer, Badan Nasional Sertifikasi Profesi (BNSP), valid June 2025 to June 2028</li>
+          <li>Best Presenter, The 9th International Conference on Informatics and Computational Sciences (ICICoS 2026), Universitas Diponegoro, August 2026. Presented quantitative research on digital point-of-sale adoption among MSMEs using UTAUT2 and PLS-SEM.</li>
+          <li>Gold Certificate, Cisco NetAcadRiders, 2024</li>
+        </ul>
+
+        <h3>Languages</h3>
+        <p>Bahasa Indonesia (native), English (professional working proficiency)</p>
+      </div>
+    </details>
+  </section>
+</Base>
+
+<style>
+  .rs {
+    padding-block: var(--s-7) var(--s-8);
+  }
+
+  .rs-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--s-5);
+  }
+
+  h1 {
+    margin: var(--s-2) 0 var(--s-2);
+    font-size: var(--step-3);
+  }
+
+  .rs-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+  }
+
+  /* the résumé as a sheet of paper on the desk */
+  .sheet {
+    max-width: 58rem;
+    margin: var(--s-6) auto 0;
+  }
+
+  .sheet-link {
+    display: block;
+    border: var(--hair) solid var(--line-strong);
+    background: #fff;
+    box-shadow:
+      0 1px 0 var(--line),
+      0 24px 48px -30px rgba(31, 42, 46, 0.45);
+    cursor: zoom-in;
+  }
+
+  .sheet-link :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  .sheet figcaption {
+    margin-top: var(--s-3);
+    text-align: center;
+  }
+
+  .text {
+    max-width: 58rem;
+    margin: var(--s-6) auto 0;
+  }
+
+  .text summary {
+    padding: var(--s-4) var(--s-5);
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .text-body {
+    display: grid;
+    gap: var(--s-3);
+    padding: 0 var(--s-5) var(--s-5);
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  .text-body h2 {
+    font-size: var(--step-1);
+    color: var(--ink);
+  }
+
+  .text-body h3 {
+    margin-top: var(--s-4);
+    font: 500 0.78rem / 1.4 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+  }
+
+  .text-body h4 {
+    font-size: 1rem;
+    color: var(--ink);
+  }
+
+  .text-body strong {
+    color: var(--ink);
+  }
+
+  .text-body ul {
+    display: grid;
+    gap: var(--s-2);
+    padding-left: 1.1rem;
+  }
+
+  .text-body a {
+    color: var(--accent-deep);
+  }
+</style>

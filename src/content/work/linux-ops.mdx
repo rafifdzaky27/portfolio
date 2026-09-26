@@ -1,0 +1,79 @@
+---
+title: Everything between a bare server and a healthy app
+kicker: Infra operations
+summary: The rest of the DevOps job beyond pipelines. Provisioning and scaling Linode VPS, domains and DNS, SSL, web server config, IAM and SSH access, hardening, secrets, databases, backups, queues and cost, for 20+ production services.
+order: 3
+context: Professional · PT Pengembang Sistem Manajemen
+period: Jan 2026 – present
+role: DevOps Engineer. I provision and administer the infrastructure as part of the DevOps team.
+stack: [Linux, Linode, Docker, Nginx, Apache, Caddy, PHP-FPM, Supervisor, PostgreSQL, MySQL]
+glance:
+  - { k: Scope, v: 'Linode VPS infrastructure supporting 20+ services' }
+  - { k: Covers, v: 'servers, edge, access, data, operations' }
+  - { k: Documentation, v: 'Deployment SOPs and workflow docs' }
+---
+
+import OpsStack from '../../components/diagrams/OpsStack.astro';
+import Callout from '../../components/Callout.astro';
+
+## Situation
+
+The team's production services run on Linode VPS hosts. Someone has to create those hosts, point domains at them, keep certificates valid, decide who can log in, keep them patched and backed up, and be the first to look when a service stops answering. That's the part of my job that isn't pipelines.
+
+## Responsibilities by layer
+
+<OpsStack />
+
+## What that looks like in practice
+
+### Servers
+
+- **Provisioning and setup.** New Linode VPS from scratch: OS, users, packages, runtime (PHP-FPM, Node, Docker), app directories and deploy users.
+- **Scaling and capacity.** Resizing plans when a service outgrows its box, and splitting workloads when one host carries too much, based on what the dashboards show.
+- **Cost.** Choosing plan sizes so capacity matches what services actually use, not what someone guessed.
+
+### Edge
+
+- **Domains and DNS.** Provisioning domains and managing records for new services, subdomains and migrations.
+- **SSL/TLS.** Issuing certificates and keeping renewals ahead of expiry.
+- **Web server config.** Nginx, Apache or Caddy virtual hosts, redirects, upload limits and PHP-FPM wiring.
+
+### Access and security
+
+- **IAM and SSH access.** Who can log in where, with which key, and with what permissions on the servers and platform accounts. Access is granted when someone joins and removed when they leave.
+- **Hardening.** Firewall rules, fail2ban, SSH configuration and OS patching.
+- **Secrets.** Per-environment `.env` files and GitHub Actions secrets, kept out of repositories.
+
+### Data
+
+- **Database administration.** PostgreSQL and MySQL databases, users and grants, and connectivity from each app.
+- **Backups and restore.** Database dumps and server snapshots, and restoring from them when something goes wrong.
+
+### Operations
+
+- **Long-running processes.** PHP-FPM pools, cron and the Laravel scheduler, and queue workers and Horizon under Supervisor. These have to restart in the right order for a release to take effect.
+- **Logs.** Rotation, and knowing which log answers which question.
+- **Incidents.** See the [monitoring case](/work/monitoring) for how I work one through.
+
+## How I troubleshoot a service that's down
+
+I work from the outside in:
+
+1. Is it reachable at all? Check DNS, the certificate, the port, and whether the web server answers.
+2. Is the process up? Check PHP-FPM, the container, and Supervisor.
+3. What do the logs say?
+4. Is the environment right: config, secrets, cached settings?
+5. Can it reach its dependencies, such as the database or Redis?
+
+## Documentation
+
+I write the deployment SOPs and workflow docs developers use to release. The aim is that a release doesn't depend on one person remembering the steps.
+
+## Limits
+
+- This is VPS operations, not a high-availability or multi-region platform.
+- Cloud platforms (AWS, GCP) and Kubernetes are on my learning path, not in my professional experience.
+
+<Callout kind="confidential">
+  <p>OS versions, the service-to-host layout, access methods, provider accounts and backup schedules are left out on purpose.</p>
+</Callout>

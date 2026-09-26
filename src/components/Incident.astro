@@ -1,0 +1,75 @@
+---
+// One failure → fix note from the pipeline's history.
+interface Props {
+  title: string;
+  symptom: string;
+  fix: string;
+  step?: string;
+}
+const { title, symptom, fix, step } = Astro.props;
+---
+
+<div class="inc">
+  <p class="inc-title">{title}</p>
+  <dl>
+    <div><dt>Symptom</dt><dd>{symptom}</dd></div>
+    <div><dt>Fix</dt><dd>{fix}</dd></div>
+    {step && <div><dt>Step</dt><dd><code>{step}</code></dd></div>}
+  </dl>
+</div>
+
+<style>
+  .inc {
+    margin-top: var(--s-3) !important;
+    padding: var(--s-4);
+    border: var(--hair) solid var(--ink);
+    border-left: 4px solid var(--stamp);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+
+  .inc-title {
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  dl {
+    margin-top: var(--s-2);
+  }
+
+  dl div {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: var(--s-3);
+    padding-top: var(--s-2);
+  }
+
+  dt {
+    font: 500 0.72rem / 1.7 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  dd {
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  code {
+    padding: 0.05em 0.3em;
+    border: var(--hair) solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    font-size: 0.82rem;
+    color: var(--ink);
+    word-break: break-word;
+  }
+
+  @media (max-width: 30rem) {
+    dl div {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>

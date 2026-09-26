@@ -1,0 +1,297 @@
+---
+import { labMap, stateLabel } from '../data/homelab';
+
+const all = [...labMap.outside, ...labMap.host, ...labMap.offHost].flatMap((z) => z.nodes);
+const count = (s: string) => all.filter((n) => n.state === s).length;
+---
+
+<figure class="lm" aria-labelledby="lm-cap">
+  <div class="lm-head">
+    <ul class="legend" aria-label="Status legend">
+      <li><span class="status status--live">Running</span></li>
+      <li><span class="status status--partial">Partial</span></li>
+      <li><span class="status status--planned">Planned</span></li>
+    </ul>
+    <p class="meta">{count('live')} running · {count('partial')} partial · {count('planned')} planned</p>
+  </div>
+
+  <div class="lm-row lm-outside">
+    {
+      labMap.outside.map((z) => (
+        <section class="zone" aria-label={z.label}>
+          <p class="zone-h">{z.label}</p>
+          <ul>
+            {z.nodes.map((n) => (
+              <li class={`node node--${n.state}`}>
+                <span class={`status status--${n.state}`}>
+                  <span class="visually-hidden">{stateLabel[n.state]}: </span>
+                </span>
+                <span class="node-name">{n.name}</span>
+                <span class="node-id">{n.id}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+
+  <div class="wires" aria-hidden="true">
+    <span>API · SSH</span><span>tailnet</span><span>DNS · proxy</span>
+  </div>
+
+  <section class="host" aria-label="Proxmox host">
+    <p class="host-h">
+      <span class="status status--partial"><span class="visually-hidden">Partial: </span></span>
+      Proxmox VE 9.x <span class="dim">· one physical host · Ubuntu VM template · Terraform-provisioned VMs</span>
+    </p>
+    <div class="lm-row lm-tiers">
+      {
+        labMap.host.map((z) => (
+          <section class={`zone tier tier--${z.key}`} aria-label={z.label}>
+            <p class="zone-h">
+              {z.label}
+              {z.note && <span class="zone-note">{z.note}</span>}
+            </p>
+            <ul>
+              {z.nodes.map((n) => (
+                <li class={`node node--${n.state}`}>
+                  <span class={`status status--${n.state}`}>
+                    <span class="visually-hidden">{stateLabel[n.state]}: </span>
+                  </span>
+                  <span class="node-name">{n.name}</span>
+                  <span class="node-id">{n.id}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </section>
+
+  <div class="wires wires--one" aria-hidden="true"><span>backup · migrate</span></div>
+
+  <div class="lm-row lm-off">
+    {
+      labMap.offHost.map((z) => (
+        <section class="zone" aria-label={z.label}>
+          <p class="zone-h">{z.label}</p>
+          <ul class="inline">
+            {z.nodes.map((n) => (
+              <li class={`node node--${n.state}`}>
+                <span class={`status status--${n.state}`}>
+                  <span class="visually-hidden">{stateLabel[n.state]}: </span>
+                </span>
+                <span class="node-name">{n.name}</span>
+                <span class="node-id">{n.id}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+
+  <figcaption id="lm-cap" class="meta">
+    Target architecture from my homelab playbook: solid = exists today, dashed = planned. Addresses, hostnames and
+    hardware stay in private notes. k3s runs as three VMs on one host, so there's no physical HA.
+  </figcaption>
+</figure>
+
+<style>
+  .lm {
+    padding: var(--s-5);
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius-ticket);
+    background: var(--card);
+  }
+
+  .lm-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin-bottom: var(--s-5);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-4);
+    list-style: none;
+  }
+
+  .lm-row {
+    display: grid;
+    gap: var(--s-4);
+  }
+
+  .lm-outside {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .zone {
+    padding: var(--s-3) var(--s-4) var(--s-4);
+    border: var(--hair) solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--paper);
+  }
+
+  .zone-h {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--s-2);
+    margin-bottom: var(--s-2);
+    font: 500 0.74rem / 1.4 var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .zone-note {
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+
+  .zone ul {
+    display: grid;
+    gap: 0.35rem;
+    list-style: none;
+  }
+
+  .zone ul.inline {
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  }
+
+  .node {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 0.4rem 0.55rem;
+    border: var(--hair) solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--card);
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+
+  .node--planned {
+    border-style: dashed;
+    border-color: var(--line-strong);
+    background: transparent;
+    color: var(--muted);
+  }
+
+  .node--live {
+    border-color: var(--ok);
+    box-shadow: inset 3px 0 0 var(--ok);
+  }
+
+  .node--partial {
+    box-shadow: inset 3px 0 0 var(--partial);
+  }
+
+  .node .status {
+    gap: 0;
+  }
+
+  .node-id {
+    font: 400 0.72rem / 1 var(--font-mono);
+    color: var(--muted);
+  }
+
+  .wires {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    height: 2.4rem;
+  }
+
+  .wires span {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font: 400 0.7rem / 1 var(--font-mono);
+    color: var(--muted);
+  }
+
+  /* vertical connector behind a label that sits on a card-coloured patch */
+  .wires span::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    z-index: -1;
+    border-left: var(--rule) solid var(--ink);
+  }
+
+  /* label sits just right of the connector line */
+  .wires span {
+    isolation: isolate;
+    justify-content: flex-start;
+    padding-left: calc(50% + 0.5rem);
+  }
+
+  .wires--one {
+    grid-template-columns: 1fr;
+  }
+
+  .host {
+    padding: var(--s-4);
+    border: 2px solid var(--ink);
+    border-radius: var(--radius-ticket);
+    background: var(--paper-2);
+  }
+
+  .host-h {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2);
+    margin-bottom: var(--s-4);
+    font-weight: 650;
+  }
+
+  .dim {
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 0.92rem;
+  }
+
+  .lm-tiers {
+    grid-template-columns: 1fr 1fr 0.8fr;
+  }
+
+  .tier--sec {
+    border-style: dashed;
+  }
+
+  figcaption {
+    margin-top: var(--s-4);
+    padding-top: var(--s-3);
+    border-top: var(--hair) dashed var(--line-strong);
+  }
+
+  @media (max-width: 60rem) {
+    .lm-outside,
+    .lm-tiers {
+      grid-template-columns: 1fr;
+    }
+    .wires {
+      grid-template-columns: 1fr;
+    }
+    .wires span:not(:first-child) {
+      display: none;
+    }
+    .lm {
+      padding: var(--s-4);
+    }
+    .host {
+      padding: var(--s-3);
+    }
+  }
+</style>

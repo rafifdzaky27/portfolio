@@ -1,0 +1,292 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHead from '../components/SectionHead.astro';
+import HomelabMap from '../components/HomelabMap.astro';
+import { builtNow, notes, roadmap, stateLabel } from '../data/homelab';
+
+const counts = roadmap.flatMap((p) => p.items).reduce(
+  (acc, i) => ((acc[i.state] = (acc[i.state] ?? 0) + 1), acc),
+  {} as Record<string, number>,
+);
+---
+
+<Base
+  title="Homelab"
+  description="Rafif Dzaky Daniswara's personal Proxmox homelab: Terraform-provisioned VMs, Ansible, AdGuard DNS, Tailscale, Caddy and Docker, plus the full planned roadmap. Every item is labelled running, partial or planned."
+  current="homelab"
+>
+  <header class="wrap lab-head">
+    <p class="kicker">Personal project · not production · one physical host</p>
+    <h1>A single-host lab for the things I don't run at work yet</h1>
+    <p class="lede">
+      I use a Proxmox homelab to practise infrastructure as code, DNS, networking, remote access and service operations.
+      It's separate from my professional work. Everything here is labelled by what actually runs today.
+    </p>
+  </header>
+
+  <section class="wrap" aria-label="Architecture">
+    <HomelabMap />
+  </section>
+
+  <section class="section wrap" aria-labelledby="now-title">
+    <SectionHead index="A" label="Running now" title="What exists today" id="now-title" />
+    <ul class="now">
+      {
+        builtNow.map((b) => (
+          <li class="ticket">
+            <p class="now-top">
+              <span class={`status status--${b.state}`}>{stateLabel[b.state]}</span>
+              <span class="meta">{b.id}</span>
+            </p>
+            <h3>{b.name}</h3>
+            <p>{b.summary}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section band" aria-labelledby="notes-title">
+    <div class="wrap">
+      <SectionHead index="B" label="Troubleshooting" title="Things that broke, and why" id="notes-title" />
+      <ol class="notes">
+        {
+          notes.map((n) => (
+            <li class="ticket">
+              <p class="meta">{n.state === 'resolved' ? '✓ resolved' : '… investigating'}</p>
+              <h3>{n.title}</h3>
+              <dl>
+                <div><dt>Symptom</dt><dd>{n.symptom}</dd></div>
+                <div><dt>Cause</dt><dd>{n.cause}</dd></div>
+                <div><dt>Takeaway</dt><dd>{n.lesson}</dd></div>
+              </dl>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section wrap" id="roadmap" aria-labelledby="roadmap-title">
+    <SectionHead index="C" label="Learning roadmap" title="Where the lab goes next" id="roadmap-title">
+      <p class="lede">
+        My own 31-module curriculum. The order is the plan, not completion dates. First up: running the{' '}
+        <a href="/work/ci-cd">v2 pipeline template</a> end to end here, on a golden workload with a private registry (P06)
+        and a self-hosted CI runner (P11).
+      </p>
+    </SectionHead>
+
+    <p class="meta tally">{counts.partial ?? 0} partially built · {counts.planned ?? 0} planned</p>
+
+    <details class="roadmap ticket">
+      <summary>Show the full roadmap <span class="meta">(31 modules)</span></summary>
+      <div class="phases">
+        {
+          roadmap.map((p) => (
+            <section class="phase" aria-label={`Phase ${p.phase}`}>
+              <h3 class="meta">{p.phase}</h3>
+              <ul>
+                {p.items.map((i) => (
+                  <li class={`item item--${i.state}`}>
+                    <span class="item-id mono">{i.id}</span>
+                    <span class="item-name">{i.name}</span>
+                    <span class={`status status--${i.state}`}>{stateLabel[i.state]}</span>
+                    <span class="item-why">{i.why}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+      <p class="meta roadmap-note">
+        Planned modules aren't claims. An item only moves up once there's a dated repo, screenshot or log to back it.
+      </p>
+    </details>
+  </section>
+</Base>
+
+<style>
+  .lab-head {
+    padding-block: var(--s-7) var(--s-6);
+  }
+
+  h1 {
+    max-width: 20ch;
+    margin-top: var(--s-3);
+    font-size: var(--step-4);
+  }
+
+  .lab-head .lede {
+    margin-top: var(--s-5);
+  }
+
+  .now {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: var(--s-4);
+    margin-top: var(--s-6);
+    list-style: none;
+  }
+
+  .now li {
+    padding: var(--s-5);
+  }
+
+  .now-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--s-3);
+    border-bottom: var(--hair) dashed var(--ink);
+  }
+
+  .now h3 {
+    margin-top: var(--s-3);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+  }
+
+  .now li > p:last-child {
+    margin-top: var(--s-2);
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-4);
+    margin-top: var(--s-6);
+    list-style: none;
+  }
+
+  .notes li {
+    padding: var(--s-5);
+  }
+
+  .notes h3 {
+    margin-top: var(--s-2);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+  }
+
+  .notes dl {
+    margin-top: var(--s-3);
+  }
+
+  .notes dl div {
+    display: grid;
+    grid-template-columns: 6rem 1fr;
+    gap: var(--s-3);
+    padding-block: var(--s-2);
+    border-top: var(--hair) solid var(--line);
+  }
+
+  .notes dt {
+    font: 500 0.76rem / 1.6 var(--font-mono);
+    color: var(--muted);
+  }
+
+  .notes dd {
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  .tally {
+    margin-top: var(--s-5);
+  }
+
+  .roadmap {
+    margin-top: var(--s-3);
+  }
+
+  .roadmap summary {
+    padding: var(--s-4) var(--s-5);
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .phases {
+    padding: 0 var(--s-5) var(--s-5);
+  }
+
+  .phase + .phase {
+    margin-top: var(--s-6);
+  }
+
+  .phase h3 {
+    padding-bottom: var(--s-2);
+    border-bottom: var(--rule) solid var(--ink);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .phase ul {
+    list-style: none;
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) 6.5rem;
+    grid-template-areas:
+      'id name status'
+      '. why why';
+    gap: 0.1rem var(--s-3);
+    padding-block: var(--s-3);
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .item-id {
+    grid-area: id;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .item-name {
+    grid-area: name;
+    font-weight: 550;
+  }
+
+  .item .status {
+    grid-area: status;
+    justify-self: end;
+  }
+
+  .item-why {
+    grid-area: why;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .item--planned .item-name {
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .roadmap-note {
+    padding: var(--s-4) var(--s-5);
+    border-top: var(--hair) dashed var(--line-strong);
+  }
+
+  @media (max-width: 48rem) {
+    .notes {
+      grid-template-columns: 1fr;
+    }
+    .notes dl div {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .item {
+      grid-template-columns: 3.2rem minmax(0, 1fr);
+      grid-template-areas:
+        'id name'
+        '. status'
+        '. why';
+    }
+    .item .status {
+      justify-self: start;
+    }
+  }
+</style>

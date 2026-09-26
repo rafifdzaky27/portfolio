@@ -1,0 +1,68 @@
+---
+title: Seeing production problems before users report them
+kicker: Monitoring & incidents
+summary: Host and availability monitoring for 20+ services with Prometheus, Grafana and Uptime Kuma, and the incident routine that turns a changed graph into a fix.
+order: 2
+context: Professional · PT Pengembang Sistem Manajemen
+period: Jan 2026 – present
+role: DevOps Engineer. I built and maintain the monitoring and investigate what it shows.
+stack: [Prometheus, Grafana, Uptime Kuma, Linux, Laravel, Supervisor, Horizon]
+glance:
+  - { k: Signals, v: 'CPU, memory, disk, service availability' }
+  - { k: Scope, v: 'Linode VPS hosts supporting 20+ services' }
+  - { k: Outcome, v: 'In some cases, degradation was spotted before users reported it' }
+---
+
+import SignalFlow from '../../components/diagrams/SignalFlow.astro';
+import Callout from '../../components/Callout.astro';
+
+## Situation
+
+Twenty-plus services share a set of Linode VPS hosts. Without monitoring, the first sign of a full disk, a leaking worker or a dead endpoint is usually a user complaint. The goal was earlier visibility into host resources and service health.
+
+## My role
+
+I set up and maintain the monitoring stack, and I'm the one who reads it. When a graph or a check changes, I investigate.
+
+<SignalFlow />
+
+- **Prometheus + Grafana** for host resources: CPU, memory and disk on each VPS, as dashboards I check routinely.
+- **Uptime Kuma** for availability: services are checked on a schedule, with status and history for each one.
+
+## What the signals usually point to
+
+Most of the services are Laravel apps with background queues, so the same patterns come up again and again:
+
+- **Memory pressure and out-of-memory kills.** Usually a PHP process or a queue worker growing until the kernel or PHP's own limit stops it.
+- **Queue workers that stopped working.** Horizon or `queue:work` processes under Supervisor that exited, got stuck, or kept running old code after a release. Availability checks can stay green while jobs quietly pile up.
+- **Resource trends.** Disk and CPU drifting upward over days: something to fix on a weekday, not during an outage.
+
+## How I investigate
+
+1. **Signal.** A graph changes shape on the dashboard, a check turns red, or something odd shows up in the logs.
+2. **Host.** Is it the whole VPS (CPU, memory, disk) or one service?
+3. **Process.** PHP-FPM and Supervisor status: are the workers and Horizon actually running?
+4. **Logs.** Laravel's application log and the worker logs, around the time the signal changed.
+5. **Fix and confirm.** Apply the change, then watch the same graph or check return to normal.
+
+## When it's an incident
+
+When production is actually broken, I'm the person who picks it up. The routine is short:
+
+- **Stabilize first.** Restart the stuck worker, roll a bad config back, free the disk. Get users working again before chasing the root cause.
+- **Then find the cause.** Use the steps above, with the logs and graphs from the window when it started.
+- **Tell the team.** Say what happened, what I changed and whether anything else needs a follow-up, so the same thing isn't rediscovered next time.
+- **Make it stick.** If the fix belongs in the pipeline or the server setup, it goes there. Several of the [pipeline's failure guards](/work/ci-cd) started this way.
+
+## Result
+
+In some cases this surfaced degradation **before users reported it**. I'm not putting a number on that, because I don't have a measured lead time to back one up.
+
+## Limits and what's next
+
+- This case study covers signals and method only. Dashboards and incident timelines stay private.
+- Centralized logs (Loki) and more structured alerting are on my learning path; see the [homelab roadmap](/homelab#roadmap).
+
+<Callout kind="confidential">
+  <p>Service names, hostnames, dashboard screenshots and alert routing are left out. A redacted dashboard can be added once it's cleared for publication.</p>
+</Callout>

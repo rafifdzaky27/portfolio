@@ -1,0 +1,312 @@
+// Single source of public facts. Every line traces to the knowledge base,
+// the résumé, or Rafif's messages. Keep it that way.
+import certJwd from '../assets/certs/bnsp-junior-web-developer.jpg';
+import certCsa from '../assets/certs/bnsp-system-analyst.jpg';
+import certBest from '../assets/certs/icicos-best-presenter.jpg';
+import certPresenter from '../assets/certs/icicos-presenter.jpg';
+import certCisco from '../assets/certs/cisco-netacadriders-gold.jpg';
+import logoRedBull from '../assets/logos/red-bull-racing-car.png';
+import logoLiverpool from '../assets/logos/liverpool-fc.png';
+import logoRedBullBulls from '../assets/logos/red-bull-logo.png';
+import logoF1 from '../assets/logos/f1-logo-white.png';
+
+export const person = {
+  name: 'Rafif Dzaky Daniswara',
+  short: 'R. D. Daniswara',
+  role: 'DevOps Engineer',
+  employer: 'PT Pengembang Sistem Manajemen',
+  employerShort: 'PT PSM',
+  location: 'West Java, Indonesia',
+  email: 'rafifdzaky27@gmail.com',
+  phone: '+62 851-5689-1462',
+  phoneHref: 'tel:+6285156891462',
+  linkedin: 'https://www.linkedin.com/in/rafifdzaky',
+  github: 'https://github.com/rafifdzaky27',
+  resumePage: '/resume',
+  resumePdf: '/Rafif_Dzaky_Daniswara_Resume.pdf',
+  resumeFile: 'Rafif_Dzaky_Daniswara_Resume.pdf',
+};
+
+export { careerStart, devopsStart, monthsSince, formatDuration } from './time';
+
+export type Context = 'professional' | 'freelance' | 'internship' | 'teaching';
+
+export interface Role {
+  title: string;
+  org: string;
+  place: string;
+  period: string;
+  context: Context;
+  points: string[];
+  link?: { href: string; label: string };
+}
+
+export const experience: Role[] = [
+  {
+    title: 'DevOps Engineer',
+    org: 'PT Pengembang Sistem Manajemen',
+    place: 'Jakarta',
+    period: 'Jan 2026 – now',
+    context: 'professional',
+    points: [
+      'Moved every one of 20+ production services off SSH-and-git-pull releases onto GitHub Actions pipelines. About 60% deploy fully automatically; production releases for the rest are dispatched and confirmed by me through the same pipeline.',
+      'Under 2% of production deploy runs failed on core services, measured from GitHub Actions run history.',
+      'Provision, scale and harden the Linode VPS fleet; manage domains, DNS and SSL certificates, access and IAM, secrets, backups and databases.',
+      'Built Prometheus, Grafana and Uptime Kuma monitoring for CPU, memory, disk and availability, and handle incidents when it goes red.',
+      'Wrote the deployment SOPs and workflow docs developers release with.',
+    ],
+    link: { href: '/work/ci-cd', label: 'CI/CD case study' },
+  },
+  {
+    title: 'Full-stack Developer (Freelance)',
+    org: 'PT Pengembang Sistem Manajemen',
+    place: 'Jakarta',
+    period: 'Feb – Jun 2025',
+    context: 'freelance',
+    points: [
+      'Refactored the checkout flow in React.js and Node.js, moving participant data entry to the end to shorten the path to payment.',
+      'Rebuilt the homepage hero to pull promotional content from upcoming training dates automatically, and built a keyword-driven broadcast funnel.',
+    ],
+  },
+  {
+    title: 'Software Developer Intern, IT Architecture & Governance',
+    org: 'bank bjb',
+    place: 'Bandung',
+    period: 'Jun – Aug 2025',
+    context: 'internship',
+    points: [
+      'Engineered and deployed 5+ backend microservices for the AGW platform during its move to a service-oriented architecture.',
+      'Resolved 25+ critical bugs, and built frontend components that digitized paper-based approval and documentation workflows.',
+    ],
+  },
+  {
+    title: 'Practicum Assistant, Web Application Development',
+    org: 'EAD Laboratory, Telkom University',
+    place: 'Bandung',
+    period: 'Feb – Jun 2025',
+    context: 'teaching',
+    points: [
+      'Co-authored a Laravel module (MVC, databases, APIs) delivered to 400+ students.',
+      'Ran the LMS practicum portal: 30+ materials and assignments, about 95% on time.',
+    ],
+  },
+  {
+    title: 'Full-stack Developer Intern',
+    org: 'PT Pengembang Sistem Manajemen',
+    place: 'Jakarta',
+    period: 'Jan – Feb 2025',
+    context: 'internship',
+    points: [
+      'Built a responsive lead-generation landing page and evaluated self-hosted LLMs (OpenAI, Ollama) on an Azure VPS for internal use.',
+    ],
+  },
+];
+
+/** What the DevOps job actually covers, grouped for the About section and the ops case. */
+export const responsibilities = [
+  { area: 'Delivery', items: ['GitHub Actions CI/CD', 'production release approvals', 'deployment SOPs'] },
+  { area: 'Servers', items: ['Linode VPS provisioning & setup', 'scaling & capacity', 'Docker', 'OS patching'] },
+  { area: 'Edge', items: ['domains & DNS', 'SSL/TLS certificates', 'Nginx / Apache / Caddy config'] },
+  { area: 'Access & security', items: ['IAM & SSH access', 'server hardening (firewall, fail2ban, SSH)', 'secrets & .env management'] },
+  { area: 'Data', items: ['PostgreSQL & MySQL administration', 'backups & restore'] },
+  { area: 'Operations', items: ['monitoring & alerting', 'incident response', 'logs, cron & queue workers', 'cost & capacity'] },
+];
+
+export const skills = {
+  work: {
+    label: 'Used at work',
+    note: 'production, as part of the DevOps team',
+    groups: [
+      { area: 'Delivery', items: ['GitHub Actions', 'pipeline templates', 'release SOPs'] },
+      { area: 'Infrastructure', items: ['Linux', 'Linode VPS', 'Docker', 'PHP-FPM', 'Supervisor'] },
+      { area: 'Edge & access', items: ['DNS', 'SSL/TLS', 'Nginx / Apache', 'IAM & SSH', 'firewalls'] },
+      { area: 'Observability', items: ['Prometheus', 'Grafana', 'Uptime Kuma'] },
+      { area: 'Data', items: ['PostgreSQL', 'MySQL', 'backups'] },
+      { area: 'Application', items: ['Laravel', 'PHP', 'Node.js', 'React.js', 'Next.js'] },
+    ],
+  },
+  lab: {
+    label: 'Built in my homelab',
+    note: 'personal, single host, not production',
+    groups: [
+      { area: 'Virtualization', items: ['Proxmox VE 9.x', 'Ubuntu VM templates'] },
+      { area: 'IaC / automation', items: ['Terraform (Proxmox provider)', 'Ansible from WSL'] },
+      { area: 'Network', items: ['AdGuard Home', 'Tailscale', 'Caddy'] },
+      { area: 'Scripting', items: ['Bash', 'Python'] },
+    ],
+  },
+  learning: {
+    label: 'Currently learning',
+    note: 'direction, not experience',
+    groups: [
+      { area: 'Orchestration', items: ['k3s / Kubernetes', 'GitOps (Argo CD)'] },
+      { area: 'Cloud', items: ['AWS / GCP fundamentals'] },
+      { area: 'Reliability', items: ['SRE practices', 'Loki', 'restore drills'] },
+    ],
+  },
+};
+
+export const education = {
+  school: 'Telkom University',
+  faculty: 'Faculty of Industrial Engineering',
+  degree: 'Bachelor of Information Systems (S.Kom.)',
+  gpa: '3.87 / 4.00',
+  honours: 'Cum laude',
+  years: '2022 – 2026',
+  status: 'Degree requirements completed Aug 2026 · commencement Nov 2026',
+};
+
+export interface Credential {
+  name: string;
+  issuer: string;
+  period: string;
+  image?: ImageMetadata;
+  alt?: string;
+}
+
+export const credentials: Credential[] = [
+  {
+    name: 'Certified System Analyst (CSA)',
+    issuer: 'BNSP',
+    period: 'Nov 2025 – Nov 2028',
+    image: certCsa,
+    alt: 'BNSP certificate of competence, System Analyst, issued 27 November 2025 to Rafif Dzaky Daniswara. Certificate numbers blurred.',
+  },
+  {
+    name: 'Junior Web Developer',
+    issuer: 'BNSP',
+    period: 'Jun 2025 – Jun 2028',
+    image: certJwd,
+    alt: 'BNSP certificate of competence, Junior Web Developer, issued 23 June 2025 to Rafif Dzaky Daniswara. Certificate numbers blurred.',
+  },
+  {
+    name: 'Best Presenter, ICICoS 2026',
+    issuer: 'Universitas Diponegoro',
+    period: 'Aug 2026',
+    image: certBest,
+    alt: 'ICICoS 2026 certificate awarding Rafif Dzaky Daniswara Best Presenter in Room 8, Semarang, 12–13 August 2026. Certificate number blurred.',
+  },
+  {
+    name: 'NetAcadRiders 2024 — Gold Certificate',
+    issuer: 'Cisco Networking Academy (APJC)',
+    period: 'Mar 2024',
+    image: certCisco,
+    alt: 'Cisco Networking Academy APJC NetAcadRiders Gold Certificate presented to Rafif Dzaky Daniswara for scoring gold in NetAcad Riders 2024, 26 March 2024.',
+  },
+];
+
+export const presenterCert = {
+  image: certPresenter,
+  alt: 'ICICoS 2026 presenter certificate for the paper "Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2". Certificate number blurred.',
+};
+
+/**
+ * Off the clock, styled as an F1 qualifying broadcast: a timing tower,
+ * a Sky-style team-radio card and a circuit whose sectors map to interests.
+ * Sector colours follow broadcast timing: purple = fastest overall,
+ * green = personal best, yellow = no improvement yet.
+ * Times, gaps, tyres and radio lines are for fun. Logos are files Rafif supplied.
+ */
+export type SectorColour = 'purple' | 'green' | 'yellow';
+
+export interface Sector {
+  key: string;
+  pos: number;
+  code: string;
+  sector: string;
+  colour: SectorColour;
+  status: string;
+  time: string;
+  gap: string;
+  tyre: 'S' | 'M' | 'H';
+  tyreName: string;
+  inPit?: boolean;
+  teamColour: string;
+  title: string;
+  line: string;
+  note: string;
+  icon: 'f1' | 'football' | 'tennis';
+  badge?: ImageMetadata;
+  logo?: ImageMetadata;
+  logoAlt?: string;
+  logoWide?: boolean;
+  radio: { driver: string; reply: string };
+}
+
+export const offTheClock: Sector[] = [
+  {
+    key: 'f1',
+    pos: 1,
+    code: 'F1',
+    sector: 'S1',
+    colour: 'purple',
+    status: 'fastest overall',
+    time: '28.033',
+    gap: '1:25.357',
+    tyre: 'S',
+    tyreName: 'new softs',
+    teamColour: '#3671c6',
+    title: 'Formula 1',
+    icon: 'f1',
+    badge: logoRedBullBulls,
+    logo: logoRedBull,
+    logoAlt: 'Red Bull Racing Formula 1 car',
+    logoWide: true,
+    line: 'Sundays are for lights out. Max Verstappen is my all-time favourite, and Red Bull Racing is my team.',
+    note: 'race weekends: blocked in the calendar',
+    radio: {
+      driver: 'Mate, the queue workers are stuck again. Box, box.',
+      reply: 'Copy. Horizon restarted. Lights out in five.',
+    },
+  },
+  {
+    key: 'lfc',
+    pos: 2,
+    code: 'LFC',
+    sector: 'S2',
+    colour: 'green',
+    status: 'personal best',
+    time: '31.906',
+    gap: '+0.110',
+    tyre: 'M',
+    tyreName: 'mediums',
+    teamColour: '#c8102e',
+    title: 'Liverpool',
+    icon: 'football',
+    badge: logoLiverpool,
+    logo: logoLiverpool,
+    logoAlt: 'Liverpool FC crest',
+    line: 'Liverpool supporter. Matchday is non-negotiable, and the deploy calendar gets checked against the fixture list.',
+    note: 'matchday: no deploys, ideally',
+    radio: {
+      driver: 'Is that the fixture list? Okay. No deploys on matchday.',
+      reply: 'Understood. Change freeze is in place.',
+    },
+  },
+  {
+    key: 'ten',
+    pos: 3,
+    code: 'TEN',
+    sector: 'S3',
+    colour: 'yellow',
+    status: 'still improving',
+    time: '25.418',
+    gap: '+0.358',
+    tyre: 'H',
+    tyreName: 'hards · in the pit',
+    inPit: true,
+    teamColour: '#c9d75a',
+    title: 'Tennis',
+    icon: 'tennis',
+    line: 'Beginner, taking coaching. Still fixing my backhand the way I fix pipelines: one small change at a time.',
+    note: 'current focus: consistency over power',
+    radio: {
+      driver: 'Backhand still feels off. One small change at a time.',
+      reply: 'Copy. Box this lap, coach is ready for you.',
+    },
+  },
+];
+
+export const lapTime = '1:25.357';
+export const sessionClock = '1:27';
+export { logoF1 };

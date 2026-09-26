@@ -1,0 +1,104 @@
+---
+// Monitoring flow, illustrative. Only the tools and the four signals are
+// confirmed; exporters, alert routing and thresholds are intentionally absent.
+const cols = [
+  { h: 'Sources', items: ['VPS hosts — CPU, memory, disk', 'Services — HTTP availability'] },
+  { h: 'Collection', items: ['Prometheus scrapes host metrics', 'Uptime Kuma checks the services'] },
+  { h: 'View', items: ['Grafana dashboards', 'Uptime Kuma status + history'] },
+  { h: 'Me', items: ['Spot the change', 'Investigate: logs, workers, resources'] },
+];
+---
+
+<figure class="sf">
+  <ol class="sf-cols">
+    {
+      cols.map((c, i) => (
+        <li class={i === cols.length - 1 ? 'is-me' : ''}>
+          <p class="sf-h">{c.h}</p>
+          <ul>
+            {c.items.map((it) => (
+              <li>{it}</li>
+            ))}
+          </ul>
+        </li>
+      ))
+    }
+  </ol>
+  <figcaption>Illustrative. Exporters, alert routing, thresholds and service names are omitted.</figcaption>
+</figure>
+
+<style>
+  .sf {
+    margin: var(--s-6) 0 !important;
+    padding: var(--s-5);
+    border: var(--hair) solid var(--paper-line);
+    background: var(--paper-raised);
+  }
+
+  .sf-cols {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-4);
+    padding: 0 !important;
+    list-style: none;
+  }
+
+  .sf-cols > li {
+    position: relative;
+    margin: 0 !important;
+    padding-top: var(--s-4);
+    border-top: 2px solid var(--paper-ink);
+  }
+
+  .sf-cols > li.is-me {
+    border-top-color: var(--paper-signal);
+  }
+
+  /* arrow head on each column rule except the last */
+  .sf-cols > li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: calc(var(--s-4) * -1 + 2px);
+    border: 5px solid transparent;
+    border-left: 7px solid var(--paper-ink);
+  }
+
+  .sf-h {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--paper-meta);
+  }
+
+  .sf-cols ul {
+    margin-top: var(--s-2);
+    padding: 0 !important;
+    list-style: none;
+  }
+
+  .sf-cols ul li {
+    margin: 0 !important;
+    padding-block: 0.2rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  figcaption {
+    margin-top: var(--s-5);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--paper-meta);
+  }
+
+  @media (max-width: 40rem) {
+    .sf-cols {
+      grid-template-columns: 1fr 1fr;
+      row-gap: var(--s-5);
+    }
+    .sf-cols > li:nth-child(2)::after {
+      display: none;
+    }
+  }
+</style>

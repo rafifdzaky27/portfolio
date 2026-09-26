@@ -1,0 +1,129 @@
+---
+// Before / v1 release flow, generalized from Rafif's description and his
+// real workflow YAML. Each lane is an ordered list so it reads correctly
+// without the connector styling.
+const lanes = [
+  {
+    label: 'Before',
+    tone: 'before',
+    note: 'By hand, per service; steps varied by person.',
+    steps: ['developer asks', 'operator with server access', 'SSH into VPS', 'git pull', 'remaining steps by hand'],
+  },
+  {
+    label: 'v1 · today',
+    tone: 'now',
+    note: 'All 20+ services. ~60% trigger automatically; production runs are dispatched and confirmed by me.',
+    steps: ['trigger / dispatch', 'build + gates', 'package', 'copy over SSH', 'activate on server', 'health check'],
+  },
+];
+---
+
+<figure class="rc">
+  {
+    lanes.map((lane) => (
+      <div class={`lane lane--${lane.tone}`}>
+        <p class="lane-label">{lane.label}</p>
+        <ol class="lane-steps">
+          {lane.steps.map((s) => (
+            <li>
+              <span class="chip">{s}</span>
+            </li>
+          ))}
+        </ol>
+        <p class="lane-note">{lane.note}</p>
+      </div>
+    ))
+  }
+  <figcaption>Release flow, generalized. Hosts, repositories and paths omitted.</figcaption>
+</figure>
+
+<style>
+  .rc {
+    margin: var(--s-6) 0 !important;
+    padding: var(--s-5);
+    border: var(--hair) solid var(--paper-line);
+    background: var(--paper-raised);
+  }
+
+  .lane + .lane {
+    margin-top: var(--s-5);
+    padding-top: var(--s-5);
+    border-top: var(--hair) dashed var(--paper-line);
+  }
+
+  .lane-label {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--paper-meta);
+  }
+
+  .lane-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: var(--s-2);
+    margin-top: var(--s-3) !important;
+    padding: 0 !important;
+    list-style: none;
+  }
+
+  .lane-steps li {
+    display: flex;
+    align-items: center;
+    margin: 0 !important;
+  }
+
+  /* connector between chips */
+  .lane-steps li + li::before {
+    content: '';
+    width: 1rem;
+    height: 1px;
+    margin-inline: 0.2rem;
+    background: var(--paper-meta);
+  }
+
+  .chip {
+    padding: 0.28rem 0.55rem;
+    border: var(--hair) solid var(--paper-line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .lane--before .chip {
+    border-style: dashed;
+    color: var(--paper-muted);
+  }
+
+  .lane--now .chip {
+    border-color: var(--paper-ink);
+  }
+
+  .lane--now li:last-child .chip {
+    border-color: var(--paper-signal);
+    background: color-mix(in srgb, var(--paper-signal) 12%, var(--paper));
+  }
+
+  .lane-note {
+    margin-top: var(--s-3) !important;
+    font-size: 0.9rem;
+    color: var(--paper-muted);
+  }
+
+  .lane--now .lane-note {
+    color: var(--paper-ink);
+    font-weight: 500;
+  }
+
+  figcaption {
+    margin-top: var(--s-5);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--paper-meta);
+  }
+</style>

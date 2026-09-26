@@ -1,0 +1,139 @@
+# Production deploy to a Linux VPS running PHP-FPM + Supervisor.
+#
+# Differences from v1:
+#   - Approval is a GitHub Environment with required reviewers, not a typed word.
+#   - Only a CI-tested artifact is shipped (reuses ci.yml).
+#   - Each deploy is a new release directory; `current` is switched atomically.
+#   - A failed health check rolls back to the previous release automatically.
+#   - The SSH host key is pinned, not trusted on first use.
+name: Deploy · VPS production
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or commit SHA to deploy
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and test
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ inputs.ref }}
+      package: true
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Configure "production" in Settings → Environments with required reviewers.
+    # Secrets below are environment secrets, so they are only released after approval.
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    env:
+      RELEASE_ID: ${{ needs.build.outputs.release-id }}
+      APP_ROOT: ${{ vars.APP_ROOT }}
+      FPM_SERVICE: ${{ vars.FPM_SERVICE || 'php8.4-fpm' }}
+      WORKERS: ${{ vars.WORKERS || 'horizon' }}
+      HEALTH_URL: ${{ vars.PRODUCTION_URL }}/up
+
+    steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          sparse-checkout: deploy
+          persist-credentials: false
+
+      - name: Download release
+        uses: actions/download-artifact@v4
+        with:
+          name: release
+          path: dist
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          PORT: ${{ vars.DEPLOY_PORT || '22' }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host target
+            HostName $HOST
+            User $USER
+            Port $PORT
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ServerAliveInterval 15
+          EOF
+
+      - name: Upload release
+        run: |
+          scp -q dist/release.tar.gz "target:/tmp/release-$RELEASE_ID.tar.gz"
+          scp -q deploy/remote-deploy.sh "target:/tmp/remote-deploy-$RELEASE_ID.sh"
+
+      - name: Activate release
+        id: activate
+        run: |
+          ssh target "APP_ROOT='$APP_ROOT' FPM_SERVICE='$FPM_SERVICE' WORKERS='$WORKERS' \
+            bash /tmp/remote-deploy-$RELEASE_ID.sh deploy '$RELEASE_ID' /tmp/release-$RELEASE_ID.tar.gz"
+
+      - name: Health check
+        id: health
+        run: |
+          code=000
+          for attempt in $(seq 1 10); do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH_URL" || echo 000)
+            if [ "$code" = "200" ]; then
+              echo "Healthy after $attempt attempt(s)"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::Health check failed: $HEALTH_URL returned HTTP $code"
+          exit 1
+
+      - name: Roll back
+        if: ${{ failure() && steps.health.outcome == 'failure' }}
+        run: |
+          ssh target "APP_ROOT='$APP_ROOT' FPM_SERVICE='$FPM_SERVICE' WORKERS='$WORKERS' \
+            bash /tmp/remote-deploy-$RELEASE_ID.sh rollback"
+          echo "::warning::Rolled back to the previous release. Database migrations are NOT reverted."
+
+      - name: Clean up
+        if: ${{ always() }}
+        run: |
+          ssh target "rm -f /tmp/remote-deploy-$RELEASE_ID.sh /tmp/release-$RELEASE_ID.tar.gz" || true
+          rm -f ~/.ssh/deploy_key
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          {
+            echo "### Production deploy: ${{ job.status }}"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Release | \`$RELEASE_ID\` |"
+            echo "| Ref | \`${{ inputs.ref }}\` |"
+            echo "| Approved run by | @${{ github.actor }} |"
+            echo "| Health check | ${{ steps.health.outcome }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

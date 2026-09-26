@@ -1,0 +1,60 @@
+---
+interface Props {
+  kind?: 'draft' | 'confidential' | 'note';
+  title?: string;
+}
+const { kind = 'note', title } = Astro.props;
+const labels = { draft: 'Not in production', confidential: 'Details omitted', note: 'Note' };
+---
+
+<aside class={`callout callout--${kind}`}>
+  <p class="callout-label">{labels[kind]}</p>
+  {title && <p class="callout-title">{title}</p>}
+  <div class="callout-body"><slot /></div>
+</aside>
+
+<style>
+  .callout {
+    margin-block: var(--s-6) !important;
+    padding: var(--s-4) var(--s-5);
+    border: var(--hair) solid var(--paper-line);
+    border-left-width: 3px;
+    background: var(--paper-raised);
+  }
+
+  .callout--draft {
+    border-left-color: #8a6a12;
+    border-left-style: dashed;
+  }
+
+  .callout--confidential {
+    border-left-color: var(--paper-meta);
+  }
+
+  .callout--note {
+    border-left-color: var(--paper-signal);
+  }
+
+  .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--paper-meta);
+  }
+
+  .callout-title {
+    margin-top: var(--s-1);
+    font-weight: 600;
+  }
+
+  .callout-body {
+    margin-top: var(--s-2);
+    font-size: 0.96rem;
+    color: var(--paper-muted);
+  }
+
+  .callout-body :global(p + p) {
+    margin-top: var(--s-2);
+  }
+</style>

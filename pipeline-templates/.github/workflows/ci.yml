@@ -1,0 +1,155 @@
+# CI for a Laravel + Vite app.
+#
+# Runs on every pull request and on pushes to main. Deploy workflows call it
+# with `package: true`, so production only ever receives an artifact that
+# passed exactly these checks.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to build
+        type: string
+        required: false
+        default: ''
+      package:
+        description: Build and upload a release tarball
+        type: boolean
+        required: false
+        default: false
+    outputs:
+      release-id:
+        description: Release identifier (UTC timestamp + short SHA)
+        value: ${{ jobs.test.outputs.release-id }}
+
+permissions:
+  contents: read
+
+env:
+  PHP_VERSION: '8.4'
+  NODE_VERSION: '22'
+
+jobs:
+  test:
+    name: Quality gates and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      release-id: ${{ steps.package.outputs.release-id }}
+
+    # Test against the same database engine production uses, not SQLite.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U app -d app_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pdo_pgsql, mbstring, xml, curl, gd, zip, bcmath, intl, pcntl, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Resolve Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          npm ci
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Static checks
+        run: |
+          vendor/bin/pint --test
+          npx eslint . --max-warnings=0
+          npm run --if-present types
+
+      - name: Dependency audit
+        run: |
+          composer audit --locked --no-dev
+          npm audit --omit=dev --audit-level=high
+
+      # Built before the tests: views that use @vite need public/build/manifest.json.
+      - name: Build frontend assets
+        env:
+          NODE_ENV: production
+        run: npm run build
+
+      - name: Run tests
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_DATABASE: app_test
+          DB_USERNAME: app
+          DB_PASSWORD: app
+        run: php -d memory_limit=512M artisan test
+
+      - name: Package release
+        id: package
+        if: ${{ inputs.package }}
+        run: |
+          composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+          release_id="$(date -u +%Y%m%d%H%M%S)-$(git rev-parse --short=8 HEAD)"
+          git rev-parse HEAD > REVISION
+          tar -czf /tmp/release.tar.gz \
+            --exclude='./.git' \
+            --exclude='./.github' \
+            --exclude='./node_modules' \
+            --exclude='./tests' \
+            --exclude='./storage' \
+            --exclude='./.env' \
+            --exclude='./bootstrap/cache/*.php' \
+            .
+          echo "release-id=$release_id" >> "$GITHUB_OUTPUT"
+          ls -lh /tmp/release.tar.gz
+
+      - name: Upload release artifact
+        if: ${{ inputs.package }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: /tmp/release.tar.gz
+          retention-days: 3
+          if-no-files-found: error
