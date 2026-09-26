@@ -1,0 +1,241 @@
+---
+// One screen for a busy CEO or CTO. Opened by any [data-exec-open] button.
+import { person, careerStart, devopsStart, monthsSince, formatDuration } from '../data/profile';
+
+const numbers = [
+  { v: '20+', k: 'production services', d: 'all released through GitHub Actions' },
+  { v: '~60%', k: 'deploy automatically', d: 'production waits for my approval' },
+  { v: '<2%', k: 'failed prod deploys', d: 'core services, from Actions history' },
+  { v: formatDuration(monthsSince(devopsStart)), k: 'in DevOps', d: `${formatDuration(monthsSince(careerStart))} in software overall` },
+];
+const owns = ['CI/CD and release approvals', 'Linode VPS fleet: setup, scaling, hardening', 'Domains, DNS and SSL', 'Access, IAM and secrets', 'Monitoring and incident response'];
+const proof = [
+  { href: '/postmortems', t: 'Postmortems', d: 'how I handle things going wrong' },
+  { href: '/decisions', t: 'Decisions', d: 'trade-offs, written down' },
+  { href: '/first-90-days', t: 'First 90 days', d: 'what I would do on your team' },
+  { href: '/status', t: 'Status', d: 'this site, monitored from outside' },
+];
+---
+
+<dialog class="exec" aria-labelledby="exec-t">
+  <div class="ex-in">
+    <header class="ex-head">
+      <p class="kicker">Exec summary · 60 seconds</p>
+      <button type="button" class="ex-x" data-exec-close aria-label="Close summary">✕</button>
+    </header>
+    <h2 id="exec-t">{person.name}, {person.role}</h2>
+    <p class="ex-line">
+      I own everything after the merge for {person.employerShort}'s 20+ production services: the pipelines that ship them,
+      the servers they run on, and the monitoring that tells me when something drifts.
+    </p>
+
+    <ul class="ex-nums">
+      {
+        numbers.map((n) => (
+          <li>
+            <b>{n.v}</b>
+            <span class="ex-k">{n.k}</span>
+            <span class="ex-d">{n.d}</span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="ex-cols">
+      <div>
+        <p class="ex-lbl">What I own today</p>
+        <ul class="ex-list">{owns.map((o) => <li>{o}</li>)}</ul>
+      </div>
+      <div>
+        <p class="ex-lbl">Not yet (learning in my homelab)</p>
+        <ul class="ex-list ex-list--gap">
+          <li>Kubernetes in production</li>
+          <li>AWS or GCP at scale</li>
+        </ul>
+        <p class="ex-lbl">Evidence</p>
+        <ul class="ex-proof">
+          {
+            proof.map((p) => (
+              <li>
+                <a href={p.href}>{p.t}</a> <span>{p.d}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <p class="ex-cta">
+      <a class="btn btn--primary" href={`mailto:${person.email}?subject=${encodeURIComponent('Read your exec summary: let’s talk')}`}>Email {person.email}</a>
+      <a class="btn" href="/#contact" data-exec-close>Approve the deploy</a>
+      <a class="btn" href={person.resumePage}>Résumé</a>
+    </p>
+  </div>
+</dialog>
+
+<style>
+  .exec {
+    width: min(52rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 3rem);
+    margin: auto;
+    padding: 0;
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius-ticket);
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.5);
+  }
+
+  .exec::backdrop {
+    background: rgba(31, 42, 46, 0.4);
+    backdrop-filter: blur(2px);
+  }
+
+  .ex-in {
+    padding: var(--s-6);
+  }
+
+  .ex-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ex-x {
+    width: 2.2rem;
+    height: 2.2rem;
+    border: var(--hair) solid var(--ink);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .ex-x:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  h2 {
+    margin-top: var(--s-3);
+    font-size: var(--step-2);
+  }
+
+  .ex-line {
+    margin-top: var(--s-2);
+    color: var(--muted);
+    max-width: 44rem;
+  }
+
+  .ex-nums {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-3);
+    margin-top: var(--s-5);
+    list-style: none;
+  }
+
+  .ex-nums li {
+    display: grid;
+    align-content: start;
+    gap: 0.15rem;
+    padding: var(--s-3) var(--s-4);
+    border-radius: var(--radius);
+    background: var(--paper);
+  }
+
+  .ex-nums b {
+    font-size: var(--step-2);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--accent-deep);
+  }
+
+  .ex-k {
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+
+  .ex-d {
+    font: 400 0.75rem / 1.35 var(--font-mono);
+    color: var(--muted);
+  }
+
+  .ex-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-6);
+    margin-top: var(--s-5);
+  }
+
+  .ex-lbl {
+    font: 500 0.72rem / 1.3 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .ex-list {
+    display: grid;
+    gap: 0.2rem;
+    margin: var(--s-2) 0 var(--s-4);
+    padding-left: 1.1rem;
+  }
+
+  .ex-list--gap {
+    color: var(--muted);
+  }
+
+  .ex-proof {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: var(--s-2);
+    list-style: none;
+  }
+
+  .ex-proof a {
+    font-weight: 600;
+    color: var(--accent-deep);
+  }
+
+  .ex-proof span {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .ex-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-5);
+  }
+
+  @media (max-width: 44rem) {
+    .ex-in {
+      padding: var(--s-5);
+    }
+    .ex-nums {
+      grid-template-columns: 1fr 1fr;
+    }
+    .ex-cols {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>
+
+<script>
+  const dlg = document.querySelector<HTMLDialogElement>('dialog.exec')!;
+  document.querySelectorAll('[data-exec-open]').forEach((b) =>
+    b.addEventListener('click', () => {
+      if (!dlg.open) dlg.showModal();
+    }),
+  );
+  dlg.querySelectorAll('[data-exec-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
+  dlg.addEventListener('click', (e) => {
+    if (e.target === dlg) dlg.close();
+  });
+  // The terminal's `tldr` command asks for this.
+  document.addEventListener('exec:open', () => !dlg.open && dlg.showModal());
+</script>

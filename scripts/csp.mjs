@@ -26,7 +26,8 @@ const base = [
   "img-src 'self' data:",
   "font-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "connect-src 'self'",
+  // /status reads the monitor history the status workflow publishes to GitHub.
+  "connect-src 'self' https://raw.githubusercontent.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

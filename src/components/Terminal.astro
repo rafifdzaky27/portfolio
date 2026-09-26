@@ -5,6 +5,7 @@ import { getCollection } from 'astro:content';
 import { person, experience, skills, education, credentials } from '../data/profile';
 import { careerStart, devopsStart } from '../data/time';
 import { build } from '../data/build';
+import { postmortems, adrs } from '../data/ops';
 
 const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
 const flat = (g: { groups: { items: string[] }[] }) => g.groups.flatMap((x) => x.items);
@@ -24,7 +25,9 @@ const data = {
   },
   careerStart,
   devopsStart,
-  sections: ['about', 'work', 'experience', 'homelab', 'research', 'off-the-clock', 'contact'],
+  sections: ['about', 'work', 'experience', 'homelab', 'research', 'off-the-clock', 'ops', 'contact'],
+  postmortems: postmortems.map((p) => ({ id: p.id, slug: p.slug, sev: p.sev, title: p.title })),
+  adrs: adrs.map((a) => ({ id: a.id, title: a.title })),
   projects: work.map((w) => ({ slug: w.id, title: w.data.title, kicker: w.data.kicker })),
   experience: experience.map((r) => ({ title: r.title, org: r.org, period: r.period })),
   skills: { work: flat(skills.work), lab: flat(skills.lab), learning: flat(skills.learning) },
@@ -43,7 +46,7 @@ const data = {
   },
 };
 const json = JSON.stringify(data).replace(/</g, '\\u003c');
-const chips = ['help', 'whoami', 'neofetch', 'ls work', 'ping', 'sudo hire rafif'];
+const chips = ['help', 'tldr', 'whoami', 'neofetch', 'status', 'sudo hire rafif'];
 ---
 
 <dialog class="term" aria-label="rafif.ops shell">
@@ -320,6 +323,46 @@ const chips = ['help', 'whoami', 'neofetch', 'ls work', 'ping', 'sudo hire rafif
         print('CI/CD, Linux & VPS ops, DNS & SSL, access, monitoring and incidents for 20+ production services.');
       },
     },
+    tldr: {
+      help: 'the 60-second exec summary',
+      run: () => {
+        print(dim('opening the exec summary …'));
+        dlg.close();
+        document.dispatchEvent(new CustomEvent('exec:open'));
+      },
+    },
+    status: {
+      help: 'live uptime, checked from outside',
+      run: async () => {
+        print(dim('fetching monitor data from the status branch …'));
+        try {
+          const res = await fetch('https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/uptime.json', { cache: 'no-store' });
+          const data = await res.json();
+          for (const c of Object.values<any>(data.components || {})) {
+            const days = Object.values<any>(c.days);
+            const n = days.reduce((a, d) => a + d.n, 0);
+            const up = days.reduce((a, d) => a + d.up, 0);
+            const last = c.recent[c.recent.length - 1];
+            print(last?.ok ? green('● ') : red('▲ '), bold(c.name.padEnd(28)), n ? `${((100 * up) / n).toFixed(2)}% of ${n} checks` : 'no checks yet', dim(last ? `  last ${last.ms} ms` : ''));
+          }
+          print(dim(`updated ${ago(data.updated)} · details: `), link('/status', '/status'));
+        } catch {
+          print(red('no monitor data yet'), dim(' (the first scheduled check publishes it)'));
+        }
+      },
+    },
+    postmortems: {
+      help: 'incidents from building this site',
+      run: () => {
+        D.postmortems.forEach((p: { id: string; slug: string; sev: string; title: string }) =>
+          print(dim(`${p.id} ${p.sev}  `), link(p.title, `/postmortems#${p.slug}`)),
+        );
+      },
+    },
+    adr: {
+      help: 'architecture decisions',
+      run: () => D.adrs.forEach((a: { id: string; title: string }) => print(teal(a.id + '  '), link(a.title, `/decisions#${a.id.toLowerCase()}`))),
+    },
     uptime: {
       help: 'how long I have been at it',
       run: () => {
@@ -362,6 +405,12 @@ const chips = ['help', 'whoami', 'neofetch', 'ls work', 'ping', 'sudo hire rafif
           linkedin: D.person.linkedin,
           homelab: '/homelab',
           research: '/research',
+          postmortems: '/postmortems',
+          decisions: '/decisions',
+          adr: '/decisions',
+          plan: '/first-90-days',
+          '90': '/first-90-days',
+          status: '/status',
         };
         const href = what && p ? `/work/${p.slug}` : map[what];
         if (!href) return print(red(`open: ${what || '?'}: not found`), dim('  (try ls work)'));
@@ -550,7 +599,7 @@ const chips = ['help', 'whoami', 'neofetch', 'ls work', 'ping', 'sudo hire rafif
   };
   const alias: Record<string, string> = {
     '?': 'help', man: 'help', dir: 'ls', ll: 'ls', la: 'ls', cls: 'clear', quit: 'exit', logout: 'exit',
-    tracert: 'traceroute', nslookup: 'dig', fastfetch: 'neofetch', helm: 'kubectl', k9s: 'kubectl', k3s: 'kubectl',
+    tracert: 'traceroute', nslookup: 'dig', fastfetch: 'neofetch', helm: 'kubectl', incidents: 'postmortems', pm: 'postmortems', decisions: 'adr', adrs: 'adr', exec: 'tldr', summary: 'tldr', k9s: 'kubectl', k3s: 'kubectl',
     nano: 'vim', emacs: 'vim', wget: 'curl', hire: 'sudo', htop: 'uptime', top: 'uptime', max: 'f1', verstappen: 'f1',
   };
 
@@ -635,7 +684,7 @@ const chips = ['help', 'whoami', 'neofetch', 'ls work', 'ping', 'sudo hire rafif
         ? head === 'cd'
           ? D.sections
           : head === 'open'
-            ? [...D.projects.map((p: { slug: string }) => p.slug), 'resume', 'github', 'linkedin', 'homelab', 'research']
+            ? [...D.projects.map((p: { slug: string }) => p.slug), 'resume', 'github', 'linkedin', 'homelab', 'research', 'postmortems', 'decisions', 'plan', 'status']
             : head === 'cat'
               ? ['resume', 'skills', 'contact', 'education']
               : head === 'ls'

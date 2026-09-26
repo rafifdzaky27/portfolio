@@ -60,6 +60,15 @@ what actually happened, and delete any you'd struggle to talk about in an interv
 - [ ] Footer release line links the commit on the public repo, and shows build time, page count and size.
 - [ ] `curl -sL rafifdzaky.com` needs the `@cli` rewrite and the `X-Hire-Me` header in your real Caddyfile (see docs/SECURITY.md).
 
+## Operating manual (new, please read)
+
+- [ ] **Postmortems** (/postmortems): five incidents from building this site in Sep 2026. Check the wording is how you would tell it, especially PM-003 (deploy details in public logs) and its open action item about the CI network rule.
+- [ ] **Decisions** (/decisions): six ADRs. ADR-003 says the CI node's ACL has to be tight; make sure it is.
+- [ ] **First 90 days** (/first-90-days): **a draft I wrote for you.** Rewrite it in your own words before sharing the link with anyone.
+- [ ] **FinOps card**: every number is an assumption shown on screen (30 W host, PLN Rp 1.444,70/kWh, .com ~US$11/yr, US$1 = Rp 16.500). Put your real wattage and domain price in `src/data/ops.ts`.
+- [ ] **Exec summary**: lists Kubernetes in production and AWS/GCP at scale as "not yet". Keep it honest as that changes.
+- [ ] **Approve deploy** gate: the checks it lists (20+ services, <2%, CSP, tunnel) are the same confirmed facts used elsewhere.
+
 ## Team logos
 
 - [ ] The Red Bull car and the Liverpool crest are trademarks, used here only as fan references in Off the clock, from files you supplied. They're not part of the site's branding. Remove them if an employer or the clubs ever object.

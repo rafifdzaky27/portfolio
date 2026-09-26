@@ -1,0 +1,379 @@
+---
+import Base from '../layouts/Base.astro';
+import OpsNav from '../components/OpsNav.astro';
+import { postmortems } from '../data/ops';
+
+// Written by .github/workflows/status.yml to the `status` branch.
+const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/uptime.json';
+---
+
+<Base
+  title="Status"
+  description="Live uptime for rafifdzaky.com, checked from outside the homelab by GitHub Actions about every 15 minutes."
+  current="other"
+>
+  <OpsNav current="status" />
+  <header class="wrap page-head">
+    <p class="kicker">Public status · checked from outside the homelab</p>
+    <h1>rafifdzaky.com status</h1>
+
+    <p class="banner" data-banner data-state="loading" role="status">
+      <span class="dot" aria-hidden="true"></span>
+      <span data-banner-text>Loading monitor data…</span>
+    </p>
+    <noscript><p class="banner" data-state="stale">This page needs JavaScript to load the monitor data. Raw data: <a href={feed}>uptime.json</a></p></noscript>
+  </header>
+
+  <section class="wrap" aria-label="Components">
+    <div class="comps" data-comps data-feed={feed}></div>
+    <p class="how meta">
+      Checked by a scheduled GitHub Action about every 15 minutes (GitHub can delay scheduled runs). A check passes when the
+      page returns 200 and contains the expected text. Days before monitoring started show as "no data".
+      <a href={feed} rel="noopener" target="_blank">Raw data</a> · <a href="/decisions#adr-006">why it works this way</a>
+    </p>
+  </section>
+
+  <section class="section wrap" aria-labelledby="inc-t">
+    <h2 id="inc-t" class="h2">Incident history</h2>
+    <p class="meta">Written up as postmortems. None of these reached public visitors; each one says why.</p>
+    <ol class="inc">
+      {
+        postmortems.map((p) => (
+          <li>
+            <span class="inc-d">{p.date}</span>
+            <a href={`/postmortems#${p.slug}`}>{p.title}</a>
+            <span class="inc-k">{p.sev} · {p.kind} · resolved</span>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <template id="comp-tpl">
+    <article class="comp ticket">
+      <div class="comp-head">
+        <h2 class="comp-name"></h2>
+        <p class="comp-state"></p>
+        <p class="comp-up"></p>
+      </div>
+      <div class="bars" role="img"></div>
+      <p class="bars-axis meta"><span>90 days ago</span><span class="bars-tip" aria-live="polite"></span><span>today</span></p>
+      <div class="lat">
+        <p class="lat-h meta">Response time, last 24 h</p>
+        <svg class="lat-svg" viewBox="0 0 600 80" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <p class="lat-sum meta"></p>
+      </div>
+    </article>
+  </template>
+</Base>
+
+<style>
+  .page-head {
+    padding-block: var(--s-6);
+  }
+
+  h1 {
+    margin-top: var(--s-3);
+    font-size: var(--step-3);
+  }
+
+  .banner {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    margin-top: var(--s-5);
+    padding: var(--s-4) var(--s-5);
+    border: var(--rule) solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--card);
+    font-weight: 600;
+    font-size: var(--step-1);
+  }
+
+  .dot {
+    width: 0.8rem;
+    height: 0.8rem;
+    flex: none;
+    border-radius: 50%;
+    background: var(--planned);
+  }
+
+  .banner[data-state='ok'] {
+    border-color: var(--ok);
+    background: #eef6f0;
+  }
+  .banner[data-state='ok'] .dot {
+    background: var(--ok);
+  }
+  .banner[data-state='down'] {
+    border-color: var(--stamp);
+    background: #fdf1ef;
+  }
+  .banner[data-state='down'] .dot {
+    background: var(--stamp);
+  }
+  .banner[data-state='stale'] .dot {
+    background: var(--partial);
+  }
+
+  .comps {
+    display: grid;
+    gap: var(--s-5);
+  }
+
+  .comps :global(.comp) {
+    padding: var(--s-5);
+  }
+
+  .comps :global(.comp-head) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-2) var(--s-4);
+  }
+
+  .comps :global(.comp-name) {
+    font-size: var(--step-1);
+    margin-right: auto;
+  }
+
+  .comps :global(.comp-state) {
+    font: 500 0.8rem / 1 var(--font-mono);
+  }
+
+  .comps :global(.comp-state[data-ok='true']) {
+    color: var(--ok-ink);
+  }
+
+  .comps :global(.comp-state[data-ok='false']) {
+    color: var(--stamp);
+  }
+
+  .comps :global(.comp-up) {
+    font: 400 0.85rem / 1 var(--font-mono);
+    color: var(--muted);
+  }
+
+  .comps :global(.bars) {
+    display: grid;
+    grid-template-columns: repeat(90, minmax(0, 1fr));
+    gap: 2px;
+    height: 2.4rem;
+    margin-top: var(--s-4);
+  }
+
+  .comps :global(.bars i) {
+    border-radius: 2px;
+    background: var(--line);
+    cursor: default;
+  }
+
+  .comps :global(.bars i[data-l='ok']) {
+    background: var(--ok);
+  }
+  .comps :global(.bars i[data-l='warn']) {
+    background: var(--partial);
+  }
+  .comps :global(.bars i[data-l='bad']) {
+    background: var(--stamp);
+  }
+  .comps :global(.bars i:hover),
+  .comps :global(.bars i:focus-visible) {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+
+  .comps :global(.bars-axis) {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin-top: var(--s-2);
+  }
+
+  .comps :global(.bars-tip) {
+    color: var(--ink);
+    text-align: center;
+  }
+
+  .comps :global(.lat) {
+    margin-top: var(--s-5);
+  }
+
+  .comps :global(.lat-svg) {
+    width: 100%;
+    height: 5rem;
+    margin-top: var(--s-2);
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .comps :global(.lat-svg polyline) {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    stroke-linejoin: round;
+  }
+
+  .comps :global(.lat-svg .fail) {
+    fill: var(--stamp);
+  }
+
+  .comps :global(.lat-sum) {
+    margin-top: var(--s-2);
+  }
+
+  .how {
+    margin-top: var(--s-4);
+    max-width: 48rem;
+  }
+
+  .h2 {
+    font-size: var(--step-2);
+  }
+
+  .inc {
+    display: grid;
+    gap: var(--s-3);
+    margin-top: var(--s-5);
+    list-style: none;
+  }
+
+  .inc li {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    gap: var(--s-3);
+    align-items: baseline;
+    padding-bottom: var(--s-3);
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .inc-d,
+  .inc-k {
+    font: 400 0.8rem / 1.3 var(--font-mono);
+    color: var(--muted);
+  }
+
+  @media (max-width: 44rem) {
+    .inc li {
+      grid-template-columns: 1fr;
+      gap: var(--s-1);
+    }
+    .comps :global(.bars) {
+      grid-template-columns: repeat(45, minmax(0, 1fr));
+    }
+    .comps :global(.bars i:nth-child(-n + 45)) {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { ago } from '../scripts/trace';
+
+  interface Check {
+    t: string;
+    ok: boolean;
+    ms: number;
+    code: number;
+    note?: string;
+  }
+  interface Comp {
+    name: string;
+    days: Record<string, { n: number; up: number; ms: number }>;
+    recent: Check[];
+  }
+
+  const box = document.querySelector<HTMLElement>('[data-comps]')!;
+  const banner = document.querySelector<HTMLElement>('[data-banner]')!;
+  const bannerText = document.querySelector<HTMLElement>('[data-banner-text]')!;
+  const tpl = document.getElementById('comp-tpl') as HTMLTemplateElement;
+
+  const setBanner = (state: string, text: string) => {
+    banner.dataset.state = state;
+    bannerText.textContent = text;
+  };
+
+  const pct = (up: number, n: number) => (n ? (100 * up) / n : NaN);
+  const fmt = (p: number) => (isNaN(p) ? 'no data' : `${p >= 99.995 ? '100' : p.toFixed(2)}%`);
+  const level = (p: number) => (isNaN(p) ? 'none' : p >= 99.5 ? 'ok' : p >= 95 ? 'warn' : 'bad');
+
+  const render = (key: string, c: Comp, since: string) => {
+    const el = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    el.querySelector('.comp-name')!.textContent = c.name;
+    const last = c.recent[c.recent.length - 1];
+    const state = el.querySelector<HTMLElement>('.comp-state')!;
+    state.dataset.ok = String(!!last?.ok);
+    state.textContent = last ? (last.ok ? '● Operational' : `▲ Failing (${last.code || last.note})`) : 'No checks yet';
+
+    const all = Object.values(c.days).reduce((a, d) => ({ n: a.n + d.n, up: a.up + d.up }), { n: 0, up: 0 });
+    el.querySelector('.comp-up')!.textContent = `${fmt(pct(all.up, all.n))} uptime · ${all.n} checks since ${since.slice(0, 10)}`;
+
+    // 90 day bars, oldest first
+    const bars = el.querySelector<HTMLElement>('.bars')!;
+    const tip = el.querySelector<HTMLElement>('.bars-tip')!;
+    bars.setAttribute('aria-label', `${c.name}: daily uptime for the last 90 days. ${fmt(pct(all.up, all.n))} overall.`);
+    const today = new Date();
+    for (let i = 89; i >= 0; i--) {
+      const day = new Date(today.getTime() - i * 864e5).toISOString().slice(0, 10);
+      const d = c.days[day];
+      const p = d ? pct(d.up, d.n) : NaN;
+      const b = document.createElement('i');
+      b.dataset.l = level(p);
+      const label = `${day}: ${d ? `${fmt(p)} (${d.up}/${d.n} checks)` : 'no data'}`;
+      b.title = label;
+      b.tabIndex = -1;
+      b.addEventListener('mouseenter', () => (tip.textContent = label));
+      b.addEventListener('mouseleave', () => (tip.textContent = ''));
+      bars.append(b);
+    }
+
+    // latency sparkline
+    const svg = el.querySelector<SVGSVGElement>('.lat-svg')!;
+    const pts = c.recent;
+    const okMs = pts.filter((p) => p.ok).map((p) => p.ms);
+    if (pts.length > 1 && okMs.length) {
+      const max = Math.max(...okMs) * 1.15;
+      const x = (i: number) => (i / (pts.length - 1)) * 600;
+      const y = (ms: number) => 78 - (ms / max) * 72;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      line.setAttribute('points', pts.map((p, i) => (p.ok ? `${x(i).toFixed(1)},${y(p.ms).toFixed(1)}` : '')).filter(Boolean).join(' '));
+      svg.append(line);
+      pts.forEach((p, i) => {
+        if (p.ok) return;
+        const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        r.setAttribute('x', String(x(i) - 2));
+        r.setAttribute('y', '0');
+        r.setAttribute('width', '4');
+        r.setAttribute('height', '80');
+        r.setAttribute('class', 'fail');
+        svg.append(r);
+      });
+      const sorted = [...okMs].sort((a, b) => a - b);
+      const med = sorted[Math.floor(sorted.length / 2)];
+      el.querySelector('.lat-sum')!.textContent = `median ${med} ms · max ${sorted[sorted.length - 1]} ms · ${pts.length} checks · last ${ago(last.t)}`;
+    } else {
+      el.querySelector('.lat-sum')!.textContent = 'Not enough checks yet.';
+    }
+    el.dataset.key = key;
+    box.append(el);
+  };
+
+  (async () => {
+    try {
+      const res = await fetch(box.dataset.feed!, { cache: 'no-store' });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      const comps = Object.entries<Comp>(data.components || {});
+      if (!comps.length) throw new Error('empty');
+      comps.forEach(([k, c]) => render(k, c, data.since));
+
+      const ageMin = (Date.now() - Date.parse(data.updated)) / 6e4;
+      const failing = comps.filter(([, c]) => !c.recent[c.recent.length - 1]?.ok).map(([, c]) => c.name);
+      if (ageMin > 60) setBanner('stale', `Monitor data is stale: last check ${ago(data.updated)}.`);
+      else if (failing.length) setBanner('down', `Degraded: ${failing.join(', ')} failed the last check (${ago(data.updated)}).`);
+      else setBanner('ok', `All systems operational · last checked ${ago(data.updated)}`);
+    } catch {
+      setBanner('stale', 'No monitor data yet. The first scheduled check publishes it within about 15 minutes.');
+    }
+  })();
+</script>

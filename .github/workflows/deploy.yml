@@ -42,6 +42,12 @@ jobs:
       - name: Build and validate internal links
         run: npm run check:links
 
+      - name: Lighthouse budget
+        # Mobile Lighthouse on the built homepage. Fails the deploy if a score
+        # or the page weight breaks the budget in scripts/lighthouse.mjs, and
+        # writes the real scores into every page's footer.
+        run: node scripts/lighthouse.mjs
+
       - name: Verify build artifact
         run: |
           test -s dist/index.html

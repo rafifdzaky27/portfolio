@@ -1,0 +1,291 @@
+---
+import Base from '../layouts/Base.astro';
+import OpsNav from '../components/OpsNav.astro';
+import { postmortems } from '../data/ops';
+---
+
+<Base
+  title="Postmortems"
+  description="Blameless postmortems of real incidents from building and running Rafif Dzaky Daniswara's portfolio: impact, timeline, root cause and action items."
+  current="other"
+>
+  <OpsNav current="postmortems" />
+  <header class="wrap page-head">
+    <p class="kicker">Blameless · real incidents · Sep 2026</p>
+    <h1>Postmortems of this website</h1>
+    <p class="lede">
+      Everything that went wrong while I built and shipped this site, written up the way I would at work: impact first, a
+      timeline, the root cause rather than the symptom, and what changed so it can't happen again.
+    </p>
+    <ol class="toc">
+      {
+        postmortems.map((p) => (
+          <li>
+            <a href={`#${p.slug}`}>
+              <span class={`sev sev--${p.sev === 'SEV-3' ? '3' : '4'}`}>{p.sev}</span>
+              <span class="toc-id">{p.id}</span>
+              <span class="toc-t">{p.title}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </header>
+
+  <div class="wrap pms">
+    {
+      postmortems.map((p) => (
+        <article class="pm ticket" id={p.slug} aria-labelledby={`${p.slug}-t`}>
+          <header class="pm-head">
+            <p class="pm-meta">
+              <span class={`sev sev--${p.sev === 'SEV-3' ? '3' : '4'}`}>{p.sev}</span>
+              <span>{p.id}</span>
+              <span>{p.date}</span>
+              <span>{p.kind}</span>
+              <span class="resolved">✓ resolved</span>
+            </p>
+            <h2 id={`${p.slug}-t`}>{p.title}</h2>
+          </header>
+
+          <dl class="pm-facts">
+            <div>
+              <dt>Impact</dt>
+              <dd>{p.impact}</dd>
+            </div>
+            <div>
+              <dt>Detection</dt>
+              <dd>{p.detection}</dd>
+            </div>
+          </dl>
+
+          <h3>Timeline</h3>
+          <ol class="tl">
+            {p.timeline.map((s) => (
+              <li>
+                <span class="tl-t">{s.t}</span>
+                <span>{s.e}</span>
+              </li>
+            ))}
+          </ol>
+
+          <div class="pm-grid">
+            <div>
+              <h3>Root cause</h3>
+              <p>{p.rootCause}</p>
+            </div>
+            <div>
+              <h3>Fix</h3>
+              <p>{p.fix}</p>
+            </div>
+            <div>
+              <h3>What went well</h3>
+              <p>{p.wentWell}</p>
+            </div>
+            <div>
+              <h3>Lesson</h3>
+              <p>{p.lesson}</p>
+            </div>
+          </div>
+
+          <h3>Action items</h3>
+          <ul class="actions">
+            {p.actions.map((a) => (
+              <li class={a.done ? 'is-done' : 'is-open'}>
+                <span aria-hidden="true">{a.done ? '✓' : '○'}</span>
+                <span class="visually-hidden">{a.done ? 'Done: ' : 'Open: '}</span>
+                {a.text}
+              </li>
+            ))}
+          </ul>
+        </article>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .page-head {
+    padding-block: var(--s-6) var(--s-6);
+  }
+
+  h1 {
+    margin-top: var(--s-3);
+    font-size: var(--step-4);
+    max-width: 18ch;
+  }
+
+  .lede {
+    margin-top: var(--s-4);
+  }
+
+  .toc {
+    display: grid;
+    gap: var(--s-2);
+    margin-top: var(--s-6);
+    list-style: none;
+    max-width: 52rem;
+  }
+
+  .toc a {
+    display: grid;
+    grid-template-columns: 4.2rem 4.2rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--s-3);
+    padding: 0.55rem 0.8rem;
+    border: var(--hair) solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--card);
+    text-decoration: none;
+  }
+
+  .toc a:hover {
+    border-color: var(--ink);
+  }
+
+  .toc-id {
+    font: 400 0.8rem / 1 var(--font-mono);
+    color: var(--muted);
+  }
+
+  .sev {
+    justify-self: start;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font: 600 0.72rem / 1.2 var(--font-mono);
+  }
+
+  .sev--3 {
+    background: #fbe3c7;
+    color: #7a4a06;
+  }
+
+  .sev--4 {
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+  }
+
+  .pms {
+    display: grid;
+    gap: var(--s-6);
+    padding-bottom: var(--s-9);
+  }
+
+  .pm {
+    padding: var(--s-6);
+    max-width: 60rem;
+  }
+
+  .pm-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-4);
+    font: 400 0.8rem / 1.3 var(--font-mono);
+    color: var(--muted);
+  }
+
+  .resolved {
+    color: var(--ok-ink);
+  }
+
+  .pm h2 {
+    margin-top: var(--s-3);
+    font-size: var(--step-2);
+  }
+
+  .pm h3 {
+    margin-top: var(--s-5);
+    margin-bottom: var(--s-2);
+    font: 500 0.75rem / 1.3 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pm-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-5);
+    margin-top: var(--s-5);
+  }
+
+  .pm-facts dt {
+    font: 500 0.75rem / 1.3 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pm-facts dd {
+    margin-top: var(--s-1);
+  }
+
+  .tl {
+    display: grid;
+    gap: var(--s-2);
+    list-style: none;
+    border-left: var(--rule) solid var(--ink);
+    padding-left: var(--s-4);
+  }
+
+  .tl li {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: var(--s-3);
+  }
+
+  .tl-t {
+    font: 500 0.8rem / 1.6 var(--font-mono);
+    color: var(--accent-deep);
+  }
+
+  .pm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 var(--s-6);
+  }
+
+  .pm-grid p {
+    color: var(--muted);
+  }
+
+  .actions {
+    display: grid;
+    gap: var(--s-1);
+    list-style: none;
+  }
+
+  .actions li {
+    display: flex;
+    gap: var(--s-2);
+  }
+
+  .is-done > span:first-child {
+    color: var(--ok);
+    font-weight: 700;
+  }
+
+  .is-open > span:first-child {
+    color: var(--partial-ink);
+  }
+
+  @media (max-width: 44rem) {
+    .pm {
+      padding: var(--s-5);
+    }
+    .pm-facts,
+    .pm-grid {
+      grid-template-columns: 1fr;
+    }
+    .tl li {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .toc a {
+      grid-template-columns: auto 1fr;
+    }
+    .toc-t {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
