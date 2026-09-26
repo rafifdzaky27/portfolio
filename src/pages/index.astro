@@ -6,6 +6,9 @@ import HomelabMap from '../components/HomelabMap.astro';
 import SectionHead from '../components/SectionHead.astro';
 import Credentials from '../components/Credentials.astro';
 import OffTheClock from '../components/OffTheClock.astro';
+import FinOps from '../components/FinOps.astro';
+import ApproveDeploy from '../components/ApproveDeploy.astro';
+import { postmortems, adrs } from '../data/ops';
 import {
   person,
   experience,
@@ -97,7 +100,12 @@ const profileSchema = {
 <Base structuredData={profileSchema}>
   <!-- ============ HERO ============ -->
   <section class="hero wrap" aria-labelledby="hero-title">
-    <p class="kicker">Now boarding · prod release</p>
+    <div class="hero-top">
+      <p class="kicker">Now boarding · prod release</p>
+      <button type="button" class="exec-btn" data-exec-open>
+        <span aria-hidden="true">⏱</span> Exec summary <span class="exec-s">60 s</span>
+      </button>
+    </div>
     <h1 id="hero-title">{person.name} <span>ships software.</span></h1>
     <BoardingPass />
     <ul class="facts" aria-label="Fun facts">
@@ -360,10 +368,53 @@ const profileSchema = {
     <OffTheClock />
   </section>
 
+  <!-- ============ OPERATING MANUAL ============ -->
+  <section class="section band" id="ops" aria-labelledby="ops-title">
+    <div class="wrap">
+      <SectionHead index="07" label="Operating manual" title="How I run things when it matters" id="ops-title">
+        <p class="lede">
+          For hiring managers who want more than a skills list: how I handle incidents, how I make decisions, and what I'd
+          do in my first 90 days with you.
+        </p>
+      </SectionHead>
+      <ul class="manual">
+        <li>
+          <a class="man ticket" href="/postmortems">
+            <span class="man-n">{postmortems.length}</span>
+            <span class="man-t">Postmortems</span>
+            <span class="man-d">Real incidents from building this site. Blameless, root cause first.</span>
+          </a>
+        </li>
+        <li>
+          <a class="man ticket" href="/decisions">
+            <span class="man-n">{adrs.length}</span>
+            <span class="man-t">Architecture decisions</span>
+            <span class="man-d">What I chose, what I rejected, and what each choice costs.</span>
+          </a>
+        </li>
+        <li>
+          <a class="man ticket" href="/first-90-days">
+            <span class="man-n">90</span>
+            <span class="man-t">First 90 days</span>
+            <span class="man-d">Listen and map, make releases boring, make it measurable.</span>
+          </a>
+        </li>
+        <li>
+          <a class="man ticket" href="/status" data-live-status>
+            <span class="man-n" data-live-up>live</span>
+            <span class="man-t">Status</span>
+            <span class="man-d" data-live-d>This site, checked from outside the homelab every 15 minutes.</span>
+          </a>
+        </li>
+      </ul>
+      <FinOps />
+    </div>
+  </section>
+
   <!-- ============ CONTACT ============ -->
   <section class="section band contact" id="contact" aria-labelledby="contact-title">
     <div class="wrap">
-      <SectionHead index="07" label="Final call" title="Hiring for DevOps, cloud, infrastructure or platform work?" id="contact-title" />
+      <SectionHead index="08" label="Final call" title="Hiring for DevOps, cloud, infrastructure or platform work?" id="contact-title" />
       <div class="contact-card ticket">
         <div>
           <p class="lbl">Email</p>
@@ -380,6 +431,7 @@ const profileSchema = {
         </ul>
         <p class="meta">Based in {person.location} · Indonesian and English</p>
       </div>
+      <ApproveDeploy />
     </div>
   </section>
 </Base>
@@ -389,6 +441,34 @@ const profileSchema = {
   const set = (sel: string, v: string) => document.querySelectorAll(sel).forEach((el) => (el.textContent = v));
   set('[data-exp="total"]', formatDuration(monthsSince(careerStart)));
   set('[data-exp="devops"]', formatDuration(monthsSince(devopsStart)));
+
+  // The Status card shows the real uptime once it scrolls into view.
+  import { ago } from '../scripts/trace';
+  const live = document.querySelector<HTMLElement>('[data-live-status]');
+  if (live && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(async (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      try {
+        const res = await fetch('https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/uptime.json', { cache: 'no-store' });
+        const data = await res.json();
+        const site = data.components?.site;
+        if (!site) return;
+        const days = Object.values(site.days) as { n: number; up: number }[];
+        const n = days.reduce((a, d) => a + d.n, 0);
+        const up = days.reduce((a, d) => a + d.up, 0);
+        if (!n) return;
+        const p = (100 * up) / n;
+        const last = site.recent[site.recent.length - 1];
+        live.querySelector('[data-live-up]')!.textContent = `${p >= 99.995 ? '100' : p.toFixed(2)}%`;
+        live.querySelector('[data-live-d]')!.textContent =
+          `${last?.ok ? '● operational' : '▲ failing'} · ${n} outside checks · last ${ago(data.updated)}`;
+      } catch {
+        /* keep the static text */
+      }
+    });
+    io.observe(live);
+  }
 </script>
 
 <style>
@@ -399,6 +479,102 @@ const profileSchema = {
   }
 
   /* ---------- hero ---------- */
+  .hero-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-2) var(--s-4);
+  }
+
+  .exec-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.8rem;
+    border: var(--rule) solid var(--ink);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--ink);
+    font: 500 0.8rem / 1 var(--font-mono);
+    cursor: pointer;
+  }
+
+  .exec-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .exec-s {
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    font-size: 0.7rem;
+  }
+
+  :global(html:not(.js)) .exec-btn {
+    display: none;
+  }
+
+  /* ---------- operating manual ---------- */
+  .manual {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-4);
+    margin-top: var(--s-6);
+    list-style: none;
+  }
+
+  .man {
+    display: grid;
+    align-content: start;
+    gap: var(--s-2);
+    height: 100%;
+    padding: var(--s-5);
+    text-decoration: none;
+    transition:
+      transform var(--dur-fast) var(--ease),
+      box-shadow var(--dur-fast) var(--ease);
+  }
+
+  .man:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+
+  .man-n {
+    font: 600 var(--step-3) / 1 var(--font-sans);
+    letter-spacing: -0.03em;
+    color: var(--accent-deep);
+  }
+
+  .man-t {
+    font-weight: 650;
+    font-size: var(--step-1);
+  }
+
+  .man-t::after {
+    content: ' a0→';
+    color: var(--accent);
+  }
+
+  .man-d {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 64rem) {
+    .manual {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .manual {
+      grid-template-columns: 1fr;
+    }
+  }
   .hero {
     padding-block: var(--s-7) var(--s-7);
   }
@@ -855,7 +1031,7 @@ const profileSchema = {
   .served-tag {
     padding: 0.1rem 0.5rem;
     border-radius: 999px;
-    background: var(--ok);
+    background: var(--ok-ink);
     color: #fff;
     font: 500 0.72rem / 1.5 var(--font-mono);
     letter-spacing: 0.06em;

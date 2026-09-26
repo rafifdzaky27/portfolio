@@ -27,6 +27,8 @@
   --ok: #3f8f5a;
   --partial: #b27a12;
   --planned: #7a8588;
+  --ok-ink: #2c6e41; /* status text / white-on-green */
+  --partial-ink: #85590a; /* amber text */
 
   /* legacy aliases (old component names now resolve to the light theme) */
   --field: var(--paper);

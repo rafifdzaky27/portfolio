@@ -1,0 +1,64 @@
+---
+// Tabs between the operating-manual pages.
+interface Props {
+  current: 'postmortems' | 'decisions' | 'first-90-days' | 'status';
+}
+const { current } = Astro.props;
+const tabs = [
+  { id: 'postmortems', label: 'Postmortems' },
+  { id: 'decisions', label: 'Decisions' },
+  { id: 'first-90-days', label: 'First 90 days' },
+  { id: 'status', label: 'Status' },
+];
+---
+
+<nav class="opsnav wrap" aria-label="Operating manual">
+  <p class="meta">Operating manual</p>
+  <ul>
+    {
+      tabs.map((t) => (
+        <li>
+          <a href={`/${t.id}`} aria-current={t.id === current ? 'page' : undefined}>
+            {t.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .opsnav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-4);
+    padding-top: var(--s-6);
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    list-style: none;
+  }
+
+  a {
+    display: inline-block;
+    padding: 0.35rem 0.7rem;
+    border: var(--rule) solid var(--ink);
+    border-radius: 999px;
+    background: var(--card);
+    font: 400 0.8rem / 1.3 var(--font-mono);
+    text-decoration: none;
+  }
+
+  a:hover {
+    background: var(--paper-2);
+  }
+
+  a[aria-current='page'] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+</style>

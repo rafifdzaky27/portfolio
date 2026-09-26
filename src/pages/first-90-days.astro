@@ -1,0 +1,195 @@
+---
+import Base from '../layouts/Base.astro';
+import OpsNav from '../components/OpsNav.astro';
+import { firstNinety } from '../data/ops';
+import { person } from '../data/profile';
+---
+
+<Base
+  title="First 90 days"
+  description="What Rafif Dzaky Daniswara would do in his first 90 days on a DevOps, infrastructure or platform team: listen and map, make releases boring, make it measurable."
+  current="other"
+>
+  <OpsNav current="first-90-days" />
+  <header class="wrap page-head">
+    <p class="kicker">Onboarding runbook · if you hire me</p>
+    <h1>My first 90 days on your team</h1>
+    <p class="lede">{firstNinety.note}</p>
+  </header>
+
+  <section class="wrap" aria-label="Plan">
+    <ol class="phases">
+      {
+        firstNinety.phases.map((p, i) => (
+          <li class="phase ticket">
+            <p class="ph-top">
+              <span class="ph-no">0{i + 1}</span>
+              <span class="ph-days">{p.days}</span>
+            </p>
+            <h2>{p.name}</h2>
+            <p class="goal">{p.goal}</p>
+            <ul>
+              {p.items.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+    <div class="rail" aria-hidden="true">
+      <i></i><i></i><i></i>
+    </div>
+  </section>
+
+  <section class="wrap wont-wrap" aria-labelledby="wont-t">
+    <div class="wont ticket">
+      <h2 id="wont-t">What I won't do</h2>
+      <ul>
+        {
+          firstNinety.wont.map((x) => (
+            <li>
+              <span aria-hidden="true">✕</span> {x}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="next">
+      <p>Want to adapt this to your team?</p>
+      <p class="actions">
+        <a class="btn btn--primary" href={`mailto:${person.email}?subject=${encodeURIComponent('Your first 90 days with us')}`}>Email me</a>
+        <a class="btn" href="/#contact">Approve the deploy</a>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head {
+    padding-block: var(--s-6);
+  }
+
+  h1 {
+    margin-top: var(--s-3);
+    font-size: var(--step-4);
+    max-width: 16ch;
+  }
+
+  .lede {
+    margin-top: var(--s-4);
+  }
+
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s-5);
+    list-style: none;
+  }
+
+  .phase {
+    padding: var(--s-5);
+  }
+
+  .ph-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font: 400 0.8rem / 1 var(--font-mono);
+    color: var(--muted);
+  }
+
+  .ph-no {
+    font: 600 1.6rem / 1 var(--font-mono);
+    color: var(--accent);
+  }
+
+  .phase h2 {
+    margin-top: var(--s-4);
+    font-size: var(--step-2);
+  }
+
+  .goal {
+    margin-top: var(--s-1);
+    color: var(--muted);
+  }
+
+  .phase ul {
+    display: grid;
+    gap: var(--s-2);
+    margin-top: var(--s-4);
+    padding-left: 1.1rem;
+  }
+
+  /* progress rail under the three phases */
+  .rail {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    margin-top: var(--s-4);
+  }
+
+  .rail i {
+    height: 6px;
+    border-radius: 2px;
+    background: var(--accent-soft);
+  }
+
+  .rail i:first-child {
+    background: var(--accent);
+  }
+
+  .rail i:nth-child(2) {
+    background: linear-gradient(90deg, var(--accent), var(--accent-soft));
+  }
+
+  .wont-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--s-5);
+    align-items: center;
+    padding-block: var(--s-7) var(--s-9);
+  }
+
+  .wont {
+    padding: var(--s-5);
+  }
+
+  .wont h2 {
+    font-size: var(--step-1);
+  }
+
+  .wont ul {
+    display: grid;
+    gap: var(--s-2);
+    margin-top: var(--s-3);
+    list-style: none;
+  }
+
+  .wont li span {
+    color: var(--stamp);
+    font-weight: 700;
+  }
+
+  .next p:first-child {
+    font-size: var(--step-1);
+    font-weight: 600;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-3);
+  }
+
+  @media (max-width: 56rem) {
+    .phases,
+    .wont-wrap {
+      grid-template-columns: 1fr;
+    }
+    .rail {
+      display: none;
+    }
+  }
+</style>

@@ -23,6 +23,9 @@ The web page itself has very little attack surface.
 | Secrets passed through `env:`, not spliced into shell source | `deploy.yml` |
 | Deploy key deleted at the end of every run | `deploy.yml` |
 | Post-deploy check that security headers and CSP are present | `deploy.yml` |
+| CSP `connect-src` allows one extra origin, `raw.githubusercontent.com`, only so /status can read the monitor history | `scripts/csp.mjs` |
+| Status monitor runs on GitHub, not in the lab. Its only write access is force-pushing one JSON file to the `status` branch; it has no secrets and no network path home | `.github/workflows/status.yml` |
+| Lighthouse runs through a pinned `npx`, so its dependency tree (which has open advisories) never enters the lockfile or the site | `scripts/lighthouse.mjs` |
 | Workflow token is read-only; no `pull_request_target`, so forks never see secrets | `deploy.yml` |
 
 ### Required repository secrets

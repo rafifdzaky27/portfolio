@@ -34,6 +34,14 @@ const curlCmd = 'curl -sL rafifdzaky.com';
       </div>
 
       <div class="st-row">
+        <p class="st-k">Lighthouse</p>
+        <p class="st-v">
+          <span data-lh="pending">not measured on local builds</span>
+          <span class="pipe">mobile · measured in CI · budget enforced</span>
+        </p>
+      </div>
+
+      <div class="st-row">
         <p class="st-k">Terminal?</p>
         <p class="st-v">
           <code class="cmd"><span aria-hidden="true">$ </span>{curlCmd}</code>
@@ -139,8 +147,7 @@ const curlCmd = 'curl -sL rafifdzaky.com';
     display: inline-flex;
     align-items: baseline;
     gap: 0.4rem;
-    opacity: 0.35;
-    transition: opacity var(--dur) var(--ease);
+    color: var(--muted);
   }
 
   .hop + .hop::before {
@@ -150,8 +157,8 @@ const curlCmd = 'curl -sL rafifdzaky.com';
     letter-spacing: -0.1em;
   }
 
-  .hop.is-on {
-    opacity: 1;
+  .hop.is-on .hop-n {
+    color: var(--ink);
   }
 
   .hop.is-on + .hop.is-on::before {
@@ -160,7 +167,8 @@ const curlCmd = 'curl -sL rafifdzaky.com';
 
   .hop-n {
     font-weight: 500;
-    color: var(--ink);
+    color: var(--muted);
+    transition: color var(--dur) var(--ease);
   }
 
   .hop-d {
@@ -171,12 +179,12 @@ const curlCmd = 'curl -sL rafifdzaky.com';
     display: none;
   }
 
-  .hop--end .hop-n {
-    color: #1a7f52;
+  .hop--end.is-on .hop-n {
+    color: var(--ok-ink);
   }
 
-  :global(html:not(.js)) .hop {
-    opacity: 1;
+  :global(html:not(.js)) .hop-n {
+    color: var(--ink);
   }
 
   /* curl row */
