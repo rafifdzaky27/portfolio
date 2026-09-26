@@ -1,0 +1,137 @@
+name: Deploy Portfolio
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      DEPLOY_HOST: 192.168.18.14
+      DEPLOY_USER: portfolio-deploy
+      DEPLOY_ROOT: /srv/www/portfolio
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and validate internal links
+        run: npm run check:links
+
+      - name: Verify build artifact
+        run: |
+          test -s dist/index.html
+          test -d dist/_astro
+          echo "PASS: Astro production artifact exists"
+
+      - name: Connect runner to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          args: --accept-routes
+
+      - name: Verify SSH connectivity
+        run: |
+          nc -vz "$DEPLOY_HOST" 22
+
+      - name: Configure deployment SSH key
+        run: |
+          install -d -m 700 ~/.ssh
+
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" \
+            > ~/.ssh/portfolio_deploy
+
+          chmod 600 ~/.ssh/portfolio_deploy
+
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" \
+            > ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy release
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RELEASE="${GITHUB_SHA::7}-$(date -u +%Y%m%d%H%M%S)"
+
+          echo "Deploying release: $RELEASE"
+
+          SSH_ARGS=(
+            -i "$HOME/.ssh/portfolio_deploy"
+            -o StrictHostKeyChecking=yes
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts"
+          )
+
+          ssh "${SSH_ARGS[@]}" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "mkdir -p '$DEPLOY_ROOT/releases/$RELEASE'"
+
+          rsync \
+            -az \
+            --delete \
+            -e "ssh -i $HOME/.ssh/portfolio_deploy -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts" \
+            dist/ \
+            "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_ROOT/releases/$RELEASE/"
+
+          ssh "${SSH_ARGS[@]}" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "test -s '$DEPLOY_ROOT/releases/$RELEASE/index.html'"
+
+          ssh "${SSH_ARGS[@]}" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "ln -sfn '$DEPLOY_ROOT/releases/$RELEASE' '$DEPLOY_ROOT/current.new' &&
+             mv -Tf '$DEPLOY_ROOT/current.new' '$DEPLOY_ROOT/current'"
+
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
+
+      - name: Verify origin
+        run: |
+          ssh \
+            -i ~/.ssh/portfolio_deploy \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "curl -fsS -H 'Host: rafifdzaky.com' http://127.0.0.1:8081/ |
+             grep -q 'Rafif Dzaky Daniswara'"
+
+          echo "PASS: origin is serving the new release"
+
+      - name: Verify public website
+        run: |
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 5 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            https://rafifdzaky.com/ |
+          grep -q 'Rafif Dzaky Daniswara'
+
+          echo "PASS: public website is healthy"
