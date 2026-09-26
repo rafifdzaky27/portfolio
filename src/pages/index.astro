@@ -70,9 +70,31 @@ const cases = [
     chips: ['domains & SSL', 'IAM', 'hardening', 'backups'],
   },
 ];
+
+const profileSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  '@id': 'https://rafifdzaky.com/#profile',
+  url: 'https://rafifdzaky.com/',
+  mainEntity: {
+    '@type': 'Person',
+    '@id': 'https://rafifdzaky.com/#person',
+    name: person.name,
+    url: 'https://rafifdzaky.com/',
+    jobTitle: person.role,
+    homeLocation: { '@type': 'Place', name: person.location },
+    alumniOf: { '@type': 'CollegeOrUniversity', name: education.school },
+    sameAs: [person.github, person.linkedin],
+    knowsAbout: [
+      'DevOps', 'CI/CD', 'Linux', 'Docker', 'GitHub Actions',
+      'Prometheus', 'Grafana', 'cloud infrastructure', 'SRE practices',
+      'platform engineering',
+    ],
+  },
+};
 ---
 
-<Base>
+<Base structuredData={profileSchema}>
   <!-- ============ HERO ============ -->
   <section class="hero wrap" aria-labelledby="hero-title">
     <p class="kicker">Now boarding · prod release</p>
