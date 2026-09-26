@@ -356,22 +356,10 @@ const profileSchema = {
     </div>
   </section>
 
-  <!-- ============ OFF THE CLOCK ============ -->
-  <section class="section wrap" id="off-the-clock" aria-labelledby="otc-title">
-    <SectionHead index="06" label="Off the clock" title="Outside work: Formula 1, Liverpool and tennis" id="otc-title">
-      <p class="lede">
-        These are my hobbies, not part of my job. I've laid them out like an F1 qualifying broadcast: each row on the timing
-        tower is one hobby. Click a row to switch, and keep the sound on to hear the team radio.
-      </p>
-      <p class="otc-fineprint">Lap times, tyres and radio clips are fan-made and just for fun. Not real team radio.</p>
-    </SectionHead>
-    <OffTheClock />
-  </section>
-
   <!-- ============ OPERATING MANUAL ============ -->
-  <section class="section band" id="ops" aria-labelledby="ops-title">
+  <section class="section" id="ops" aria-labelledby="ops-title">
     <div class="wrap">
-      <SectionHead index="07" label="Operating manual" title="How I run things when it matters" id="ops-title">
+      <SectionHead index="06" label="Operating manual" title="How I run things when it matters" id="ops-title">
         <p class="lede">
           For hiring managers who want more than a skills list: how I handle incidents, how I make decisions, and what I'd
           do in my first 90 days with you.
@@ -411,8 +399,22 @@ const profileSchema = {
     </div>
   </section>
 
+  <!-- ============ OFF THE CLOCK ============ -->
+  <section class="section band" id="off-the-clock" aria-labelledby="otc-title">
+    <div class="wrap">
+    <SectionHead index="07" label="Off the clock" title="Outside work: Formula 1, Liverpool and tennis" id="otc-title">
+      <p class="lede">
+        These are my hobbies, not part of my job. I've laid them out like an F1 qualifying broadcast: each row on the timing
+        tower is one hobby. Click a row to switch, and keep the sound on to hear the team radio.
+      </p>
+      <p class="otc-fineprint">Lap times, tyres and radio clips are fan-made and just for fun. Not real team radio.</p>
+    </SectionHead>
+    <OffTheClock />
+    </div>
+  </section>
+
   <!-- ============ CONTACT ============ -->
-  <section class="section band contact" id="contact" aria-labelledby="contact-title">
+  <section class="section contact" id="contact" aria-labelledby="contact-title">
     <div class="wrap">
       <SectionHead index="08" label="Final call" title="Hiring for DevOps, cloud, infrastructure or platform work?" id="contact-title" />
       <div class="contact-card ticket">
@@ -555,7 +557,8 @@ const profileSchema = {
   }
 
   .man-t::after {
-    content: ' a0→';
+    content: '→';
+    margin-left: 0.3em;
     color: var(--accent);
   }
 
