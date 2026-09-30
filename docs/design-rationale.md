@@ -1,35 +1,56 @@
-# Design rationale: "Release boarding pass"
+# Design rationale: PitOS
 
-**Who visits:** recruiters and hiring managers for DevOps, cloud infrastructure,
-SRE and platform roles. In under a minute they should see who Rafif is (photo,
-role, education seal), the headline evidence (20+ services, <2% failed prod
-runs) and how to reach him.
+**Who visits:** recruiters and hiring managers for DevOps, SRE, platform and
+infrastructure roles. In under a minute they should see who Rafif is, the
+headline evidence (20+ services on GitHub Actions, <2% failed production
+runs, ~60% deployed automatically) and how to reach him.
 
-**Idea:** a release is a trip from `commit` to `production`. The hero is a
-boarding pass (photo stub, passenger fields, an ink stamp for S.Kom · GPA 3.87
-· cum laude). Sections are "gates", experience is an itinerary, and contact is
-the final call. The route map shows the real 60% split: an auto lane, and a
-production lane that stops at Rafif's approval gate.
+**Idea:** the site uses the desktop from Pit Wall On-Call, the on-call game
+Rafif builds and runs. That desktop is called PitOS. Each section is an app
+window, so the page reads like a shift at work:
 
-**Palette (light only, one surface family):**
+| Window | App it borrows from | What it holds |
+|---|---|---|
+| About | Home | Photo, role, three headline numbers, CV and email |
+| Release pipeline | Monitoring | The release pipeline as a service map, case studies, what he runs |
+| Pit Wall On-Call | Browser | The game, how it ships, the game-day log |
+| ~/experience | Files | Jobs, degree and certificates, with filters |
+| Homelab | Monitoring | A small service map of the homelab |
+| ~/notes | Files | Postmortems, decisions, status and research |
+| Contact | Settings | Email, phone, LinkedIn, GitHub |
 
-| Token | Use |
-|---|---|
-| `--paper` #F6F1E7 / `--paper-2` #EFE8DA | page / alternating bands |
-| `--card` #FFFDF8 | tickets and cards |
-| `--ink` #1F2A2E | text, ticket outlines |
-| `--muted` #56646A | secondary text |
-| `--accent` #2D7D9A | actions, active nav, the auto lane |
-| `--stamp` #B8432F | ink stamps and the approval gate only |
+The dock at the bottom is the navigation. On phones it becomes a tab bar.
+Inner pages are stacks of windows too: case studies open in "Docs", incidents
+in "Incident" windows, the résumé in a document viewer.
 
-**Type:** Instrument Sans + IBM Plex Mono (both self-hosted, OFL).
+**Tokens:** copied from `pit-wall-on-call/apps/web/src/styles/tokens.css`, so
+the site and the game are one system. Dark is the default. The top bar switch
+sets `data-theme="light"` on `<html>` and saves the choice in `localStorage`
+(`pitos-theme`).
 
-**Motion:** a plane on the hero route and packets on the route map. Both have a
-Hold button, pause off-screen, and are static under `prefers-reduced-motion`.
+| Token | Dark | Light | Use |
+|---|---|---|---|
+| `--bg` | #111217 | #f4f5f7 | Page behind the windows |
+| `--panel` | #181b1f | #ffffff | Window and panel surface |
+| `--text` | #d8dee9 | #1f2329 | Body text |
+| `--muted` | #8e97a5 | #5a6270 | Secondary text |
+| `--accent` | #3d71d9 | #2f5fc4 | Actions, links, selected node |
+| `--ok` / `--warn` / `--crit` | #73bf69 / #ff9830 / #f2495c | #2a7d34 / #b85c12 / #c9283b | Status only, always with a text label |
 
-**Deliberately different from the reference site:** no dotted-grid paper, no
-washi tape, no polaroid, and no bullet-journal glyph set. Status uses
-● running / ◐ partial / ○ planned, always with a text label.
+`--faint` is lifted from the game's #5f6875 to #7d8591 so small text passes
+4.5:1 contrast.
 
-**Left out on purpose:** skill bars, logo walls, team logos, live status
-counters, analytics, the paper PDF (unpublished).
+**Type:** IBM Plex Sans and IBM Plex Mono, self-hosted through Fontsource
+(OFL). Interface text is 13px, like the game. Case studies and notes use a
+larger reading scale (`--step-*`).
+
+**Wallpapers:** inline SVGs from the game, Jakarta at dusk for dark and
+Yogyakarta for light.
+
+**Motion:** only the animated "auto" edges on the pipeline map and small
+hover states. The home page marks the window in view as focused. All of it
+stops under `prefers-reduced-motion`.
+
+**Left out on purpose:** skill bars, logo walls, team logos, hobbies,
+analytics, the paper PDF (unpublished), and anything the game has that a
+visitor would have to learn first (window dragging, a start menu).

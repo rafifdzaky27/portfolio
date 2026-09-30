@@ -1,34 +1,34 @@
 ---
 import Base from '../layouts/Base.astro';
 import OpsNav from '../components/OpsNav.astro';
+import Window from '../components/os/Window.astro';
 import { adrs } from '../data/ops';
 ---
 
 <Base
   title="Architecture decisions"
   description="Architecture decision records for Rafif Dzaky Daniswara's portfolio: why a homelab, why Cloudflare Tunnel, how deploys and the CSP work, and what each choice costs."
-  current="other"
+  current="notes"
 >
-  <OpsNav current="decisions" />
-  <header class="wrap page-head">
+  <Window title="Files · ~/notes/decisions" as="p" id="top" bodyClass="page-top">
+    <OpsNav current="decisions" />
     <p class="kicker">Architecture decision records</p>
     <h1>Why this site is built the way it is</h1>
     <p class="lede">
       Every choice here gave something up. These records say what I chose, what I rejected, and what it costs me, so the
       next person (or me in a year) doesn't have to guess.
     </p>
-  </header>
+  </Window>
 
-  <div class="wrap adrs">
     {
       adrs.map((a) => (
-        <article class="adr ticket" id={a.id.toLowerCase()} aria-labelledby={`${a.id}-t`}>
+        <Window title={`Docs · ${a.id}`} as="p" id={a.id.toLowerCase()} class="w-half" bodyClass="adr pad">
           <p class="adr-meta">
             <span class="adr-id">{a.id}</span>
             <span class={`st st--${a.status.toLowerCase()}`}>{a.status}</span>
             <span>{a.date}</span>
           </p>
-          <h2 id={`${a.id}-t`}>{a.title}</h2>
+          <h2 class="adr-h" id={`${a.id}-t`}>{a.title}</h2>
           <dl>
             <div>
               <dt>Context</dt>
@@ -63,39 +63,16 @@ import { adrs } from '../data/ops';
               <li>{x}</li>
             ))}
           </ul>
-        </article>
+        </Window>
       ))
     }
-  </div>
 </Base>
 
 <style>
-  .page-head {
-    padding-block: var(--s-6);
-  }
-
-  h1 {
-    margin-top: var(--s-3);
-    font-size: var(--step-4);
-    max-width: 18ch;
-  }
-
-  .lede {
-    margin-top: var(--s-4);
-  }
-
-  .adrs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--s-5);
-    padding-bottom: var(--s-9);
-  }
-
-  .adr {
+  :global(.adr) {
     display: flex;
     flex-direction: column;
     gap: var(--s-3);
-    padding: var(--s-5) var(--s-6);
   }
 
   .adr-meta {
@@ -110,8 +87,9 @@ import { adrs } from '../data/ops';
   .adr-id {
     padding: 0.1rem 0.4rem;
     border-radius: 3px;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--accent-soft);
+    color: var(--accent-text);
+    font-weight: 600;
   }
 
   .st--accepted {
@@ -122,7 +100,7 @@ import { adrs } from '../data/ops';
     content: '● ';
   }
 
-  .adr h2 {
+  .adr-h {
     font-size: var(--step-1);
   }
 
@@ -134,8 +112,8 @@ import { adrs } from '../data/ops';
   dt,
   .lbl {
     font: 500 0.72rem / 1.3 var(--font-mono);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    text-transform: none;
     color: var(--muted);
   }
 
@@ -145,8 +123,8 @@ import { adrs } from '../data/ops';
   }
 
   dd.dec {
-    color: var(--ink);
-    font-weight: 550;
+    color: var(--text);
+    font-weight: 500;
   }
 
   .tradeoffs {
@@ -155,7 +133,7 @@ import { adrs } from '../data/ops';
     gap: var(--s-4);
     padding: var(--s-3) var(--s-4);
     border-radius: var(--radius);
-    background: var(--paper);
+    background: var(--sunken);
   }
 
   .lbl--pro {
@@ -180,16 +158,7 @@ import { adrs } from '../data/ops';
     color: var(--muted);
   }
 
-  @media (max-width: 60rem) {
-    .adrs {
-      grid-template-columns: 1fr;
-    }
-  }
-
   @media (max-width: 36rem) {
-    .adr {
-      padding: var(--s-5);
-    }
     .tradeoffs {
       grid-template-columns: 1fr;
     }

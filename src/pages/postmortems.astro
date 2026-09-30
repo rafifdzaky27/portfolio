@@ -1,21 +1,22 @@
 ---
 import Base from '../layouts/Base.astro';
 import OpsNav from '../components/OpsNav.astro';
+import Window from '../components/os/Window.astro';
 import { postmortems } from '../data/ops';
 ---
 
 <Base
   title="Postmortems"
   description="Blameless postmortems of real incidents from building and running Rafif Dzaky Daniswara's portfolio: impact, timeline, root cause and action items."
-  current="other"
+  current="notes"
 >
-  <OpsNav current="postmortems" />
-  <header class="wrap page-head">
+  <Window title="Files · ~/notes/postmortems" as="p" id="top" bodyClass="page-top">
+    <OpsNav current="postmortems" />
     <p class="kicker">Blameless · real incidents · Sep 2026</p>
     <h1>Postmortems of this website</h1>
     <p class="lede">
-      Everything that went wrong while I built and shipped this site, written up the way I would at work: impact first, a
-      timeline, the root cause rather than the symptom, and what changed so it can't happen again.
+      {postmortems.length} things that went wrong while I built and shipped this site. Each one has the impact, a timeline, the root
+      cause and what I changed.
     </p>
     <ol class="toc">
       {
@@ -30,12 +31,11 @@ import { postmortems } from '../data/ops';
         ))
       }
     </ol>
-  </header>
+  </Window>
 
-  <div class="wrap pms">
     {
       postmortems.map((p) => (
-        <article class="pm ticket" id={p.slug} aria-labelledby={`${p.slug}-t`}>
+        <Window title={`Incident · ${p.id}`} as="p" id={p.slug} class="pm" bodyClass="pad">
           <header class="pm-head">
             <p class="pm-meta">
               <span class={`sev sev--${p.sev === 'SEV-3' ? '3' : '4'}`}>{p.sev}</span>
@@ -97,31 +97,17 @@ import { postmortems } from '../data/ops';
               </li>
             ))}
           </ul>
-        </article>
+        </Window>
       ))
     }
-  </div>
 </Base>
 
 <style>
-  .page-head {
-    padding-block: var(--s-6) var(--s-6);
-  }
-
-  h1 {
-    margin-top: var(--s-3);
-    font-size: var(--step-4);
-    max-width: 18ch;
-  }
-
-  .lede {
-    margin-top: var(--s-4);
-  }
-
   .toc {
     display: grid;
     gap: var(--s-2);
-    margin-top: var(--s-6);
+    width: 100%;
+    margin-top: var(--s-2);
     list-style: none;
     max-width: 52rem;
   }
@@ -134,12 +120,12 @@ import { postmortems } from '../data/ops';
     padding: 0.55rem 0.8rem;
     border: var(--hair) solid var(--line-strong);
     border-radius: var(--radius);
-    background: var(--card);
+    background: var(--raised);
     text-decoration: none;
   }
 
   .toc a:hover {
-    border-color: var(--ink);
+    border-color: var(--accent);
   }
 
   .toc-id {
@@ -155,24 +141,13 @@ import { postmortems } from '../data/ops';
   }
 
   .sev--3 {
-    background: #fbe3c7;
-    color: #7a4a06;
+    background: var(--warn-soft);
+    color: var(--warn);
   }
 
   .sev--4 {
     background: var(--accent-soft);
     color: var(--accent-deep);
-  }
-
-  .pms {
-    display: grid;
-    gap: var(--s-6);
-    padding-bottom: var(--s-9);
-  }
-
-  .pm {
-    padding: var(--s-6);
-    max-width: 60rem;
   }
 
   .pm-meta {
@@ -188,17 +163,18 @@ import { postmortems } from '../data/ops';
     color: var(--ok-ink);
   }
 
-  .pm h2 {
+  :global(.pm) h2 {
     margin-top: var(--s-3);
+    max-width: 40ch;
     font-size: var(--step-2);
   }
 
-  .pm h3 {
+  :global(.pm) h3 {
     margin-top: var(--s-5);
     margin-bottom: var(--s-2);
     font: 500 0.75rem / 1.3 var(--font-mono);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    text-transform: none;
     color: var(--muted);
   }
 
@@ -211,8 +187,8 @@ import { postmortems } from '../data/ops';
 
   .pm-facts dt {
     font: 500 0.75rem / 1.3 var(--font-mono);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    text-transform: none;
     color: var(--muted);
   }
 
@@ -224,7 +200,7 @@ import { postmortems } from '../data/ops';
     display: grid;
     gap: var(--s-2);
     list-style: none;
-    border-left: var(--rule) solid var(--ink);
+    border-left: var(--rule) solid var(--border-strong);
     padding-left: var(--s-4);
   }
 
@@ -270,9 +246,6 @@ import { postmortems } from '../data/ops';
   }
 
   @media (max-width: 44rem) {
-    .pm {
-      padding: var(--s-5);
-    }
     .pm-facts,
     .pm-grid {
       grid-template-columns: 1fr;

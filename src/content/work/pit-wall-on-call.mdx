@@ -1,0 +1,76 @@
+---
+title: Pit Wall On-Call, a game I build and run in production
+kicker: Pit Wall On-Call
+summary: A browser game about being on call, built and run by me. Every merge is tested, shipped as SHA-tagged images and deployed to my homelab. A bad release rolls back on its own, and a game day on 28 Sep 2026 proved it.
+order: 4
+context: Personal project · live at pitwall.rafifdzaky.com
+period: Sep 2026 – present
+role: Sole author. I designed the game, wrote the code and run the infrastructure it lives on.
+stack: [TypeScript, React, Hono, PostgreSQL, Docker, GitHub Actions, GHCR, Tailscale, Cloudflare Tunnel, Caddy, Playwright]
+glance:
+  - { k: Status, v: 'Live at pitwall.rafifdzaky.com' }
+  - { k: Tests, v: '700+ tests plus Playwright browser tests on every pull request' }
+  - { k: Rollback, v: 'Automatic, proven in a game day on 28 Sep 2026' }
+---
+
+import { Image } from 'astro:assets';
+import { pitwall, pitwallShots } from '../../data/pitwall';
+import Callout from '../../components/Callout.astro';
+
+## What it is
+
+You get paged, dig through monitoring, logs, deploys and chat, and fix the cause before the error budget runs out. Then you read a postmortem of your shift. The nine incidents come from real public postmortems: a leaking connection pool, a full disk, an expired certificate, a retry storm, replica lag and more.
+
+<figure>
+  <Image src={pitwall.cafe} alt="The café scene at the start of a shift in Jakarta: a laptop showing a 504 Gateway Timeout page, a phone on the table with a page, street shops outside the window" widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>Each shift starts in a café in Jakarta. The phone on the table has the page.</figcaption>
+</figure>
+
+<figure class="only-dark">
+  <Image src={pitwallShots.dark.monitoring} alt={pitwallShots.dark.monitoringAlt} widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>{pitwallShots.dark.monitoringCaption}</figcaption>
+</figure>
+
+<figure class="only-light">
+  <Image src={pitwallShots.light.monitoring} alt={pitwallShots.light.monitoringAlt} widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>{pitwallShots.light.monitoringCaption}</figcaption>
+</figure>
+
+## How it ships
+
+- **Pull request:** lint, type checks, 700+ tests, Playwright, shellcheck and tests for the deploy script. Both Docker images build.
+- **Merge to main:** API and web images are tagged with the commit SHA and pushed to GHCR.
+- **Deploy:** the job joins my tailnet with a tag that reaches one host on port 22, and runs `deploy.sh`. Players come in through a Cloudflare Tunnel, so no port is open at home.
+- **`deploy.sh`:** migrates the database, starts the release, replays a known game through the whole stack as a smoke test, and rolls back to the last good release if anything fails.
+
+## Game day, 28 September 2026
+
+I merged a release whose readiness check always failed, with the hypotheses written in the pull request first.
+
+<div class="table-scroll">
+
+| Hypothesis | Result | Evidence |
+|---|---|---|
+| The smoke test rejects the broken release | Pass | `smoke test failed for 5d73169` |
+| `deploy.sh` rolls back to the last good release | Pass | `rollback ok: fd8bcf9` |
+| The deploy job goes red | Pass | exit code 1 |
+| Players see no impact | Pass | the site served `fd8bcf9` throughout |
+
+</div>
+
+Only the API and web containers were recreated. Postgres kept running. The revert went out as a normal pull request and deployed green.
+
+<Callout kind="note">
+At work I still approve production releases by hand for about 40% of services. A drill like this is the evidence a team needs to trust the automatic path.
+</Callout>
+
+## Scores the browser can't fake
+
+Each run is a seed plus a list of actions. The API replays the list with the same deterministic engine and stores its own score. The browser's score is ignored, and impossible actions are rejected.
+
+## What I'd do next
+
+- A public status page for the game, fed by the checks that gate the deploy.
+- An SSH forced command for the deploy user, so the CI key can only run the deploy script.
+
+[Play it](https://pitwall.rafifdzaky.com) · [Source code](https://github.com/rafifdzaky27/pit-wall-on-call) · [Runbook](https://github.com/rafifdzaky27/pit-wall-on-call/blob/main/docs/runbooks/srv-pitwall-01.md)

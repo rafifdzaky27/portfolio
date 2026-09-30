@@ -1,0 +1,29 @@
+---
+// A PitOS window (shell.css .window): a 36px title bar with the three round
+// controls, and a body. The controls are decoration; the page scrolls instead.
+interface Props {
+  title: string;
+  id?: string;
+  class?: string;
+  /** Heading level for the title bar text. The page's main window uses h1. */
+  as?: 'h1' | 'h2' | 'p';
+  focused?: boolean;
+  bodyClass?: string;
+}
+const { title, id, class: cls = '', as: Tag = 'h2', focused = false, bodyClass = '' } = Astro.props;
+const titleId = id ? `t-${id}` : undefined;
+---
+
+<section class:list={['window', cls, { focused }]} id={id} aria-labelledby={titleId}>
+  <header class="titlebar">
+    <Tag class="titlebar-title" id={titleId}>{title}</Tag>
+    <div class="titlebar-controls" aria-hidden="true">
+      <span><svg width="16" height="16"><use href="#g-min"></use></svg></span>
+      <span><svg width="16" height="16"><use href="#g-max"></use></svg></span>
+      <span><svg width="16" height="16"><use href="#g-close"></use></svg></span>
+    </div>
+  </header>
+  <div class:list={['window-body', bodyClass]}>
+    <slot />
+  </div>
+</section>

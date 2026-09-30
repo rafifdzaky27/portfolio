@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import SectionHead from '../components/SectionHead.astro';
+import Window from '../components/os/Window.astro';
 import HomelabMap from '../components/HomelabMap.astro';
 import { builtNow, notes, roadmap, stateLabel } from '../data/homelab';
 
@@ -12,79 +12,78 @@ const counts = roadmap.flatMap((p) => p.items).reduce(
 
 <Base
   title="Homelab"
-  description="Explore Rafif Dzaky Daniswara's Proxmox homelab with Terraform, Ansible, DNS, Tailscale and Docker. Running and planned work are clearly labelled."
+  description="Rafif Dzaky Daniswara's Proxmox homelab with Terraform, Ansible, DNS, Tailscale and Docker. Each part is labelled running, partial or planned."
   current="homelab"
 >
-  <header class="wrap lab-head">
+  <Window title="Files · ~/homelab" as="p" id="lab" bodyClass="page-top">
     <p class="kicker">Personal project · not production · one physical host</p>
     <h1>A single-host lab for the things I don't run at work yet</h1>
     <p class="lede">
       I use a Proxmox homelab to practise infrastructure as code, DNS, networking, remote access and service operations.
-      It's separate from my professional work. Everything here is labelled by what actually runs today.
+      It's separate from my professional work. Each item is labelled running, partial or planned.
     </p>
-  </header>
+  </Window>
 
-  <section class="wrap" aria-label="Architecture">
+  <Window title="Monitoring · homelab map" id="map" bodyClass="pad">
     <HomelabMap />
-  </section>
+  </Window>
 
-  <section class="section wrap" aria-labelledby="now-title">
-    <SectionHead index="A" label="Running now" title="What exists today" id="now-title" />
+  <Window title="Deploys · running now" id="now" bodyClass="pad">
     <ul class="now">
       {
         builtNow.map((b) => (
-          <li class="ticket">
-            <p class="now-top">
+          <li class="panel">
+            <p class="panel-h">
               <span class={`status status--${b.state}`}>{stateLabel[b.state]}</span>
-              <span class="meta">{b.id}</span>
+              <span class="mono">{b.id}</span>
             </p>
-            <h3>{b.name}</h3>
-            <p>{b.summary}</p>
+            <div class="panel-b">
+              <h3>{b.name}</h3>
+              <p>{b.summary}</p>
+            </div>
           </li>
         ))
       }
     </ul>
-  </section>
+  </Window>
 
-  <section class="section band" aria-labelledby="notes-title">
-    <div class="wrap">
-      <SectionHead index="B" label="Troubleshooting" title="Things that broke, and why" id="notes-title" />
-      <ol class="notes">
-        {
-          notes.map((n) => (
-            <li class="ticket">
-              <p class="meta">{n.state === 'resolved' ? '✓ resolved' : '… investigating'}</p>
-              <h3>{n.title}</h3>
-              <dl>
-                <div><dt>Symptom</dt><dd>{n.symptom}</dd></div>
-                <div><dt>Cause</dt><dd>{n.cause}</dd></div>
-                <div><dt>Takeaway</dt><dd>{n.lesson}</dd></div>
-              </dl>
-            </li>
-          ))
-        }
-      </ol>
-    </div>
-  </section>
+  <Window title="Terminal · things that broke, and why" id="notes" bodyClass="pad">
+    <ol class="notes">
+      {
+        notes.map((n) => (
+          <li class="panel">
+            <p class="panel-h">
+              <span>{n.title}</span>
+              <span class:list={['tag', n.state === 'resolved' ? 'ok' : 'warn']}>
+                {n.state === 'resolved' ? 'resolved' : 'investigating'}
+              </span>
+            </p>
+            <dl class="panel-b">
+              <div><dt>Symptom</dt><dd>{n.symptom}</dd></div>
+              <div><dt>Cause</dt><dd>{n.cause}</dd></div>
+              <div><dt>Takeaway</dt><dd>{n.lesson}</dd></div>
+            </dl>
+          </li>
+        ))
+      }
+    </ol>
+  </Window>
 
-  <section class="section wrap" id="roadmap" aria-labelledby="roadmap-title">
-    <SectionHead index="C" label="Learning roadmap" title="Where the lab goes next" id="roadmap-title">
-      <p class="lede">
-        My own 31-module curriculum. The order is the plan, not completion dates. First up: running the{' '}
-        <a href="/work/ci-cd">v2 pipeline template</a> end to end here, on a golden workload with a private registry (P06)
-        and a self-hosted CI runner (P11).
-      </p>
-    </SectionHead>
-
+  <Window title="Docs · learning roadmap" id="roadmap" bodyClass="pad">
+    <p class="lede">
+      My own 31-module curriculum. The order is the plan, not completion dates. First up: running the{' '}
+      <a href="/work/ci-cd">v2 pipeline template</a> end to end here, on a golden workload with a private registry (P06)
+      and a self-hosted CI runner (P11).
+    </p>
     <p class="meta tally">{counts.partial ?? 0} partially built · {counts.planned ?? 0} planned</p>
 
-    <details class="roadmap ticket">
+    <details class="roadmap panel">
       <summary>Show the full roadmap <span class="meta">(31 modules)</span></summary>
       <div class="phases">
         {
           roadmap.map((p) => (
             <section class="phase" aria-label={`Phase ${p.phase}`}>
-              <h3 class="meta">{p.phase}</h3>
+              <h3 class="kicker">{p.phase}</h3>
               <ul>
                 {p.items.map((i) => (
                   <li class={`item item--${i.state}`}>
@@ -103,124 +102,91 @@ const counts = roadmap.flatMap((p) => p.items).reduce(
         Planned modules aren't claims. An item only moves up once there's a dated repo, screenshot or log to back it.
       </p>
     </details>
-  </section>
+  </Window>
 </Base>
 
 <style>
-  .lab-head {
-    padding-block: var(--s-7) var(--s-6);
-  }
-
-  h1 {
-    max-width: 20ch;
-    margin-top: var(--s-3);
-    font-size: var(--step-4);
-  }
-
-  .lab-head .lede {
-    margin-top: var(--s-5);
-  }
-
   .now {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-    gap: var(--s-4);
-    margin-top: var(--s-6);
+    gap: var(--space-3);
     list-style: none;
   }
 
-  .now li {
-    padding: var(--s-5);
-  }
-
-  .now-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: var(--s-3);
-    border-bottom: var(--hair) dashed var(--ink);
-  }
-
   .now h3 {
-    margin-top: var(--s-3);
-    font-size: var(--step-1);
-    line-height: var(--leading-snug);
+    margin-top: var(--space-1);
+    font-size: var(--fs-md);
   }
 
-  .now li > p:last-child {
-    margin-top: var(--s-2);
-    font-size: 0.95rem;
+  .now .panel-b p {
+    margin-top: var(--space-1);
     color: var(--muted);
+  }
+
+  .now .panel-h .mono {
+    text-transform: none;
+    letter-spacing: 0;
   }
 
   .notes {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--s-4);
-    margin-top: var(--s-6);
+    gap: var(--space-3);
     list-style: none;
   }
 
-  .notes li {
-    padding: var(--s-5);
-  }
-
-  .notes h3 {
-    margin-top: var(--s-2);
-    font-size: var(--step-1);
-    line-height: var(--leading-snug);
-  }
-
-  .notes dl {
-    margin-top: var(--s-3);
+  .notes .panel-h > span:first-child {
+    color: var(--text);
+    font-size: var(--fs);
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   .notes dl div {
     display: grid;
     grid-template-columns: 6rem 1fr;
-    gap: var(--s-3);
-    padding-block: var(--s-2);
-    border-top: var(--hair) solid var(--line);
+    gap: var(--space-3);
+    padding-block: var(--space-2);
+  }
+
+  .notes dl div + div {
+    border-top: 1px solid var(--border);
   }
 
   .notes dt {
-    font: 500 0.76rem / 1.6 var(--font-mono);
+    font: 500 var(--fs-xs) / 1.6 var(--mono);
     color: var(--muted);
   }
 
   .notes dd {
-    font-size: 0.95rem;
     color: var(--muted);
   }
 
   .tally {
-    margin-top: var(--s-5);
+    margin-top: var(--space-4);
   }
 
   .roadmap {
-    margin-top: var(--s-3);
+    margin-top: var(--space-3);
   }
 
   .roadmap summary {
-    padding: var(--s-4) var(--s-5);
-    font-weight: 650;
+    padding: var(--space-3) var(--space-4);
+    font-weight: 600;
     cursor: pointer;
   }
 
   .phases {
-    padding: 0 var(--s-5) var(--s-5);
+    padding: 0 var(--space-4) var(--space-4);
   }
 
   .phase + .phase {
-    margin-top: var(--s-6);
+    margin-top: var(--space-5);
   }
 
   .phase h3 {
-    padding-bottom: var(--s-2);
-    border-bottom: var(--rule) solid var(--ink);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-strong);
   }
 
   .phase ul {
@@ -233,20 +199,20 @@ const counts = roadmap.flatMap((p) => p.items).reduce(
     grid-template-areas:
       'id name status'
       '. why why';
-    gap: 0.1rem var(--s-3);
-    padding-block: var(--s-3);
-    border-bottom: var(--hair) solid var(--line);
+    gap: 2px var(--space-3);
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--border);
   }
 
   .item-id {
     grid-area: id;
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: var(--fs-sm);
   }
 
   .item-name {
     grid-area: name;
-    font-weight: 550;
+    font-weight: 500;
   }
 
   .item .status {
@@ -256,7 +222,7 @@ const counts = roadmap.flatMap((p) => p.items).reduce(
 
   .item-why {
     grid-area: why;
-    font-size: 0.9rem;
+    font-size: var(--fs-sm);
     color: var(--muted);
   }
 
@@ -266,8 +232,8 @@ const counts = roadmap.flatMap((p) => p.items).reduce(
   }
 
   .roadmap-note {
-    padding: var(--s-4) var(--s-5);
-    border-top: var(--hair) dashed var(--line-strong);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--border);
   }
 
   @media (max-width: 48rem) {

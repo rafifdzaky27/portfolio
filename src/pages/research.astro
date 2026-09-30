@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import Window from '../components/os/Window.astro';
 import { credentials, presenterCert } from '../data/profile';
 
 // All numbers from the paper (Tables I–VII). Pilot, n = 50.
@@ -50,8 +51,8 @@ const certs = [
   description="Pilot study on digital POS adoption among MSMEs in Bandung Raya using UTAUT2 and PLS-SEM. Best Presenter at the 9th ICICoS 2026, Universitas Diponegoro."
   current="research"
 >
-  <header class="r-head wrap">
-    <p class="award"><span aria-hidden="true">◆</span> Best Presenter · The 9th ICICoS 2026 · Room 8</p>
+  <Window title="Docs · research" as="p" id="top" bodyClass="page-top r-head">
+    <p class="award"><span class="tag warn">Best presenter</span> <span class="tag info">ICICoS 2026 · Room 8</span></p>
     <h1>Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2</h1>
     <p class="authors">
       <strong>Rafif Dzaky Daniswara</strong>, Muhardi Saputra, Haryasena Panduwiyasa · Department of Information Systems,
@@ -70,10 +71,10 @@ const certs = [
         ))
       }
     </div>
-  </header>
+  </Window>
 
-  <div class="wrap r-body">
-    <dl class="nums ticket">
+  <Window title="Docs · the paper, in short" id="paper" bodyClass="pad">
+    <dl class="nums panel">
       <div><dt>MSME respondents</dt><dd>50</dd></div>
       <div><dt>items kept</dt><dd>33 <span>/ 37</span></dd></div>
       <div><dt>R² behavioral intention</dt><dd>0.844</dd></div>
@@ -150,7 +151,7 @@ const certs = [
       </p>
     </article>
 
-    <figure class="chart ticket" aria-labelledby="chart-title">
+    <figure class="chart panel" aria-labelledby="chart-title">
       <figcaption>
         <p id="chart-title" class="chart-title">Effect size (f²) by path</p>
         <p class="meta">Pilot, n = 50. Descriptive, not a confirmatory test. Guide lines: 0.02 small · 0.15 medium.</p>
@@ -221,7 +222,7 @@ const certs = [
         and explaining the findings clearly enough to win Best Presenter.
       </p>
     </article>
-  </div>
+  </Window>
 
   {
     certs.map((c) => (
@@ -252,34 +253,17 @@ const certs = [
 </script>
 
 <style>
-  .r-head {
-    padding-block: var(--s-7) var(--s-6);
-  }
-
   .award {
-    display: inline-block;
-    padding: 0.3rem 0.6rem;
-    border: var(--rule) solid var(--stamp);
-    border-radius: 2px;
-    color: var(--stamp);
-    font: 500 0.8rem / 1.2 var(--font-mono);
-    letter-spacing: 0.04em;
-    rotate: -1.5deg;
-  }
-
-  h1 {
-    max-width: 24ch;
-    margin-top: var(--s-5);
-    font-size: var(--step-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
   }
 
   .authors {
-    margin-top: var(--s-4);
-    font-size: var(--step-1);
+    font-size: var(--fs-md);
   }
 
-  .r-head .meta {
-    margin-top: var(--s-2);
+  :global(.r-head) .meta {
     max-width: 50rem;
   }
 
@@ -287,17 +271,14 @@ const certs = [
     display: flex;
     flex-wrap: wrap;
     gap: var(--s-3);
-    margin-top: var(--s-5);
-  }
-
-  .r-body {
-    padding-bottom: var(--s-8);
+    margin-top: var(--s-2);
   }
 
   .nums {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-bottom: var(--s-7);
+    flex-direction: row;
+    margin-bottom: var(--s-6);
   }
 
   .nums div {
@@ -305,13 +286,13 @@ const certs = [
   }
 
   .nums div + div {
-    border-left: var(--rule) dashed var(--ink);
+    border-left: 1px solid var(--border);
   }
 
   .nums dt {
     font: 500 0.72rem / 1.4 var(--font-mono);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    text-transform: none;
     color: var(--muted);
   }
 
@@ -457,7 +438,7 @@ const certs = [
     bottom: calc(100% + 4px);
     z-index: 2;
     padding: 0.4rem 0.6rem;
-    border: var(--hair) solid var(--ink);
+    border: var(--hair) solid var(--border-strong);
     border-radius: var(--radius);
     background: var(--card);
     font-size: 0.8rem;
@@ -482,7 +463,7 @@ const certs = [
     width: min(60rem, 94vw);
     max-height: 92vh;
     padding: 0;
-    border: var(--rule) solid var(--ink);
+    border: var(--rule) solid var(--border-strong);
     border-radius: var(--radius-ticket);
     background: var(--card);
     color: var(--ink);
@@ -521,7 +502,7 @@ const certs = [
       border-left: 0;
     }
     .nums div:nth-child(n + 3) {
-      border-top: var(--rule) dashed var(--ink);
+      border-top: var(--rule) dashed var(--border-strong);
     }
     .bars {
       --label-w: 4.6rem;

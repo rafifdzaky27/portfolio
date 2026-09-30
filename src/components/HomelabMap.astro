@@ -102,7 +102,7 @@ const count = (s: string) => all.filter((n) => n.state === s).length;
 <style>
   .lm {
     padding: var(--s-5);
-    border: var(--rule) solid var(--ink);
+    border: var(--rule) solid var(--border-strong);
     border-radius: var(--radius-ticket);
     background: var(--card);
   }
@@ -145,8 +145,8 @@ const count = (s: string) => all.filter((n) => n.state === s).length;
     gap: var(--s-2);
     margin-bottom: var(--s-2);
     font: 500 0.74rem / 1.4 var(--font-mono);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    text-transform: none;
     color: var(--muted);
   }
 
@@ -171,7 +171,7 @@ const count = (s: string) => all.filter((n) => n.state === s).length;
     align-items: center;
     gap: var(--s-2);
     padding: 0.4rem 0.55rem;
-    border: var(--hair) solid var(--ink);
+    border: var(--hair) solid var(--border-strong);
     border-radius: var(--radius);
     background: var(--card);
     font-size: 0.9rem;
@@ -226,7 +226,7 @@ const count = (s: string) => all.filter((n) => n.state === s).length;
     bottom: 0;
     left: 50%;
     z-index: -1;
-    border-left: var(--rule) solid var(--ink);
+    border-left: var(--rule) solid var(--border-strong);
   }
 
   /* label sits just right of the connector line */
@@ -242,7 +242,7 @@ const count = (s: string) => all.filter((n) => n.state === s).length;
 
   .host {
     padding: var(--s-4);
-    border: 2px solid var(--ink);
+    border: 2px solid var(--border-strong);
     border-radius: var(--radius-ticket);
     background: var(--paper-2);
   }
