@@ -101,13 +101,6 @@ kbd {
 
 /* ---------- layout ---------- */
 
-.wrap {
-  width: 100%;
-  max-width: calc(var(--max) + 2 * var(--gutter));
-  margin-inline: auto;
-  padding-inline: var(--gutter);
-}
-
 .skip {
   position: absolute;
   left: var(--s-4);
@@ -459,4 +452,10 @@ kbd {
   background-color: var(--shiki-light-bg) !important;
   font-style: var(--shiki-light-font-style) !important;
   font-weight: var(--shiki-light-font-weight) !important;
+}
+
+/* pictures that come in a dark and a light version */
+:root:not([data-theme='light']) .only-light,
+:root[data-theme='light'] .only-dark {
+  display: none;
 }

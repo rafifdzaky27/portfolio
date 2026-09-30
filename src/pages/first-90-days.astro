@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import OpsNav from '../components/OpsNav.astro';
+import Window from '../components/os/Window.astro';
 import { firstNinety } from '../data/ops';
 import { person } from '../data/profile';
 ---
@@ -8,20 +9,20 @@ import { person } from '../data/profile';
 <Base
   title="First 90 days"
   description="What Rafif Dzaky Daniswara would do in his first 90 days on a DevOps, infrastructure or platform team: listen and map, make releases boring, make it measurable."
-  current="other"
+  current="notes"
 >
-  <OpsNav current="first-90-days" />
-  <header class="wrap page-head">
+  <Window title="Files · ~/notes/first-90-days" as="p" id="top" bodyClass="page-top">
+    <OpsNav current="first-90-days" />
     <p class="kicker">Onboarding runbook · if you hire me</p>
     <h1>My first 90 days on your team</h1>
     <p class="lede">{firstNinety.note}</p>
-  </header>
+  </Window>
 
-  <section class="wrap" aria-label="Plan">
+  <Window title="Docs · the plan" id="plan" bodyClass="pad">
     <ol class="phases">
       {
         firstNinety.phases.map((p, i) => (
-          <li class="phase ticket">
+          <li class="phase panel">
             <p class="ph-top">
               <span class="ph-no">0{i + 1}</span>
               <span class="ph-days">{p.days}</span>
@@ -40,11 +41,10 @@ import { person } from '../data/profile';
     <div class="rail" aria-hidden="true">
       <i></i><i></i><i></i>
     </div>
-  </section>
+  </Window>
 
-  <section class="wrap wont-wrap" aria-labelledby="wont-t">
-    <div class="wont ticket">
-      <h2 id="wont-t">What I won't do</h2>
+  <Window title="Docs · what I won't do" id="wont" bodyClass="pad wont-wrap">
+    <div class="wont">
       <ul>
         {
           firstNinety.wont.map((x) => (
@@ -59,31 +59,17 @@ import { person } from '../data/profile';
       <p>Want to adapt this to your team?</p>
       <p class="actions">
         <a class="btn btn--primary" href={`mailto:${person.email}?subject=${encodeURIComponent('Your first 90 days with us')}`}>Email me</a>
-        <a class="btn" href="/#contact">Approve the deploy</a>
+        <a class="btn" href="/#contact">All contact details</a>
       </p>
     </div>
-  </section>
+  </Window>
 </Base>
 
 <style>
-  .page-head {
-    padding-block: var(--s-6);
-  }
-
-  h1 {
-    margin-top: var(--s-3);
-    font-size: var(--step-4);
-    max-width: 16ch;
-  }
-
-  .lede {
-    margin-top: var(--s-4);
-  }
-
   .phases {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--s-5);
+    gap: var(--s-4);
     list-style: none;
   }
 
@@ -143,20 +129,11 @@ import { person } from '../data/profile';
     background: linear-gradient(90deg, var(--accent), var(--accent-soft));
   }
 
-  .wont-wrap {
+  :global(.wont-wrap) {
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     gap: var(--s-5);
     align-items: center;
-    padding-block: var(--s-7) var(--s-9);
-  }
-
-  .wont {
-    padding: var(--s-5);
-  }
-
-  .wont h2 {
-    font-size: var(--step-1);
   }
 
   .wont ul {
@@ -167,7 +144,7 @@ import { person } from '../data/profile';
   }
 
   .wont li span {
-    color: var(--stamp);
+    color: var(--crit);
     font-weight: 700;
   }
 
@@ -185,7 +162,7 @@ import { person } from '../data/profile';
 
   @media (max-width: 56rem) {
     .phases,
-    .wont-wrap {
+    :global(.wont-wrap) {
       grid-template-columns: 1fr;
     }
     .rail {

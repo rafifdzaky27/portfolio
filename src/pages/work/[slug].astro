@@ -1,6 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Window from '../../components/os/Window.astro';
 import { person } from '../../data/profile';
 
 export async function getStaticPaths() {
@@ -42,12 +43,12 @@ const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
 ---
 
 <Base title={pageSeo.title} description={pageSeo.description} ogType="article" current="work">
-  <header class="case-head wrap">
+  <Window title={`Docs · ~/work/${entry.id}`} as="p" id="top" bodyClass="page-top">
     <p class="meta crumbs"><a href="/#work">Work</a> <span aria-hidden="true">/</span> {index} · {d.kicker}</p>
     <h1>{d.title}</h1>
     <p class="lede">{d.summary}</p>
 
-    <dl class="facts ticket">
+    <dl class="facts panel">
       <div><dt>Context</dt><dd>{d.context}</dd></div>
       <div><dt>Period</dt><dd>{d.period}</dd></div>
       <div class="wide"><dt>Role</dt><dd>{d.role}</dd></div>
@@ -58,15 +59,15 @@ const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
         </dd>
       </div>
     </dl>
-  </header>
+  </Window>
 
-  <div class="case-body band">
-    <div class="wrap grid">
+  <Window title="Case study" as="p" id="case" bodyClass="pad">
+    <div class="grid">
       <article class="prose">
         <Content />
       </article>
 
-      <aside class="glance ticket" aria-label="At a glance">
+      <aside class="glance panel" aria-label="At a glance">
         <p class="kicker">At a glance</p>
         <dl>
           {
@@ -84,10 +85,10 @@ const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
         </p>
       </aside>
     </div>
-  </div>
+  </Window>
 
-  <nav class="next wrap" aria-label="Next case study">
-    <a class="next-link ticket" href={`/work/${next.id}`}>
+  <nav class="next window" aria-label="Next case study">
+    <a class="next-link" href={`/work/${next.id}`}>
       <span class="meta">Next case · {String(next.data.order).padStart(2, '0')} · {next.data.kicker}</span>
       <span class="next-title">{next.data.title} →</span>
     </a>
@@ -95,31 +96,18 @@ const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
 </Base>
 
 <style>
-  .case-head {
-    padding-block: var(--s-7) var(--s-6);
-  }
-
   .crumbs a {
-    color: var(--accent-deep);
-  }
-
-  h1 {
-    max-width: 22ch;
-    margin-top: var(--s-4);
-    font-size: var(--step-4);
-  }
-
-  .lede {
-    margin-top: var(--s-5);
+    color: var(--accent-text);
   }
 
   .facts {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
     gap: var(--s-4) var(--s-6);
-    max-width: 56rem;
-    margin-top: var(--s-6);
-    padding: var(--s-5);
+    width: 100%;
+    max-width: 60rem;
+    margin-top: var(--s-2);
+    padding: var(--s-4) var(--s-5);
   }
 
   .facts .wide {
@@ -145,16 +133,10 @@ const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
   }
 
   .stack li {
-    padding: 0.15rem 0.5rem;
-    border: var(--hair) solid var(--line-strong);
-    border-radius: var(--radius);
-    background: var(--paper);
-    font: 400 0.78rem / 1.5 var(--font-mono);
-  }
-
-  .case-body {
-    padding-block: var(--s-7) var(--s-8);
-    border-block: var(--hair) solid var(--line);
+    padding: 1px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--sunken);
+    font: 400 var(--fs-sm) / 1.6 var(--mono);
   }
 
   .grid {
@@ -171,8 +153,8 @@ const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
 
   .glance {
     position: sticky;
-    top: 6rem;
-    padding: var(--s-5);
+    top: calc(var(--topbar-h) + 20px);
+    padding: var(--s-4);
   }
 
   .glance dl {
@@ -184,13 +166,11 @@ const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
   }
 
   .glance dt {
-    font-weight: 650;
-    font-size: 0.92rem;
+    font-weight: 600;
   }
 
   .glance dd {
     margin-top: var(--s-1);
-    font-size: 0.92rem;
     line-height: 1.5;
     color: var(--muted);
   }
@@ -198,38 +178,31 @@ const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
   .glance-cta {
     margin-top: var(--s-5);
     padding-top: var(--s-4);
-    border-top: var(--hair) dashed var(--ink);
+    border-top: var(--hair) dashed var(--border-strong);
     font-size: 0.9rem;
     color: var(--muted);
     overflow-wrap: anywhere;
   }
 
   .glance-cta a {
-    color: var(--accent-deep);
-  }
-
-  .next {
-    padding-block: var(--s-7);
+    color: var(--accent-text);
   }
 
   .next-link {
     display: grid;
     gap: var(--s-2);
-    padding: var(--s-5);
+    padding: var(--s-4) var(--s-5);
+    border-radius: var(--radius-window);
     text-decoration: none;
-    transition:
-      transform var(--dur-fast) var(--ease),
-      box-shadow var(--dur-fast) var(--ease);
   }
 
-  .next-link:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 var(--ink);
+  .next-link:hover .next-title {
+    color: var(--accent-text);
   }
 
   .next-title {
-    font-size: var(--step-2);
-    font-weight: 650;
+    font-size: var(--fs-lg);
+    font-weight: 600;
     line-height: var(--leading-snug);
   }
 
