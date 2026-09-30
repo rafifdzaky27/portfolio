@@ -448,8 +448,9 @@ const profileSchema = {
     column-gap: 32px;
     padding: 0 28px 0 12px;
   }
-  .about-pic { grid-area: pic; display: flex; align-items: flex-end; justify-content: center; align-self: end; }
-  .about-pic :global(img) { width: 300px; height: auto; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.25)); }
+  /* the portrait grows with the window, so there is no empty band above it */
+  .about-pic { grid-area: pic; position: relative; align-self: stretch; min-height: 375px; }
+  .about-pic :global(img) { position: absolute; bottom: 0; left: 50%; width: auto; max-width: none; height: min(calc(100% - 20px), 450px); transform: translateX(-50%); filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.25)); }
   .about-head { grid-area: head; display: grid; gap: 6px; padding-top: 32px; }
   .about-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
   .about h1 { font-size: var(--fs-2xl); line-height: 1.1; }
@@ -570,7 +571,8 @@ const profileSchema = {
 
   @media (max-width: 860px) {
     .about { grid-template-columns: minmax(0, 1fr) 150px; grid-template-areas: 'head pic' 'body body'; column-gap: 12px; padding: 0 18px; }
-    .about-pic :global(img) { width: 150px; }
+    .about-pic { position: static; align-self: end; min-height: 0; display: flex; justify-content: center; }
+    .about-pic :global(img) { position: static; width: 150px; height: auto; transform: none; }
     .about-head { padding-top: 22px; }
     .browser-page { grid-template-columns: minmax(0, 1fr); }
     .stats { grid-template-columns: minmax(0, 1fr); }
