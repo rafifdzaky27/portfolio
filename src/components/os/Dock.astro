@@ -1,0 +1,219 @@
+---
+// PitOS dock (shell.css .dock) as site navigation. On the home page the
+// running dot follows the window in view; elsewhere it marks the current page.
+import type { Current } from '../Header.astro';
+
+interface Props {
+  current: Current;
+}
+const { current } = Astro.props;
+const onHome = current === 'home';
+const h = (id: string) => (onHome ? `#${id}` : `/#${id}`);
+
+const items = [
+  { href: h('about'), label: 'About', icon: 'i-home', color: 'var(--app-phone)', spy: 'about' },
+  { href: h('work'), label: 'Work', icon: 'i-monitoring', color: 'var(--app-monitoring)', spy: 'work', page: 'work' },
+  { href: h('pitwall'), label: 'Pit Wall', icon: 'i-browser', color: 'var(--app-browser)', spy: 'pitwall' },
+  { href: h('experience'), label: 'Experience', icon: 'i-files', color: 'var(--app-files)', spy: 'experience', phone: false },
+  { href: '/homelab', label: 'Homelab', icon: 'i-deploys', color: 'var(--app-deploys)', page: 'homelab' },
+  { href: '/postmortems', label: 'Notes', icon: 'i-incident', color: 'var(--app-incident)', page: 'notes', phone: false },
+  { href: h('contact'), label: 'Contact', icon: 'i-chat', color: 'var(--app-chat)', spy: 'contact' },
+];
+---
+
+<nav class="dock" aria-label="Dock">
+  <ul>
+    {
+      items.map((i) => (
+        <li class:list={{ 'no-phone': i.phone === false }}>
+          <a
+            class:list={['dock-item', { running: !onHome && i.page === current }]}
+            href={i.href}
+            data-dock-spy={onHome ? i.spy : undefined}
+            aria-current={!onHome && i.page === current ? 'page' : undefined}
+          >
+            <svg class="app-icon" width="44" height="44" style={`--app-color:${i.color}`} aria-hidden="true">
+              <use href={`#${i.icon}`}></use>
+            </svg>
+            <span class="dock-label">{i.label}</span>
+          </a>
+        </li>
+      ))
+    }
+    <li class="dock-sep" aria-hidden="true"></li>
+    <li>
+      <a class:list={['dock-item', { running: current === 'resume' }]} href="/resume" aria-current={current === 'resume' ? 'page' : undefined}>
+        <svg class="app-icon" width="44" height="44" style="--app-color:var(--app-postmortem)" aria-hidden="true">
+          <use href="#i-doc"></use>
+        </svg>
+        <span class="dock-label">CV</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<style>
+  .dock {
+    position: fixed;
+    left: 50%;
+    bottom: 8px;
+    z-index: 1000;
+    transform: translateX(-50%);
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--panel) 82%, transparent);
+    box-shadow: var(--shadow-window-rest);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  ul {
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .dock-sep {
+    width: 1px;
+    margin: 8px 2px;
+    background: var(--border);
+  }
+
+  .dock-item {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition:
+      transform var(--motion-fast) var(--ease-out),
+      background var(--motion-fast);
+  }
+
+  .dock-item:hover {
+    transform: translateY(-2px);
+    background: var(--raised);
+  }
+
+  .dock-item:active {
+    transform: scale(0.96);
+  }
+
+  .dock-item.running::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    width: 5px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+
+  .dock-label {
+    position: absolute;
+    bottom: 60px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--topbar-bg);
+    color: var(--topbar-text);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--motion-fast);
+  }
+
+  .dock-item:hover .dock-label,
+  .dock-item:focus-visible .dock-label {
+    opacity: 1;
+  }
+
+  @media (max-width: 640px) {
+    .dock {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transform: none;
+      padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+      border-width: 1px 0 0;
+      border-radius: 0;
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+    }
+    ul {
+      justify-content: space-around;
+      gap: 0;
+    }
+    .dock-sep,
+    .no-phone {
+      display: none;
+    }
+    .dock-item {
+      grid-template-rows: 30px auto;
+      gap: 2px;
+      width: auto;
+      min-width: 48px;
+      height: 58px;
+      padding-top: 4px;
+    }
+    .dock-item:hover {
+      transform: none;
+    }
+    .dock-item .app-icon {
+      width: 28px;
+      height: 28px;
+    }
+    .dock-label {
+      position: static;
+      padding: 0;
+      background: none;
+      color: var(--muted);
+      font-size: 10px;
+      opacity: 1;
+    }
+    .dock-item.running .dock-label {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .dock-item.running::after {
+      top: 0;
+      bottom: auto;
+      width: 18px;
+      height: 3px;
+      border-radius: 0 0 2px 2px;
+    }
+  }
+</style>
+
+<script>
+  // Home page: the window in view gets the focused look, and its dock icon runs.
+  const items = [...document.querySelectorAll<HTMLAnchorElement>('[data-dock-spy]')];
+  const wins = [...document.querySelectorAll<HTMLElement>('main .window')];
+  if (wins.length) {
+    const update = () => {
+      const mid = window.innerHeight * 0.35;
+      let best = wins[0];
+      let bestD = Infinity;
+      for (const w of wins) {
+        const r = w.getBoundingClientRect();
+        const d = r.top <= mid && r.bottom >= mid ? 0 : Math.min(Math.abs(r.top - mid), Math.abs(r.bottom - mid));
+        if (d < bestD) {
+          bestD = d;
+          best = w;
+        }
+      }
+      wins.forEach((w) => w.classList.toggle('focused', w === best));
+      items.forEach((a) => a.classList.toggle('running', a.dataset.dockSpy === best.id));
+    };
+    let raf = 0;
+    window.addEventListener('scroll', () => {
+      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), update()));
+    }, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+</script>

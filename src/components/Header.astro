@@ -1,354 +1,277 @@
 ---
-import { person } from '../data/profile';
+// PitOS top bar (shell.css .os-topbar): name on the left, section links,
+// Jakarta clock in the middle, and a tray with the status chip, the terminal
+// and the light/dark switch. On phones the dock at the bottom carries the links.
 import LogoMark from './LogoMark.astro';
 
+export type Current =
+  | 'home'
+  | 'work'
+  | 'homelab'
+  | 'research'
+  | 'resume'
+  | 'notes'
+  | 'status'
+  | 'other';
+
 interface Props {
-  current: 'home' | 'work' | 'homelab' | 'research' | 'resume' | 'other';
+  current: Current;
 }
 const { current } = Astro.props;
 const onHome = current === 'home';
+const h = (id: string) => (onHome ? `#${id}` : `/#${id}`);
 
-// On the home page these are in-page anchors (scroll-spy highlights them);
-// elsewhere they point back to the home sections.
 const links = [
-  { id: 'about', label: 'About' },
-  { id: 'work', label: 'Work' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'homelab', label: 'Homelab' },
-  { id: 'research', label: 'Research' },
-  { id: 'off-the-clock', label: 'Off the clock' },
-  { id: 'contact', label: 'Contact' },
+  { href: h('work'), label: 'Work', spy: 'work', page: 'work' },
+  { href: h('pitwall'), label: 'Pit Wall', spy: 'pitwall' },
+  { href: h('experience'), label: 'Experience', spy: 'experience' },
+  { href: '/homelab', label: 'Homelab', page: 'homelab' },
+  { href: '/postmortems', label: 'Notes', page: 'notes' },
+  { href: h('contact'), label: 'Contact', spy: 'contact' },
 ];
-const pageFor: Record<string, string> = { work: 'work', homelab: 'homelab', research: 'research' };
 ---
 
-<header class="site-header" data-home={onHome ? 'true' : 'false'}>
-  <div class="wrap bar">
-    <a class="brand" href="/" aria-label={`${person.name}, home`}>
-      <LogoMark size={28} />
+<header class="os-topbar">
+  <div class="os-left">
+    <a class="os-item os-brand" href="/" aria-label="Rafif Dzaky Daniswara, home">
+      <LogoMark size={18} />
       <span>Rafif Dzaky</span>
     </a>
-
-    <button class="term-btn" type="button" data-term-open aria-label="Open the terminal (shortcut: /)" title="Terminal ( / )">
-      <span aria-hidden="true">&gt;_</span>
-    </button>
-
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">
-      <span class="menu-icon" aria-hidden="true"></span>
-      <span class="menu-label">Menu</span>
-    </button>
-
-    <nav id="site-nav" aria-label="Primary">
-      <ul>
-        {
-          links.map((l) => (
-            <li>
-              <a
-                href={onHome ? `#${l.id}` : `/#${l.id}`}
-                data-spy={l.id}
-                class={pageFor[l.id] === current ? 'is-active' : undefined}
-                aria-current={pageFor[l.id] === current ? 'page' : undefined}
-              >
-                {l.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-      <a class="resume-btn" href={person.resumePage} aria-current={current === 'resume' ? 'page' : undefined}>
-        Resume
-      </a>
+    <nav class="os-nav" aria-label="Primary">
+      {
+        links.map((l) => (
+          <a
+            class="os-item"
+            href={l.href}
+            data-spy={onHome ? l.spy : undefined}
+            aria-current={l.page && l.page === current ? 'page' : undefined}
+          >
+            {l.label}
+          </a>
+        ))
+      }
     </nav>
+  </div>
+
+  <span class="os-clock"><time data-clock>Jakarta · WIB</time></span>
+
+  <div class="os-tray">
+    <a class="oncall" href={h('contact')}>Open to <span class="long">DevOps </span>roles</a>
+    <button class="os-item tray-btn" type="button" data-term-open aria-label="Open the terminal (shortcut: /)" title="Terminal ( / )">
+      <svg width="16" height="16" aria-hidden="true"><use href="#g-term"></use></svg>
+    </button>
+    <button class="os-item tray-btn" type="button" data-theme-toggle aria-label="Switch to light theme">
+      <svg class="i-sun" width="16" height="16" aria-hidden="true"><use href="#g-sun"></use></svg>
+      <svg class="i-moon" width="16" height="16" aria-hidden="true"><use href="#g-moon"></use></svg>
+    </button>
   </div>
 </header>
 
 <style>
-  .site-header {
+  .os-topbar {
     position: sticky;
     top: 0;
-    z-index: 50;
-    border-bottom: var(--hair) solid var(--line);
-    background: color-mix(in srgb, var(--paper) 90%, transparent);
-    backdrop-filter: blur(8px);
+    z-index: 1300;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    height: var(--topbar-h);
+    padding: 0 8px;
+    background: var(--topbar-bg);
+    color: var(--topbar-text);
+    font-size: var(--fs-sm);
   }
 
-  .bar {
+  .os-left {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--s-4);
-    min-height: 4.25rem;
+    gap: 2px;
+    min-width: 0;
   }
 
-  .brand {
-    margin-right: auto;
+  .os-item {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
-    font: 600 1.1rem / 1 var(--font-sans);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .dot {
-    color: var(--accent);
-  }
-
-  nav {
-    display: flex;
-    align-items: center;
-    gap: clamp(1rem, 2vw, 2.5rem);
-  }
-
-  nav ul {
-    display: flex;
-    gap: clamp(0.8rem, 1.6vw, 1.9rem);
-    list-style: none;
-  }
-
-  nav ul a {
-    position: relative;
-    display: inline-block;
-    padding-block: var(--s-2);
-    color: var(--muted);
-    font-size: 0.95rem;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: color var(--dur-fast) var(--ease);
-  }
-
-  nav ul a::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0.2rem;
-    height: 2px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform var(--dur) var(--ease);
-  }
-
-  nav ul a:hover,
-  nav ul a.is-active {
-    color: var(--ink);
-  }
-
-  nav ul a.is-active::after {
-    transform: scaleX(1);
-  }
-
-  .resume-btn {
-    padding: 0.55rem 0.9rem;
-    border-radius: var(--radius);
-    background: var(--ink);
-    color: var(--paper);
-    font: 500 0.88rem / 1 var(--font-mono);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .resume-btn:hover {
-    background: var(--accent-deep);
-  }
-
-  /* terminal button: last on desktop, next to Menu on mobile */
-  .term-btn {
-    order: 3;
-    display: inline-grid;
-    place-items: center;
-    min-width: 2.6rem;
-    min-height: 2.4rem;
-    border: var(--rule) solid var(--ink);
-    border-radius: var(--radius);
-    background: var(--card);
-    color: var(--ink);
-    font: 600 0.9rem / 1 var(--font-mono);
-    cursor: pointer;
-  }
-
-  .term-btn:hover {
-    background: var(--ink);
-    color: var(--paper);
-  }
-
-  :global(html:not(.js)) .term-btn {
-    display: none;
-  }
-
-  .menu-btn {
-    order: 4;
-    display: none;
-    align-items: center;
-    gap: var(--s-2);
-    min-height: 2.75rem;
-    padding: 0 0.8rem;
-    border: var(--rule) solid var(--ink);
-    border-radius: var(--radius);
-    background: var(--card);
-    color: var(--ink);
-    font: 500 0.85rem / 1 var(--font-mono);
-    cursor: pointer;
-  }
-
-  .menu-icon,
-  .menu-icon::before,
-  .menu-icon::after {
-    display: block;
-    width: 1rem;
-    height: 1.5px;
-    background: currentColor;
-    transition: transform var(--dur-fast) var(--ease);
-  }
-
-  .menu-icon {
-    position: relative;
-  }
-
-  .menu-icon::before,
-  .menu-icon::after {
-    content: '';
-    position: absolute;
-    left: 0;
-  }
-
-  .menu-icon::before {
-    top: -5px;
-  }
-
-  .menu-icon::after {
-    top: 5px;
-  }
-
-  .menu-btn[aria-expanded='true'] .menu-icon {
+    gap: 6px;
+    height: 24px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 12px;
     background: transparent;
+    color: var(--topbar-text);
+    font: 500 var(--fs-sm) var(--font);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background var(--motion-fast);
   }
 
-  .menu-btn[aria-expanded='true'] .menu-icon::before {
-    transform: translateY(5px) rotate(45deg);
+  .os-item:hover,
+  .os-item[aria-current] {
+    background: rgba(255, 255, 255, 0.12);
   }
 
-  .menu-btn[aria-expanded='true'] .menu-icon::after {
-    transform: translateY(-5px) rotate(-45deg);
+  .os-item:focus-visible {
+    outline: 2px solid var(--accent-hover);
+    outline-offset: 1px;
   }
 
-  @media (max-width: 68rem) {
-    .menu-btn {
-      display: inline-flex;
-    }
-
-    nav {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      display: none;
-      flex-direction: column;
-      align-items: stretch;
-      gap: var(--s-4);
-      padding: var(--s-4) var(--gutter) var(--s-5);
-      border-bottom: var(--rule) solid var(--ink);
-      background: var(--paper);
-    }
-
-    .site-header.is-open nav {
-      display: flex;
-    }
-
-    nav ul {
-      flex-direction: column;
-      gap: 0;
-    }
-
-    nav ul a {
-      display: block;
-      padding: var(--s-3) 0;
-      border-bottom: var(--hair) solid var(--line);
-      font-size: 1.05rem;
-    }
-
-    nav ul a::after {
-      display: none;
-    }
-
-    nav ul a.is-active {
-      color: var(--accent-deep);
-      font-weight: 600;
-    }
-
-    .resume-btn {
-      padding: 0.8rem 1rem;
-      text-align: center;
-    }
+  .os-brand {
+    padding-left: 6px;
+    font-weight: 600;
   }
 
-  /* Without JS the menu button can't work, so show the links inline and let them wrap. */
-  :global(html:not(.js)) .menu-btn {
+  .os-brand :global(.logo-mark) {
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+  }
+
+  .os-nav {
+    display: flex;
+    gap: 2px;
+  }
+
+  .os-nav .os-item {
+    color: #b9c0cb;
+    font-weight: 400;
+  }
+
+  .os-nav .os-item[aria-current] {
+    color: var(--topbar-text);
+    font-weight: 500;
+  }
+
+  .os-clock {
+    justify-self: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  .os-tray {
+    display: flex;
+    justify-self: end;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .oncall {
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #73bf69;
+    color: #16181d;
+    font: 600 var(--fs-xs) var(--font);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .oncall:hover {
+    background: #86cc7d;
+  }
+
+  .tray-btn {
+    width: 28px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 14px;
+  }
+
+  .i-moon {
     display: none;
   }
 
-  @media (max-width: 68rem) {
-    :global(html:not(.js)) nav {
-      position: static;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      padding: 0 0 var(--s-3);
-      border: 0;
+  :global(:root[data-theme='light']) .i-sun {
+    display: none;
+  }
+
+  :global(:root[data-theme='light']) .i-moon {
+    display: block;
+  }
+
+  @media (max-width: 1180px) {
+    .os-nav {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .os-topbar {
+      height: 40px;
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .os-clock {
+      display: none;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .oncall .long {
+      display: none;
     }
   }
 </style>
 
 <script>
-  const header = document.querySelector<HTMLElement>('.site-header')!;
-  const btn = header.querySelector<HTMLButtonElement>('.menu-btn')!;
-  const nav = header.querySelector<HTMLElement>('#site-nav')!;
-
-  const setOpen = (open: boolean) => {
-    header.classList.toggle('is-open', open);
-    btn.setAttribute('aria-expanded', String(open));
+  // Theme: the choice is saved; the inline script in Base.astro applies it before paint.
+  const root = document.documentElement;
+  const btn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const label = () => {
+    const dark = root.dataset.theme !== 'light';
+    btn?.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
   };
-
-  btn.addEventListener('click', () => setOpen(btn.getAttribute('aria-expanded') !== 'true'));
-  nav.addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).closest('a')) setOpen(false);
+  btn?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem('pitos-theme', next);
+    } catch {}
+    label();
   });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && header.classList.contains('is-open')) {
-      setOpen(false);
-      btn.focus();
-    }
-  });
+  label();
 
-  // Scroll-spy: highlight the section that crosses the middle band of the viewport.
-  if (header.dataset.home === 'true' && 'IntersectionObserver' in window) {
-    const links = new Map(
-      [...nav.querySelectorAll<HTMLAnchorElement>('[data-spy]')].map((a) => [a.dataset.spy!, a]),
-    );
-    const sections = [...links.keys()]
-      .map((id) => document.getElementById(id))
-      .filter((s): s is HTMLElement => !!s);
+  // Clock: Jakarta time, like the PitOS top bar.
+  const clock = document.querySelector<HTMLTimeElement>('[data-clock]');
+  let fmt: Intl.DateTimeFormat | undefined;
+  try {
+    fmt = new Intl.DateTimeFormat('en-GB', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Asia/Jakarta',
+    });
+  } catch {}
+  const tick = () => {
+    if (!clock || !fmt) return;
+    const now = new Date();
+    clock.textContent = `${fmt.format(now).replace(',', '')} WIB`;
+    clock.dateTime = now.toISOString();
+  };
+  tick();
+  setInterval(tick, 15000);
 
-    const activate = (id: string | null) => {
-      links.forEach((a, key) => {
-        const on = key === id;
-        a.classList.toggle('is-active', on);
-        if (on) a.setAttribute('aria-current', 'location');
-        else a.removeAttribute('aria-current');
-      });
+  // Scroll-spy on the home page: the link for the window in view is marked.
+  const spies = [...document.querySelectorAll<HTMLAnchorElement>('[data-spy]')];
+  if (spies.length) {
+    const targets = spies
+      .map((a) => document.getElementById(a.dataset.spy!))
+      .filter((el): el is HTMLElement => !!el);
+    const mark = () => {
+      const mid = window.innerHeight * 0.35;
+      let best: HTMLElement | undefined;
+      for (const t of targets) {
+        const r = t.getBoundingClientRect();
+        if (r.top <= mid && r.bottom >= mid) best = t;
+      }
+      spies.forEach((a) =>
+        a.dataset.spy === best?.id ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current'),
+      );
     };
-
-    const visible = new Set<string>();
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((en) => (en.isIntersecting ? visible.add(en.target.id) : visible.delete(en.target.id)));
-        // Topmost visible section wins; the hero (above #about) clears the highlight.
-        const first = sections.find((s) => visible.has(s.id));
-        activate(first ? first.id : null);
-      },
-      { rootMargin: '-40% 0px -55% 0px' },
-    );
-    sections.forEach((s) => io.observe(s));
+    let raf = 0;
+    window.addEventListener('scroll', () => {
+      if (!raf) raf = requestAnimationFrame(() => ((raf = 0), mark()));
+    }, { passive: true });
+    mark();
   }
 </script>
