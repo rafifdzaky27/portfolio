@@ -31,7 +31,7 @@ for (const t of targets) {
   try {
     const res = await fetch(t.url, {
       redirect: 'follow',
-      headers: { 'user-agent': 'rafif.ops-status/1 (+https://github.com/rafifdzaky27/portfolio)' },
+      headers: { 'user-agent': 'rafifdzaky-status/1 (+https://github.com/rafifdzaky27/portfolio)' },
       signal: AbortSignal.timeout(15000),
     });
     code = res.status;

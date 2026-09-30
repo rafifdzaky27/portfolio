@@ -9,7 +9,6 @@ import SectionHead from '../components/SectionHead.astro';
 import Credentials from '../components/Credentials.astro';
 import OffTheClock from '../components/OffTheClock.astro';
 import FinOps from '../components/FinOps.astro';
-import ApproveDeploy from '../components/ApproveDeploy.astro';
 import { postmortems, adrs } from '../data/ops';
 import {
   person,
@@ -34,15 +33,6 @@ const contextLabel = {
 const totalExp = formatDuration(monthsSince(careerStart));
 const devopsExp = formatDuration(monthsSince(devopsStart));
 
-const facts = [
-  { k: 'on-time', v: '98%+' },
-  { k: 'coffee uptime', v: '99.9%' },
-  { k: 'root cause', v: 'DNS, always' },
-  { k: 'chmod 777', v: 'never' },
-  { k: 'served from', v: 'homelab', href: '#trace' },
-  { k: 'fri deploys', v: 'approved' },
-];
-
 const cases = [
   {
     no: '01',
@@ -50,7 +40,7 @@ const cases = [
     kicker: 'CI/CD modernization',
     from: 'ssh + git pull',
     to: 'gated pipelines',
-    title: 'Every service ships through a pipeline now',
+    title: 'Moving 20+ services to GitHub Actions',
     text: 'All 20+ production services release through GitHub Actions. About 60% deploy fully automatically; production releases are dispatched and confirmed by me, through the same pipeline.',
     chips: ['~60% auto-deploy', '<2% failed prod runs', '16 failure → fix notes'],
   },
@@ -59,8 +49,8 @@ const cases = [
     href: '/work/monitoring',
     kicker: 'Monitoring & incidents',
     from: 'user reports',
-    to: 'dashboards first',
-    title: 'Seeing production problems before users do',
+    to: 'alerts and dashboards',
+    title: 'Monitoring and incident response',
     text: 'Prometheus, Grafana and Uptime Kuma across the VPS fleet: CPU, memory, disk, availability, and the incident routine for Laravel apps and their queue workers.',
     chips: ['Prometheus', 'Grafana', 'Uptime Kuma', 'on-call'],
   },
@@ -70,7 +60,7 @@ const cases = [
     kicker: 'Infra operations',
     from: 'bare VPS',
     to: 'running service',
-    title: 'Everything between a server and a healthy app',
+    title: 'Running the Linode VPS fleet',
     text: 'Provisioning and scaling Linode VPS, domains and DNS, SSL, web server config, IAM and SSH access, hardening, secrets, databases and backups.',
     chips: ['domains & SSL', 'IAM', 'hardening', 'backups'],
   },
@@ -103,36 +93,19 @@ const profileSchema = {
   <!-- ============ HERO ============ -->
   <section class="hero wrap" aria-labelledby="hero-title">
     <div class="hero-top">
-      <p class="kicker">Now boarding · prod release</p>
+      <p class="kicker">Jakarta · open to DevOps roles</p>
       <button type="button" class="exec-btn" data-exec-open>
-        <span aria-hidden="true">⏱</span> Exec summary <span class="exec-s">60 s</span>
+        <span aria-hidden="true">⏱</span> One-minute summary
       </button>
     </div>
-    <h1 id="hero-title">{person.name} <span>ships software.</span></h1>
+    <h1 id="hero-title">{person.name} <span>DevOps Engineer</span></h1>
     <BoardingPass />
-    <ul class="facts" aria-label="Fun facts">
-      {
-        facts.map((f) => (
-          <li>
-            {f.href ? (
-              <a href={f.href} title="See the live request trace">
-                <span class="k">{f.k}</span> <span class="v">{f.v}</span>
-              </a>
-            ) : (
-              <>
-                <span class="k">{f.k}</span> <span class="v">{f.v}</span>
-              </>
-            )}
-          </li>
-        ))
-      }
-    </ul>
   </section>
 
   <!-- ============ ABOUT ============ -->
   <section class="section band" id="about" aria-labelledby="about-title">
     <div class="wrap">
-      <SectionHead index="01" label="About" title="The person between your merge and production" id="about-title" />
+      <SectionHead index="01" label="About" title="What I do" id="about-title" />
 
       <div class="about">
         <div class="about-copy">
@@ -202,9 +175,10 @@ const profileSchema = {
 
   <!-- ============ WORK ============ -->
   <section class="section wrap" id="work" aria-labelledby="work-title">
-    <SectionHead index="02" label="Work" title="Three routes I run every week, and one I run for fun" id="work-title">
+    <SectionHead index="02" label="Work" title="Work and projects" id="work-title">
       <p class="lede">
-        One pipeline for every service, two ways to board it. Here's how a release actually travels.
+        Every production service goes through the same GitHub Actions pipeline. About 60% deploy on their own, and I
+        approve the production run for the rest.
       </p>
     </SectionHead>
 
@@ -249,7 +223,7 @@ const profileSchema = {
           <span class="meta">04 · Pit Wall On-Call</span>
           <span class="status status--live">Live</span>
         </p>
-        <h3 id="pw-title">A game about being on call, and I run it like production</h3>
+        <h3 id="pw-title">A game about being on call, running in production</h3>
         <p class="case-text">
           You take the page, find the cause and protect the error budget. Every merge runs 700+ tests,
           ships SHA-tagged images to GHCR and deploys to my homelab over Tailscale. A bad release rolls
@@ -271,8 +245,8 @@ const profileSchema = {
   <!-- ============ EXPERIENCE ============ -->
   <section class="section band" id="experience" aria-labelledby="exp-title">
     <div class="wrap">
-      <SectionHead index="03" label="Experience" title="Itinerary so far" id="exp-title">
-        <p class="lede">{totalExp} of professional experience, most recent leg first.</p>
+      <SectionHead index="03" label="Experience" title="Where I've worked" id="exp-title">
+        <p class="lede">{totalExp} of professional experience, newest first.</p>
       </SectionHead>
 
       <ol class="itinerary">
@@ -331,15 +305,14 @@ const profileSchema = {
 
   <!-- ============ HOMELAB ============ -->
   <section class="section wrap" id="homelab" aria-labelledby="lab-title">
-    <SectionHead index="04" label="Homelab" title="A Proxmox lab for what I don't run at work yet" id="lab-title">
+    <SectionHead index="04" label="Homelab" title="My homelab" id="lab-title">
       <p class="lede">
-        Personal, one physical host, not production. Here's the whole planned map, with each piece marked by what
-        actually runs today.
+        One Proxmox host at home, where I learn the things I don't run at work yet. Each piece below is marked running,
+        partial or planned.
       </p>
     </SectionHead>
     <p class="served">
-      <span class="served-tag">Fun fact</span> You're looking at it. This site is served from the lab, not a hosting
-      platform.
+      <span class="served-tag">Note</span> This site runs on this homelab, behind a Cloudflare Tunnel.
     </p>
     <div class="map-wrap"><HomelabMap /></div>
 
@@ -388,10 +361,9 @@ const profileSchema = {
   <!-- ============ OPERATING MANUAL ============ -->
   <section class="section" id="ops" aria-labelledby="ops-title">
     <div class="wrap">
-      <SectionHead index="06" label="Operating manual" title="How I run things when it matters" id="ops-title">
+      <SectionHead index="06" label="Notes" title="Postmortems and decisions" id="ops-title">
         <p class="lede">
-          For hiring managers who want more than a skills list: how I handle incidents, how I make decisions, and what I'd
-          do in my first 90 days with you.
+          Write-ups from building and running this site: what broke, what I changed, and why I chose what I chose.
         </p>
       </SectionHead>
       <ul class="manual">
@@ -399,28 +371,21 @@ const profileSchema = {
           <a class="man ticket" href="/postmortems">
             <span class="man-n">{postmortems.length}</span>
             <span class="man-t">Postmortems</span>
-            <span class="man-d">Real incidents from building this site. Blameless, root cause first.</span>
+            <span class="man-d">Incidents from building this site, and what I changed after each one.</span>
           </a>
         </li>
         <li>
           <a class="man ticket" href="/decisions">
             <span class="man-n">{adrs.length}</span>
             <span class="man-t">Architecture decisions</span>
-            <span class="man-d">What I chose, what I rejected, and what each choice costs.</span>
-          </a>
-        </li>
-        <li>
-          <a class="man ticket" href="/first-90-days">
-            <span class="man-n">90</span>
-            <span class="man-t">First 90 days</span>
-            <span class="man-d">Listen and map, make releases boring, make it measurable.</span>
+            <span class="man-d">The choices behind this site and their trade-offs.</span>
           </a>
         </li>
         <li>
           <a class="man ticket" href="/status" data-live-status>
             <span class="man-n" data-live-up>live</span>
             <span class="man-t">Status</span>
-            <span class="man-d" data-live-d>This site, checked from outside the homelab every 15 minutes.</span>
+            <span class="man-d" data-live-d>This site, checked from outside the homelab by a scheduled GitHub Action.</span>
           </a>
         </li>
       </ul>
@@ -431,12 +396,11 @@ const profileSchema = {
   <!-- ============ OFF THE CLOCK ============ -->
   <section class="section band" id="off-the-clock" aria-labelledby="otc-title">
     <div class="wrap">
-    <SectionHead index="07" label="Off the clock" title="Outside work: Formula 1, Liverpool and tennis" id="otc-title">
+    <SectionHead index="07" label="Off the clock" title="Outside work" id="otc-title">
       <p class="lede">
-        These are my hobbies, not part of my job. I've laid them out like an F1 qualifying broadcast: each row on the timing
-        tower is one hobby. Click a row to switch, and keep the sound on to hear the team radio.
+        Formula 1, Liverpool and tennis. The board is styled like an F1 timing screen: pick a row to switch.
       </p>
-      <p class="otc-fineprint">Lap times, tyres and radio clips are fan-made and just for fun. Not real team radio.</p>
+      <p class="otc-fineprint">Lap times, tyres and radio lines are made up for fun.</p>
     </SectionHead>
     <OffTheClock />
     </div>
@@ -445,7 +409,7 @@ const profileSchema = {
   <!-- ============ CONTACT ============ -->
   <section class="section contact" id="contact" aria-labelledby="contact-title">
     <div class="wrap">
-      <SectionHead index="08" label="Final call" title="Hiring for DevOps, cloud, infrastructure or platform work?" id="contact-title" />
+      <SectionHead index="08" label="Contact" title="Get in touch" id="contact-title" />
       <div class="contact-card ticket">
         <div>
           <p class="lbl">Email</p>
@@ -462,7 +426,6 @@ const profileSchema = {
         </ul>
         <p class="meta">Based in {person.location} · Indonesian and English</p>
       </div>
-      <ApproveDeploy />
     </div>
   </section>
 </Base>

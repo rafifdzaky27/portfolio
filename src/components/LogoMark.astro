@@ -1,26 +1,28 @@
 ---
-// "Gate badge" mark: a dark R block and a light D block, like the section gate labels.
-// Letters are paths (not text) so the mark renders identically everywhere,
-// including as the favicon (public/favicon.svg uses the same geometry).
+// "Branch r" mark: one git-branch stroke that is also a lowercase r, with a
+// green status dot. Same 24-unit grid, 5.5 corner radius and 1.8 stroke as the
+// Pit Wall On-Call icon, so the two read as one family. public/favicon.svg uses
+// the same geometry.
 interface Props {
   size?: number;
   title?: string;
 }
-const { size = 34, title } = Astro.props;
+const { size = 28, title } = Astro.props;
 ---
 
 <svg
   class="logo-mark"
-  viewBox="0 0 64 64"
+  viewBox="0 0 24 24"
   width={size}
   height={size}
   role={title ? 'img' : undefined}
   aria-hidden={title ? undefined : 'true'}
 >
   {title && <title>{title}</title>}
-  <rect x="3" y="14" width="58" height="36" rx="5" fill="#FFFDF8" stroke="#1F2A2E" stroke-width="3"></rect>
-  <path d="M3 19a5 5 0 0 1 5-5h22v36H8a5 5 0 0 1-5-5Z" fill="#1F2A2E"></path>
-  <path d="M12 41V23h6.5a5 5 0 0 1 0 10H12m7 0 5 8" fill="none" stroke="#F6F1E7" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path>
-  <path d="M40 23v18h4a9 9 0 0 0 0-18Z" fill="none" stroke="#1F2A2E" stroke-width="3.2" stroke-linejoin="round"></path>
-  <circle cx="56" cy="20" r="2.6" fill="#2D7D9A"></circle>
+  <rect width="24" height="24" rx="5.5" fill="#1f2329"></rect>
+  <g fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8.5 18.5V6.5"></path>
+    <path d="M8.5 13c0-3.6 2.4-5.5 6-5.5"></path>
+  </g>
+  <circle cx="16.6" cy="7.5" r="2.1" fill="#73bf69"></circle>
 </svg>
