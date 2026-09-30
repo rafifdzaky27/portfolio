@@ -1,7 +1,7 @@
 ---
 title: Moving 20+ production services to GitHub Actions
 kicker: CI/CD modernization
-summary: Moving 20+ Laravel production services off hand-run SSH sessions and onto GitHub Actions. About 60% deploy automatically, and production releases wait for my approval inside the same pipeline. Includes the sixteen failures that shaped the template, what v1 still gets wrong, and the v2 that fixes it.
+summary: 20+ Laravel production services moved from hand-run SSH sessions to GitHub Actions. About 60% deploy automatically. Production releases for the rest wait for my approval in the same pipeline. Below are the results, the sixteen failures that shaped the template, and what v1 still gets wrong.
 order: 1
 context: Professional · PT Pengembang Sistem Manajemen
 period: Jan 2026 – present
@@ -24,7 +24,13 @@ Before, releasing a service meant someone with server access opened an SSH sessi
 
 ## My role
 
-I built the pipelines, debugged them when they were unstable, and standardized the workflow templates they share. I also wrote the SOPs developers follow to release. Production is the one place I deliberately kept a human in the loop: nothing reaches production until I dispatch the run and confirm it.
+I built the pipelines, debugged them when they were unstable, and standardized the workflow templates they share. I also wrote the SOPs developers follow to release. For production I kept one manual step. Nothing reaches production until I start the run and confirm it.
+
+## Results
+
+- **All 20+ production services** release through GitHub Actions instead of SSH and `git pull`. About 60% deploy automatically; production releases go through my approval.
+- **Under 2% of production deploy runs failed** on core services, measured from GitHub Actions run history.
+- Release steps are written down, in the workflow and in the SOP, instead of living in one person's head.
 
 ## What "60%" means
 
@@ -33,7 +39,7 @@ I built the pipelines, debugged them when they were unstable, and standardized t
 - **~60% of services deploy automatically.** A change lands and the pipeline builds, checks and ships it without anyone touching it.
 - **The rest are production releases that I start by hand** (`workflow_dispatch`) and confirm. It's the same pipeline doing the same build, checks and deploy. The only manual part is the decision to go.
 
-So "manual" here means an approval step, not SSH and `git pull`. Nobody deploys by logging into a server anymore.
+The manual part is an approval step. Nobody logs into a server to deploy anymore.
 
 ## What the pipeline does today (v1)
 
@@ -58,7 +64,9 @@ The steps below come from the real workflow files, with names and hosts removed.
 
 Almost every step in the list above exists because something went wrong without it. These are the failure modes I hit while rolling pipelines out across the services, mostly on Laravel apps with background queues. Each one became a permanent step, so the fix no longer depends on someone remembering it.
 
-### Before it ships
+<details class="fold">
+<summary>Before it ships · 7 failures</summary>
+
 
 <Incident
   title="Tests crashed on a missing Vite manifest"
@@ -102,7 +110,11 @@ Almost every step in the list above exists because something went wrong without 
   fix="Each repository now owns exactly one service's pipeline, and the old steps were removed."
 />
 
-### While it ships
+</details>
+
+<details class="fold">
+<summary>While it ships · 6 failures</summary>
+
 
 <Incident
   title="Production deploys shouldn't be one click away"
@@ -140,7 +152,11 @@ Almost every step in the list above exists because something went wrong without 
   step="php-fpm -t && reload php-fpm"
 />
 
-### After it ships
+</details>
+
+<details class="fold">
+<summary>After it ships · 3 failures</summary>
+
 
 <Incident
   title="Green pipeline, broken site"
@@ -161,17 +177,13 @@ Almost every step in the list above exists because something went wrong without 
   step="if: always() → rm -f ~/.ssh/deploy_key"
 />
 
+</details>
+
 **How I narrow a failed run down:** first the failing step in the Actions log. Then, on the server, `laravel.log` and the worker status in Supervisor/Horizon. After that, file ownership on `storage/` and `bootstrap/cache`. Finally memory, on the Grafana dashboard and in the system logs.
-
-## Results
-
-- **All 20+ production services** release through GitHub Actions instead of SSH and `git pull`. About 60% deploy automatically; production releases go through my approval.
-- **Under 2% of production deploy runs failed** on core services, measured from GitHub Actions run history.
-- Release steps are written down, in the workflow and in the SOP, instead of living in one person's head.
 
 ## What v1 still gets wrong
 
-I'd rather list these myself than have a reviewer find them:
+Known problems in v1:
 
 <div class="table-scroll">
 
@@ -210,13 +222,17 @@ reload_runtime
 trap - ERR
 ```
 
-### The containerized variant
+<details class="fold">
+<summary>The containerized variant</summary>
+
 
 For services that run in Docker, the same shape uses an image instead of a directory:
 
 - A multi-stage `Dockerfile` separates Composer dependencies, the Vite asset build and the runtime. PHP-FPM runs as a non-root user, and an unprivileged nginx image serves `public/`.
 - One app image runs PHP-FPM, the queue worker (or Horizon) and the scheduler. Docker's restart policy does the job Supervisor does on a plain VPS.
 - Images are tagged with the commit SHA, scanned with Trivy before they're pushed, and pulled from GitHub's container registry. `docker compose up --wait` blocks until healthchecks pass, and rolling back means starting the previous tag.
+
+</details>
 
 **Known limit, in both variants:** rolling back restores the code, not the database. Migrations have to stay backward compatible with the previous release, so schema changes are split across two deploys.
 

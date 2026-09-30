@@ -168,7 +168,7 @@ export const adrs: Adr[] = [
     date: '2026-09',
     status: 'Accepted',
     context:
-      'A static site could live on a free hosting platform in five minutes. But the site is also evidence: I want it to run on infrastructure I operate, the way I would at work.',
+      'A static site could live on a free hosting platform in five minutes. But the site is also evidence: I want it to run on infrastructure I operate myself.',
     decision: 'Serve the static build from my homelab, behind Cloudflare, deployed by my own pipeline.',
     pros: ['Real operations practice: deploys, TLS, headers, monitoring.', 'Near-zero marginal cost on a host that is on anyway.'],
     cons: [
@@ -243,7 +243,7 @@ export const adrs: Adr[] = [
 ];
 
 export const firstNinety = {
-  note: 'A draft. By the end of week one I would rewrite it with what your team actually needs.',
+  note: 'A draft. By the end of week one I would rewrite it around what your team needs.',
   phases: [
     {
       days: 'Days 1–30',
@@ -258,7 +258,7 @@ export const firstNinety = {
     },
     {
       days: 'Days 31–60',
-      name: 'Make releases boring',
+      name: 'Make releases predictable',
       goal: 'Fewer surprises on deploy day.',
       items: [
         'Turn the deploy process into one template with approvals, health checks and rollback.',

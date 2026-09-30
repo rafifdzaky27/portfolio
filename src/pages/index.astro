@@ -3,7 +3,6 @@ import Base from '../layouts/Base.astro';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import Window from '../components/os/Window.astro';
-import OffTheClock from '../components/OffTheClock.astro';
 import portrait from '../assets/rafif.png';
 import { pitwall } from '../data/pitwall';
 import { postmortems, adrs } from '../data/ops';
@@ -31,7 +30,7 @@ const kind = {
 // Case studies, in the order set in each file's front matter.
 const blurb: Record<string, string> = {
   'ci-cd': 'From SSH and git pull to GitHub Actions. About 60% deploy on merge, the rest wait for my approval, and under 2% of production runs failed.',
-  monitoring: 'Prometheus, Grafana and Uptime Kuma for the VPS fleet, and how I work an incident when it goes red.',
+  monitoring: 'Prometheus, Grafana and Uptime Kuma for the VPS fleet, and my routine when something breaks.',
   'linux-ops': 'The Linode fleet: DNS, SSL, IAM, hardening, secrets, backups and databases, with written deployment SOPs.',
   'pit-wall-on-call': 'My on-call game, shipped by its own pipeline with smoke tests and an automatic rollback.',
 };
@@ -159,23 +158,14 @@ const profileSchema = {
 
   <!-- ============ WORK ============ -->
   <Window title="Monitoring · release pipeline" id="work" class="w-full">
-    <p class="mon-job"><b>Your job</b> <b>Ship 20+ production services without SSH.</b> <span class="muted">Most deploy on merge; production runs for the rest wait for my approval.</span></p>
-    <div class="mon-top">
-      <div class="mon-t"><b>{person.employer}</b><small>DevOps · Jakarta · Jan 2026 to now</small></div>
-      <span class="spacer"></span>
-      <div class="kv"><span class="k">Before</span><span class="v"><s>ssh + git pull</s></span></div>
-      <div class="kv"><span class="k">Now</span><span class="v">GitHub Actions</span></div>
-      <div class="kv"><span class="k">Failed prod runs</span><span class="v ok">&lt;2%</span></div>
-    </div>
     <div class="mon-grid">
       <div class="panel full">
         <div class="panel-h wrap">
-          <h3>Service map</h3>
+          <h3>Release pipeline · every production service</h3>
           <ul class="map-legend">
             <li><span class="legend-dot ok"></span><b class="ok">Auto</b> deploys on merge</li>
             <li><span class="legend-dot warn"></span><b class="warn">Gate</b> I approve prod</li>
           </ul>
-          <span class="hint">every production service</span>
         </div>
         <div class="svc-map" data-edges="commit>build,build>test,test>package,package>auto:auto,package>gate:gate,auto>deploy:auto,gate>deploy:gate,deploy>verify">
           <svg class="svc-edges" aria-hidden="true"></svg>
@@ -242,13 +232,13 @@ const profileSchema = {
           widths={[640, 960, 1280]}
           sizes="(max-width: 860px) 100vw, 60vw"
         />
-        <figcaption>The café where the shift starts. The laptop on the table runs PitOS.</figcaption>
+        <figcaption>Each shift starts in a café in Jakarta. The phone on the table has the page.</figcaption>
       </figure>
       <div class="panel pw-about">
         <div class="panel-h"><h3>Pit Wall On-Call</h3><span class="tag ok">Live</span></div>
         <div class="panel-b">
           <p class="pw-title">A browser game about being on call</p>
-          <p class="muted">You get paged, open Monitoring, read the logs, find the cause and fix it before the error budget runs out. I ship it the way I ship production.</p>
+          <p class="muted">You get paged, open Monitoring, read the logs, find the cause and fix it before the error budget runs out.</p>
           <ul class="facts">
             <li><span class="tag ok">CI</span><span>Lint, typecheck, 700+ tests, Playwright</span></li>
             <li><span class="tag info">Build</span><span>SHA-tagged images to GHCR</span></li>
@@ -338,21 +328,17 @@ const profileSchema = {
     </div>
   </Window>
 
-  <!-- ============ CONTACT ============ -->
-  <Window title="Settings · contact" id="contact" class="w-side">
-    <div class="contact">
-      <p>Hiring for DevOps? Email is fastest.</p>
-      <div class="setting-rows">
-        <div class="setting-row"><span class="k">Email</span><a class="v" href={`mailto:${person.email}`}>{person.email}</a><button type="button" class="btn" data-copy-email>Copy</button></div>
-        <div class="setting-row"><span class="k">Phone</span><a class="v" href={person.phoneHref}>{person.phone}</a><span></span></div>
-        <div class="setting-row"><span class="k">LinkedIn</span><a class="v" href={person.linkedin} rel="me noopener">in/rafifdzaky</a><span></span></div>
-        <div class="setting-row"><span class="k">GitHub</span><a class="v" href={person.github} rel="me noopener">rafifdzaky27</a><span></span></div>
-      </div>
-      <div class="actions">
-        <a class="btn primary" href={person.resumePdf} download={person.resumeFile}><svg width="16" height="16" aria-hidden="true"><use href="#g-dl"></use></svg>Download CV</a>
-        <a class="btn" href="/resume">Read the CV</a>
-      </div>
-      <p class="meta">Based in {person.location} · Indonesian and English</p>
+  <!-- ============ RESEARCH ============ -->
+  <Window title="Docs · research" id="research" class="w-side">
+    <div class="research">
+      <p class="about-tags"><span class="tag warn">Best Presenter</span><span class="tag info">ICICoS 2026</span></p>
+      <p class="research-title">Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2</p>
+      <p class="meta">Daniswara, Saputra &amp; Panduwiyasa · Telkom University · presented Aug 2026 · not yet published</p>
+      <p class="muted">
+        A PLS-SEM pilot with 50 MSME practitioners in Bandung Raya. Social influence, enjoyment and price value showed the
+        largest effects on intention to use a POS app.
+      </p>
+      <a class="arrow-link" href="/research">Method, results and limits</a>
     </div>
   </Window>
 
@@ -381,34 +367,27 @@ const profileSchema = {
             <td class="what" data-live-d>This site, checked from outside the homelab by a scheduled GitHub Action.</td>
             <td class="date" data-live-up>live</td>
           </tr>
-          <tr>
-            <td><a class="naut-item" href="/homelab"><svg width="24" height="24" aria-hidden="true"><use href="#f-folder"></use></svg><b>homelab</b></a></td>
-            <td class="what">Troubleshooting notes and the full module roadmap.</td>
-            <td class="date">31</td>
-          </tr>
         </tbody>
       </table>
     </div>
   </Window>
 
-  <!-- ============ RESEARCH ============ -->
-  <Window title="Docs · research" id="research" class="w-side">
-    <div class="research">
-      <p class="about-tags"><span class="tag warn">Best Presenter</span><span class="tag info">ICICoS 2026</span></p>
-      <p class="research-title">Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2</p>
-      <p class="meta">Daniswara, Saputra &amp; Panduwiyasa · Telkom University · presented Aug 2026 · not yet published</p>
-      <p class="muted">
-        A PLS-SEM pilot with 50 MSME practitioners in Bandung Raya. Social influence, enjoyment and price value showed the
-        largest effects on intention to use a POS app.
-      </p>
-      <a class="arrow-link" href="/research">Method, results and limits</a>
+  <!-- ============ CONTACT ============ -->
+  <Window title="Settings · contact" id="contact" class="w-side">
+    <div class="contact">
+      <p>Hiring for DevOps? Email is fastest.</p>
+      <div class="setting-rows">
+        <div class="setting-row"><span class="k">Email</span><a class="v" href={`mailto:${person.email}`}>{person.email}</a><button type="button" class="btn" data-copy-email>Copy</button></div>
+        <div class="setting-row"><span class="k">Phone</span><a class="v" href={person.phoneHref}>{person.phone}</a><span></span></div>
+        <div class="setting-row"><span class="k">LinkedIn</span><a class="v" href={person.linkedin} rel="me noopener">in/rafifdzaky</a><span></span></div>
+        <div class="setting-row"><span class="k">GitHub</span><a class="v" href={person.github} rel="me noopener">rafifdzaky27</a><span></span></div>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href={person.resumePdf} download={person.resumeFile}><svg width="16" height="16" aria-hidden="true"><use href="#g-dl"></use></svg>Download CV</a>
+        <a class="btn" href="/resume">Read the CV</a>
+      </div>
+      <p class="meta">Based in {person.location} · Indonesian and English</p>
     </div>
-  </Window>
-
-  <!-- ============ OFF THE CLOCK ============ -->
-  <Window title="Off the clock · Formula 1, Liverpool and tennis" id="off-the-clock" class="w-full" bodyClass="otc-body">
-    <OffTheClock />
-    <p class="otc-fine meta">Lap times, tyres and radio lines are made up for fun.</p>
   </Window>
 </Base>
 
@@ -455,22 +434,9 @@ const profileSchema = {
   .meter u { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border-strong); }
 
   /* ---------- work (Monitoring) ---------- */
-  .mon-job { padding: 10px 16px; border-bottom: 1px solid var(--border); }
-  .mon-job b:first-child { margin-right: 10px; }
-  .mon-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); padding: 12px 16px; border-bottom: 1px solid var(--border); }
-  .mon-t { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); min-width: 0; }
-  .mon-t b { font-size: var(--fs-md); font-weight: 500; }
-  .mon-t small { color: var(--muted); font-size: var(--fs-sm); }
-  .spacer { flex: 1; }
-  .kv { display: flex; flex-direction: column; }
-  .kv .k { color: var(--muted); font-size: var(--fs-xs); }
-  .kv .v { font: 500 var(--fs-md) var(--mono); }
-  .kv .v.ok { color: var(--ok); }
-  .kv .v s { color: var(--muted); text-decoration-color: var(--crit); }
   .mon-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 320px; gap: var(--gap); padding: var(--gap); background: var(--bg); }
   .mon-grid .span2 { grid-column: 1 / span 2; }
   .mon-grid .full { grid-column: 1 / -1; }
-  .hint { color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; }
   .pipe { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto auto; }
   .pipe .svc-node { grid-row: 1 / 3; align-self: center; }
   .pipe [data-id='auto'] { grid-column: 5; grid-row: 1; }
@@ -536,11 +502,6 @@ const profileSchema = {
   .contact > p:first-child { font-size: var(--fs-md); }
   .research-title { font-size: var(--fs-md); font-weight: 600; line-height: 1.35; }
   .research .muted { font-size: var(--fs); line-height: 1.55; }
-
-  /* ---------- off the clock ---------- */
-  .home :global(.otc-body) { padding: var(--space-3); background: var(--bg); }
-  .home :global(.otc-body .otc) { margin-top: 0; border-color: var(--border); border-radius: var(--radius); }
-  .otc-fine { margin-top: var(--space-2); }
 
   .exp-line { margin-top: -4px; }
 
