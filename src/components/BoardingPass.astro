@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import portrait from '../assets/rafif.jpg';
+import portrait from '../assets/rafif.png';
 import { person, education, careerStart, monthsSince, formatDuration } from '../data/profile';
 
 const duration = formatDuration(monthsSince(careerStart));
@@ -99,7 +99,7 @@ const fields = [
     height: 100%;
     object-fit: cover;
     object-position: center 15%;
-    mix-blend-mode: multiply; /* the portrait's white backdrop takes the card colour */
+    /* transparent PNG cut-out: the card colour shows through */
   }
 
   .pass-main {
