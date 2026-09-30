@@ -232,7 +232,7 @@ export const adrs: Adr[] = [
     date: '2026-09',
     status: 'Accepted',
     context: 'A monitor that runs on the same host as the site cannot report that host being down.',
-    decision: 'A scheduled GitHub Action checks the public site about every 15 minutes and publishes the results to the status page.',
+    decision: 'A GitHub Action checks the public site from outside and publishes the results to the status page.',
     pros: ['An independent vantage point, and free for a public repository.', 'Nothing in the lab has to be exposed.'],
     cons: [
       'GitHub can delay scheduled runs, so the resolution is coarse.',

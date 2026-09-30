@@ -156,6 +156,9 @@ export interface Credential {
   name: string;
   issuer: string;
   period: string;
+  /** One or two sentences for the detail view on the home page, from the CV. */
+  detail: string;
+  link?: { href: string; label: string };
   image?: ImageMetadata;
   alt?: string;
 }
@@ -165,6 +168,7 @@ export const credentials: Credential[] = [
     name: 'Certified System Analyst (CSA)',
     issuer: 'BNSP',
     period: 'Nov 2025 – Nov 2028',
+    detail: 'System Analyst certificate of competence from Badan Nasional Sertifikasi Profesi (BNSP). Valid November 2025 to November 2028.',
     image: certCsa,
     alt: 'BNSP certificate of competence, System Analyst, issued 27 November 2025 to Rafif Dzaky Daniswara. Certificate numbers blurred.',
   },
@@ -172,6 +176,7 @@ export const credentials: Credential[] = [
     name: 'Junior Web Developer',
     issuer: 'BNSP',
     period: 'Jun 2025 – Jun 2028',
+    detail: 'Junior Web Developer certificate of competence from Badan Nasional Sertifikasi Profesi (BNSP). Valid June 2025 to June 2028.',
     image: certJwd,
     alt: 'BNSP certificate of competence, Junior Web Developer, issued 23 June 2025 to Rafif Dzaky Daniswara. Certificate numbers blurred.',
   },
@@ -179,6 +184,8 @@ export const credentials: Credential[] = [
     name: 'Best Presenter, ICICoS 2026',
     issuer: 'Universitas Diponegoro',
     period: 'Aug 2026',
+    detail: 'Best Presenter at the 9th International Conference on Informatics and Computational Sciences (ICICoS 2026), Universitas Diponegoro. The talk presented my research on digital point-of-sale adoption among MSMEs, using UTAUT2 and PLS-SEM.',
+    link: { href: '/research', label: 'The research' },
     image: certBest,
     alt: 'ICICoS 2026 certificate awarding Rafif Dzaky Daniswara Best Presenter in Room 8, Semarang, 12–13 August 2026. Certificate number blurred.',
   },
@@ -186,6 +193,7 @@ export const credentials: Credential[] = [
     name: 'NetAcadRiders 2024 — Gold Certificate',
     issuer: 'Cisco Networking Academy (APJC)',
     period: 'Mar 2024',
+    detail: 'Gold Certificate in NetAcadRiders 2024, a Cisco Networking Academy competition for the Asia Pacific, Japan and China region.',
     image: certCisco,
     alt: 'Cisco Networking Academy APJC NetAcadRiders Gold Certificate presented to Rafif Dzaky Daniswara for scoring gold in NetAcad Riders 2024, 26 March 2024.',
   },

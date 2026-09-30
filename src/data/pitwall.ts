@@ -2,8 +2,6 @@
 // The site shows the set that matches its own theme (.only-dark / .only-light).
 import monitoringLight from '../assets/pitwall/monitoring-light.png';
 import monitoringDark from '../assets/pitwall/monitoring-dark.png';
-import desktopLight from '../assets/pitwall/desktop-light.png';
-import desktopDark from '../assets/pitwall/desktop-dark.png';
 import cafe from '../assets/pitwall/cafe.png';
 
 export const pitwallTheme: 'light' | 'dark' = 'dark';
@@ -11,15 +9,13 @@ export const pitwallTheme: 'light' | 'dark' = 'dark';
 export const pitwallShots = {
   light: {
     monitoring: monitoringLight,
-    monitoringAlt: 'The Monitoring app during a retry storm: two alerts, a service map with edge-gateway and checkout-api critical, a 5xx rate of 44 percent, and gateway timeout errors in the log stream',
-    monitoringCaption: 'Monitoring during a retry storm. The gateway is failing, but the cause is further down the chain.',
-    desktop: desktopLight,
+    monitoringAlt: 'The Monitoring app during a full disk: three alerts including NodeDiskFull, a service map with edge-gateway and checkout-api critical, a 5xx rate of 34.9 percent, and checkout 500 errors in the log stream',
+    monitoringCaption: 'Monitoring during a full disk. Checkout fails because /var/log filled up on one API node.',
   },
   dark: {
     monitoring: monitoringDark,
-    monitoringAlt: 'The Monitoring app during replica lag: three alerts, a service map with the gateway, accounts-api and a read replica critical, and 502 errors in the log stream',
-    monitoringCaption: 'Monitoring during replica lag. Order history fails because the read replica is behind the primary.',
-    desktop: desktopDark,
+    monitoringAlt: 'The Monitoring app during CPU saturation: three alerts, a service map with edge-gateway and search-api critical, a 5xx rate of 17.3 percent, and upstream timeouts in the log stream',
+    monitoringCaption: 'Monitoring during CPU saturation. Search times out because one regex pins the search API at full CPU.',
   },
 };
 

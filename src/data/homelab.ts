@@ -22,7 +22,15 @@ export const builtNow: LabItem[] = [
     id: 'site',
     name: 'This portfolio',
     state: 'live',
-    summary: 'The site you are reading: a static Astro build, served from the lab instead of a hosting platform.',
+    summary:
+      'The site you are reading: a static Astro build. GitHub Actions deploys it over Tailscale into a new release folder and switches a symlink.',
+  },
+  {
+    id: 'pitwall',
+    name: 'Pit Wall On-Call',
+    state: 'live',
+    summary:
+      'My on-call game. GitHub Actions pushes SHA-tagged images to GHCR and deploys over Tailscale; deploy.sh runs a smoke test and rolls back if it fails.',
   },
   {
     id: 'P01',
@@ -152,6 +160,7 @@ export const labMap: { outside: MapZone[]; host: MapZone[]; offHost: MapZone[] }
       label: 'Home services',
       nodes: [
         { name: 'This portfolio (rafifdzaky.com)', id: 'site', state: 'live' },
+        { name: 'Pit Wall On-Call (pitwall.rafifdzaky.com)', id: 'game', state: 'live' },
         { name: 'Jellyfin', id: 'P05', state: 'partial' },
         { name: 'Seerr + Arr stack', id: 'P05B', state: 'planned' },
         { name: 'Nextcloud', id: 'P07', state: 'planned' },

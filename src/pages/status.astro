@@ -10,7 +10,7 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
 
 <Base
   title="Status"
-  description="Live uptime for rafifdzaky.com, checked from outside the homelab by GitHub Actions about every 15 minutes."
+  description="Live uptime for rafifdzaky.com, checked from outside the homelab by GitHub Actions."
   current="status"
 >
   <Window title="Monitoring · status" as="p" id="top" bodyClass="page-top">
@@ -25,11 +25,11 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
     <noscript><p class="banner" data-state="stale">This page needs JavaScript to load the monitor data. Raw data: <a href={feed}>uptime.json</a></p></noscript>
   </Window>
 
-  <Window title="Monitoring · checks, last 90 days" id="checks" bodyClass="pad">
+  <Window title="Monitoring · daily checks" id="checks" bodyClass="pad">
     <div class="comps" data-comps data-feed={feed}></div>
     <p class="how meta">
-      Checked by a scheduled GitHub Action about every 15 minutes (GitHub can delay scheduled runs). A check passes when the
-      page returns 200 and contains the expected text. Days before monitoring started show as "no data".
+      Checked by GitHub Actions, outside the homelab. The target is one check every 15 minutes, and the time of the last
+      check is shown above. A check passes when the page returns 200 and contains the expected text.
       <a href={feed} rel="noopener" target="_blank">Raw data</a> · <a href="/decisions#adr-006">why it works this way</a>
     </p>
   </Window>
@@ -57,9 +57,9 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
         <p class="comp-up"></p>
       </div>
       <div class="bars" role="img"></div>
-      <p class="bars-axis meta"><span>90 days ago</span><span class="bars-tip" aria-live="polite"></span><span>today</span></p>
+      <p class="bars-axis meta"><span class="bars-from">90 days ago</span><span class="bars-tip" aria-live="polite"></span><span>today</span></p>
       <div class="lat">
-        <p class="lat-h meta">Response time, last 24 h</p>
+        <p class="lat-h meta">Response time, recent checks</p>
         <svg class="lat-svg" viewBox="0 0 600 80" preserveAspectRatio="none" aria-hidden="true"></svg>
         <p class="lat-sum meta"></p>
       </div>
@@ -250,12 +250,6 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
       grid-template-columns: 1fr;
       gap: var(--s-1);
     }
-    .comps :global(.bars) {
-      grid-template-columns: repeat(45, minmax(0, 1fr));
-    }
-    .comps :global(.bars i:nth-child(-n + 45)) {
-      display: none;
-    }
   }
 </style>
 
@@ -300,12 +294,17 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
     const all = Object.values(c.days).reduce((a, d) => ({ n: a.n + d.n, up: a.up + d.up }), { n: 0, up: 0 });
     el.querySelector('.comp-up')!.textContent = `${fmt(pct(all.up, all.n))} uptime · ${all.n} checks since ${since.slice(0, 10)}`;
 
-    // 90 day bars, oldest first
+    // Daily bars, oldest first. The range starts when monitoring started
+    // (at least 14 days, at most 90), so a young monitor isn't mostly empty.
     const bars = el.querySelector<HTMLElement>('.bars')!;
     const tip = el.querySelector<HTMLElement>('.bars-tip')!;
-    bars.setAttribute('aria-label', `${c.name}: daily uptime for the last 90 days. ${fmt(pct(all.up, all.n))} overall.`);
     const today = new Date();
-    for (let i = 89; i >= 0; i--) {
+    const age = Math.floor((today.getTime() - Date.parse(since.slice(0, 10))) / 864e5) + 1;
+    const span = Math.min(matchMedia('(max-width: 44rem)').matches ? 45 : 90, Math.max(14, age));
+    bars.style.gridTemplateColumns = `repeat(${span}, minmax(0, 1fr))`;
+    el.querySelector('.bars-from')!.textContent = age <= span ? `monitoring started ${since.slice(0, 10)}` : `${span} days ago`;
+    bars.setAttribute('aria-label', `${c.name}: daily uptime for the last ${span} days. ${fmt(pct(all.up, all.n))} overall.`);
+    for (let i = span - 1; i >= 0; i--) {
       const day = new Date(today.getTime() - i * 864e5).toISOString().slice(0, 10);
       const d = c.days[day];
       const p = d ? pct(d.up, d.n) : NaN;
@@ -361,11 +360,11 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
 
       const ageMin = (Date.now() - Date.parse(data.updated)) / 6e4;
       const failing = comps.filter(([, c]) => !c.recent[c.recent.length - 1]?.ok).map(([, c]) => c.name);
-      if (ageMin > 60) setBanner('stale', `Monitor data is stale: last check ${ago(data.updated)}.`);
+      if (ageMin > 120) setBanner('stale', `Monitor data is stale: last check ${ago(data.updated)}.`);
       else if (failing.length) setBanner('down', `Degraded: ${failing.join(', ')} failed the last check (${ago(data.updated)}).`);
       else setBanner('ok', `All systems operational · last checked ${ago(data.updated)}`);
     } catch {
-      setBanner('stale', 'No monitor data yet. The first scheduled check publishes it within about 15 minutes.');
+      setBanner('stale', 'Could not load the monitor data. The raw data link below may still work.');
     }
   })();
 </script>

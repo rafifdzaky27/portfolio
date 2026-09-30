@@ -37,7 +37,22 @@ A merge to `main` runs `.github/workflows/deploy.yml`. It builds the site,
 checks links, runs a mobile Lighthouse budget (`scripts/lighthouse.mjs`),
 copies the release to the homelab over Tailscale, and verifies the origin,
 the public site and the security headers. `.github/workflows/status.yml`
-checks the public site every 15 minutes and feeds `/status`.
+checks the public site and feeds `/status`.
+
+### Status checks every 15 minutes
+
+GitHub runs scheduled workflows late on quiet repositories, often hours apart.
+An external scheduler starts the check on time instead, and the cron stays as a
+fallback.
+
+1. Create a fine-grained GitHub token for this repository only, with
+   **Actions: Read and write**.
+2. On [cron-job.org](https://cron-job.org), add a job that runs every 15 minutes:
+   - URL: `https://api.github.com/repos/rafifdzaky27/portfolio/actions/workflows/status.yml/dispatches`
+   - Method: `POST`
+   - Headers: `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`
+   - Body: `{"ref":"main"}`
+3. A good call returns `204`. The run shows up under Actions as `workflow_dispatch`.
 
 ## Updating
 
