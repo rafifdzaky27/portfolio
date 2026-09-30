@@ -1,25 +1,25 @@
 /*
  * Design tokens: "Release boarding pass", light only.
- * One accent (teal) for actions, active nav and routes.
+ * Neutral grey paper, white tickets, one ink-blue accent for actions and links.
  * Stamp red is used for the ink stamps only.
  */
 :root {
   /* surfaces */
-  --paper: #f6f1e7; /* page */
-  --paper-2: #efe8da; /* sunken / alt band */
-  --card: #fffdf8; /* tickets, cards */
-  --line: #d8cfbf; /* hairlines */
-  --line-strong: #bfb4a1;
+  --paper: #f4f5f7; /* page */
+  --paper-2: #eceef1; /* sunken / alt band */
+  --card: #ffffff; /* tickets, cards */
+  --line: #d7dbe0; /* hairlines */
+  --line-strong: #b9bfc7;
 
   /* ink */
-  --ink: #1f2a2e;
-  --muted: #56646a; /* 5.3:1 on paper */
-  --faint: #7a8588; /* metadata only, large or mono */
+  --ink: #1b1f24;
+  --muted: #555e69; /* 6:1 on paper */
+  --faint: #6f7883; /* metadata only, large or mono */
 
   /* accent */
-  --accent: #2d7d9a;
-  --accent-deep: #22627a; /* text/links on paper, 5.6:1 */
-  --accent-soft: #d5e6ec;
+  --accent: #1f4fbf;
+  --accent-deep: #1a41a0; /* text/links on paper, 8:1 */
+  --accent-soft: #e1e8f8;
   --on-accent: #ffffff;
 
   /* stamp + status */
@@ -48,8 +48,8 @@
   --status-planned: var(--planned);
 
   /* type */
-  --font-sans: 'Instrument Sans Variable', 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --font-sans: 'Source Sans 3 Variable', 'Source Sans 3', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
   --step--1: clamp(0.8rem, 0.78rem + 0.1vw, 0.86rem);
   --step-0: clamp(1rem, 0.97rem + 0.15vw, 1.08rem);
@@ -78,8 +78,8 @@
   --measure: 40rem;
 
   /* shape */
-  --radius: 4px;
-  --radius-ticket: 18px;
+  --radius: 3px;
+  --radius-ticket: 8px;
   --hair: 1px;
   --rule: 1.5px;
 

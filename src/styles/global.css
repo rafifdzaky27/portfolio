@@ -151,11 +151,11 @@ pre {
 }
 
 .kicker {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--accent-deep);
 }
 
@@ -179,7 +179,7 @@ pre {
   border-radius: var(--radius);
   background: var(--card);
   color: var(--ink);
-  font: 500 0.95rem / 1 var(--font-mono);
+  font: 600 1rem / 1 var(--font-sans);
   text-decoration: none;
   cursor: pointer;
   transition:
@@ -189,8 +189,7 @@ pre {
 }
 
 .btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 var(--ink);
+  background: var(--paper-2);
 }
 
 .btn--primary {
@@ -200,7 +199,7 @@ pre {
 }
 
 .btn--primary:hover {
-  box-shadow: 3px 3px 0 var(--accent-deep);
+  background: var(--accent-deep);
 }
 
 .arrow-link {
@@ -233,7 +232,7 @@ pre {
   font-family: var(--font-mono);
   font-size: 0.76rem;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
   white-space: nowrap;
 }
 
