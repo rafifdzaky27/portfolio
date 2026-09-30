@@ -19,25 +19,15 @@ const { index, label, title, id } = Astro.props;
 
 <style>
   .sh-gate {
-    display: inline-flex;
-    align-items: stretch;
-    border: var(--rule) solid var(--ink);
-    border-radius: var(--radius);
-    font: 500 0.75rem / 1 var(--font-mono);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    overflow: hidden;
+    display: flex;
+    gap: 0.6em;
+    font: 500 0.85rem / 1.4 var(--font-mono);
+    color: var(--muted);
   }
 
-  .sh-no {
-    padding: 0.45rem 0.6rem;
-    background: var(--ink);
-    color: var(--paper);
-  }
-
-  .sh-label {
-    padding: 0.45rem 0.7rem;
-    background: var(--card);
+  .sh-no::after {
+    content: '·';
+    margin-left: 0.6em;
   }
 
   h2 {
