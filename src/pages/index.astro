@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { Image } from 'astro:assets';
-import pwCafe from '../assets/pitwall/cafe.png';
+import { pitwall } from '../data/pitwall';
 import BoardingPass from '../components/BoardingPass.astro';
 import ReleaseRoute from '../components/ReleaseRoute.astro';
 import HomelabMap from '../components/HomelabMap.astro';
@@ -242,7 +242,7 @@ const profileSchema = {
 
     <article class="feature ticket" aria-labelledby="pw-title">
       <a class="feature-shot" href="/work/pit-wall-on-call" tabindex="-1" aria-hidden="true">
-        <Image src={pwCafe} alt="" widths={[640, 960, 1280]} sizes="(min-width: 56rem) 40rem, 100vw" />
+        <Image src={pitwall.cafe} alt="" widths={[640, 960, 1280]} sizes="(min-width: 56rem) 40rem, 100vw" />
       </a>
       <div class="feature-body">
         <p class="case-top">
