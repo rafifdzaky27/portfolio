@@ -98,7 +98,7 @@ export const experience: Role[] = [
   },
 ];
 
-/** What the DevOps job actually covers, grouped for the About section and the ops case. */
+/** What the DevOps job covers, grouped for the About section and the ops case. */
 export const responsibilities = [
   { area: 'Delivery', items: ['GitHub Actions CI/CD', 'production release approvals', 'deployment SOPs'] },
   { area: 'Servers', items: ['Linode VPS provisioning & setup', 'scaling & capacity', 'Docker', 'OS patching'] },
@@ -195,102 +195,3 @@ export const presenterCert = {
   image: certPresenter,
   alt: 'ICICoS 2026 presenter certificate for the paper "Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2". Certificate number blurred.',
 };
-
-/**
- * Off the clock, styled as an F1 qualifying broadcast: a timing tower,
- * a Sky-style team-radio card and a circuit whose sectors map to interests.
- * Sector colours follow broadcast timing: purple = fastest overall,
- * green = personal best, yellow = no improvement yet.
- * Times, gaps, tyres and radio lines are for fun.
- */
-export type SectorColour = 'purple' | 'green' | 'yellow';
-
-export interface Sector {
-  key: string;
-  pos: number;
-  code: string;
-  sector: string;
-  colour: SectorColour;
-  status: string;
-  time: string;
-  gap: string;
-  tyre: 'S' | 'M' | 'H';
-  tyreName: string;
-  inPit?: boolean;
-  teamColour: string;
-  title: string;
-  line: string;
-  note: string;
-  icon: 'f1' | 'football' | 'tennis';
-  radio: { driver: string; reply: string };
-}
-
-export const offTheClock: Sector[] = [
-  {
-    key: 'f1',
-    pos: 1,
-    code: 'F1',
-    sector: 'S1',
-    colour: 'purple',
-    status: 'fastest overall',
-    time: '28.033',
-    gap: '1:25.357',
-    tyre: 'S',
-    tyreName: 'new softs',
-    teamColour: '#3671c6',
-    title: 'Formula 1',
-    icon: 'f1',
-    line: 'Sundays are for lights out. Max Verstappen is my all-time favourite, and Red Bull Racing is my team.',
-    note: 'race weekends: blocked in the calendar',
-    radio: {
-      driver: 'Mate, the queue workers are stuck again. Box, box.',
-      reply: 'Copy. Horizon restarted. Lights out in five.',
-    },
-  },
-  {
-    key: 'lfc',
-    pos: 2,
-    code: 'LFC',
-    sector: 'S2',
-    colour: 'green',
-    status: 'personal best',
-    time: '31.906',
-    gap: '+0.110',
-    tyre: 'M',
-    tyreName: 'mediums',
-    teamColour: '#c8102e',
-    title: 'Liverpool',
-    icon: 'football',
-    line: 'Liverpool supporter. Matchday is non-negotiable, and the deploy calendar gets checked against the fixture list.',
-    note: 'matchday: no deploys, ideally',
-    radio: {
-      driver: 'Is that the fixture list? Okay. No deploys on matchday.',
-      reply: 'Understood. Change freeze is in place.',
-    },
-  },
-  {
-    key: 'ten',
-    pos: 3,
-    code: 'TEN',
-    sector: 'S3',
-    colour: 'yellow',
-    status: 'still improving',
-    time: '25.418',
-    gap: '+0.358',
-    tyre: 'H',
-    tyreName: 'hards · in the pit',
-    inPit: true,
-    teamColour: '#c9d75a',
-    title: 'Tennis',
-    icon: 'tennis',
-    line: 'Beginner, taking coaching. Still fixing my backhand the way I fix pipelines: one small change at a time.',
-    note: 'current focus: consistency over power',
-    radio: {
-      driver: 'Backhand still feels off. One small change at a time.',
-      reply: 'Copy. Box this lap, coach is ready for you.',
-    },
-  },
-];
-
-export const lapTime = '1:25.357';
-export const sessionClock = '1:27';

@@ -459,3 +459,28 @@ kbd {
 :root[data-theme='light'] .only-dark {
   display: none;
 }
+
+/* long lists in case studies fold away; the summary says what is inside */
+.prose details.fold {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--raised);
+}
+
+.prose details.fold > summary {
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prose details.fold[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.prose details.fold > :not(summary) {
+  margin-inline: 14px;
+}
+
+.prose details.fold > :last-child {
+  margin-bottom: 14px;
+}
