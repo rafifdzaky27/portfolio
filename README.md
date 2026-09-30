@@ -21,7 +21,6 @@ npm run check:links  # build + verify every internal link and anchor
 | `src/styles/tokens.css` | Colour, type, spacing, motion tokens |
 | `public/Rafif_Dzaky_Daniswara_Resume.pdf` | Résumé served for View / Download |
 | `pipeline-templates/` | v2 Laravel CI/CD templates (draft; not part of the site build) |
-| `docs/CLAIMS-REVIEW.md` | Wording to confirm before publishing |
 | `docs/design-rationale.md` | Design decisions |
 
 ## Updating

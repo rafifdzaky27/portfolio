@@ -5,14 +5,6 @@ import certCsa from '../assets/certs/bnsp-system-analyst.jpg';
 import certBest from '../assets/certs/icicos-best-presenter.jpg';
 import certPresenter from '../assets/certs/icicos-presenter.jpg';
 import certCisco from '../assets/certs/cisco-netacadriders-gold.jpg';
-import logoRedBull from '../assets/logos/red-bull-racing-car.png';
-import logoLiverpool from '../assets/logos/liverpool-fc.png';
-import logoRedBullBulls from '../assets/logos/red-bull-logo.png';
-import logoF1 from '../assets/logos/f1-logo-white.png';
-// Team radio clips: F1 radio beep + voice line, merged and loudness-matched.
-import radioF1 from '../assets/audio/radio-f1.mp3';
-import radioLfc from '../assets/audio/radio-lfc.mp3';
-import radioTennis from '../assets/audio/radio-tennis.mp3';
 
 export const person = {
   name: 'Rafif Dzaky Daniswara',
@@ -209,7 +201,7 @@ export const presenterCert = {
  * a Sky-style team-radio card and a circuit whose sectors map to interests.
  * Sector colours follow broadcast timing: purple = fastest overall,
  * green = personal best, yellow = no improvement yet.
- * Times, gaps, tyres and radio lines are for fun. Logos are files Rafif supplied.
+ * Times, gaps, tyres and radio lines are for fun.
  */
 export type SectorColour = 'purple' | 'green' | 'yellow';
 
@@ -230,12 +222,7 @@ export interface Sector {
   line: string;
   note: string;
   icon: 'f1' | 'football' | 'tennis';
-  badge?: ImageMetadata;
-  logo?: ImageMetadata;
-  logoAlt?: string;
-  logoWide?: boolean;
-  /** audio is the clip of the driver line */
-  radio: { driver: string; reply: string; audio?: string };
+  radio: { driver: string; reply: string };
 }
 
 export const offTheClock: Sector[] = [
@@ -253,16 +240,11 @@ export const offTheClock: Sector[] = [
     teamColour: '#3671c6',
     title: 'Formula 1',
     icon: 'f1',
-    badge: logoRedBullBulls,
-    logo: logoRedBull,
-    logoAlt: 'Red Bull Racing Formula 1 car',
-    logoWide: true,
     line: 'Sundays are for lights out. Max Verstappen is my all-time favourite, and Red Bull Racing is my team.',
     note: 'race weekends: blocked in the calendar',
     radio: {
       driver: 'Mate, the queue workers are stuck again. Box, box.',
       reply: 'Copy. Horizon restarted. Lights out in five.',
-      audio: radioF1,
     },
   },
   {
@@ -279,15 +261,11 @@ export const offTheClock: Sector[] = [
     teamColour: '#c8102e',
     title: 'Liverpool',
     icon: 'football',
-    badge: logoLiverpool,
-    logo: logoLiverpool,
-    logoAlt: 'Liverpool FC crest',
     line: 'Liverpool supporter. Matchday is non-negotiable, and the deploy calendar gets checked against the fixture list.',
     note: 'matchday: no deploys, ideally',
     radio: {
       driver: 'Is that the fixture list? Okay. No deploys on matchday.',
       reply: 'Understood. Change freeze is in place.',
-      audio: radioLfc,
     },
   },
   {
@@ -310,11 +288,9 @@ export const offTheClock: Sector[] = [
     radio: {
       driver: 'Backhand still feels off. One small change at a time.',
       reply: 'Copy. Box this lap, coach is ready for you.',
-      audio: radioTennis,
     },
   },
 ];
 
 export const lapTime = '1:25.357';
 export const sessionClock = '1:27';
-export { logoF1 };
