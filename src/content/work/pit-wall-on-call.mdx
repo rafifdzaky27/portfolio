@@ -14,8 +14,7 @@ glance:
 ---
 
 import { Image } from 'astro:assets';
-import cafe from '../../assets/pitwall/cafe.png';
-import monitoring from '../../assets/pitwall/monitoring.png';
+import { pitwall } from '../../data/pitwall';
 import Callout from '../../components/Callout.astro';
 
 ## What it is
@@ -23,13 +22,13 @@ import Callout from '../../components/Callout.astro';
 The pager goes off, a customer page is failing, and the loudest service is not always the cause. You acknowledge the page, dig through monitoring, logs, deploys and chat, act while the clock runs, and then read a postmortem of where your error budget went. There are nine incidents, each based on failures from public postmortems: a leaking connection pool, a full disk, an expired certificate, a retry storm, replica lag and more.
 
 <figure>
-  <Image src={cafe} alt="The café scene at the start of a shift: a laptop showing a 502 Bad Gateway page, a phone on the table with a page, rain on the window" widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
-  <figcaption>Each shift starts in a café. The laptop shows what customers see, and the phone on the table has the page.</figcaption>
+  <Image src={pitwall.cafe} alt="The café scene at the start of a shift in Jakarta: a laptop showing a 504 Gateway Timeout page, a phone on the table with a page, street shops outside the window" widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>Each shift starts in a café, here in Jakarta. The laptop shows what customers see, and the phone on the table has the page.</figcaption>
 </figure>
 
 <figure>
-  <Image src={monitoring} alt="The Monitoring app during a cache stampede: three firing alerts, a service map with storefront, catalog-api and postgres critical, and a log stream with Postgres connection errors" widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
-  <figcaption>Monitoring during a cache stampede. The storefront is failing, but the cause is further down, in Postgres.</figcaption>
+  <Image src={pitwall.monitoring} alt={pitwall.monitoringAlt} widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>{pitwall.monitoringCaption}</figcaption>
 </figure>
 
 ## Why I built it
