@@ -6,7 +6,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://rafifdzaky.com',
   integrations: [mdx(), sitemap()],
-  markdown: { shikiConfig: { theme: 'github-light' } },
+  markdown: { shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' }, defaultColor: false } },
   trailingSlash: 'ignore',
   build: { format: 'directory' },
   devToolbar: { enabled: false },

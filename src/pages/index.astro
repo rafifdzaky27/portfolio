@@ -1,70 +1,71 @@
 ---
 import Base from '../layouts/Base.astro';
 import { Image } from 'astro:assets';
-import { pitwall } from '../data/pitwall';
-import BoardingPass from '../components/BoardingPass.astro';
-import ReleaseRoute from '../components/ReleaseRoute.astro';
-import HomelabMap from '../components/HomelabMap.astro';
-import SectionHead from '../components/SectionHead.astro';
-import Credentials from '../components/Credentials.astro';
+import { getCollection } from 'astro:content';
+import Window from '../components/os/Window.astro';
 import OffTheClock from '../components/OffTheClock.astro';
-import FinOps from '../components/FinOps.astro';
+import portrait from '../assets/rafif.png';
+import { pitwall } from '../data/pitwall';
 import { postmortems, adrs } from '../data/ops';
 import {
   person,
   experience,
-  skills,
   education,
-  responsibilities,
+  credentials,
   careerStart,
   devopsStart,
   monthsSince,
   formatDuration,
 } from '../data/profile';
-import { notes } from '../data/homelab';
-
-const contextLabel = {
-  professional: 'Full-time',
-  freelance: 'Freelance',
-  internship: 'Internship',
-  teaching: 'Teaching',
-} as const;
 
 const totalExp = formatDuration(monthsSince(careerStart));
 const devopsExp = formatDuration(monthsSince(devopsStart));
 
-const cases = [
+const kind = {
+  professional: 'Full-time',
+  freelance: 'Freelance',
+  internship: 'Internship',
+  teaching: 'Part-time',
+} as const;
+
+// Case studies, in the order set in each file's front matter.
+const blurb: Record<string, string> = {
+  'ci-cd': 'From SSH and git pull to GitHub Actions. About 60% deploy on merge, the rest wait for my approval, and under 2% of production runs failed.',
+  monitoring: 'Prometheus, Grafana and Uptime Kuma for the VPS fleet, and how I work an incident when it goes red.',
+  'linux-ops': 'The Linode fleet: DNS, SSL, IAM, hardening, secrets, backups and databases, with written deployment SOPs.',
+  'pit-wall-on-call': 'My on-call game, shipped by its own pipeline with smoke tests and an automatic rollback.',
+};
+const cases = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+
+const years = (period: string) => period.replace(/^.*?(\d{4}).*$/, '$1');
+
+const files = [
+  ...experience.map((r) => ({
+    k: 'work',
+    icon: 'f-folder',
+    name: r.title.replace(/ \(Freelance\)$/, ''),
+    sub: `${r.org}${r.place ? `, ${r.place}` : ''}`,
+    kind: kind[r.context],
+    date: r.period,
+  })),
   {
-    no: '01',
-    href: '/work/ci-cd',
-    kicker: 'CI/CD modernization',
-    from: 'ssh + git pull',
-    to: 'gated pipelines',
-    title: 'Moving 20+ services to GitHub Actions',
-    text: 'All 20+ production services release through GitHub Actions. About 60% deploy fully automatically; production releases are dispatched and confirmed by me, through the same pipeline.',
-    chips: ['~60% auto-deploy', '<2% failed prod runs', '16 failure → fix notes'],
+    k: 'edu',
+    icon: 'f-doc',
+    name: 'S.Kom, Information Systems',
+    sub: `${education.school} · GPA ${education.gpa.split(' ')[0]}, ${education.honours.toLowerCase()}`,
+    kind: 'Degree',
+    date: education.years.split('–').pop()!.trim(),
   },
-  {
-    no: '02',
-    href: '/work/monitoring',
-    kicker: 'Monitoring & incidents',
-    from: 'user reports',
-    to: 'alerts and dashboards',
-    title: 'Monitoring and incident response',
-    text: 'Prometheus, Grafana and Uptime Kuma across the VPS fleet: CPU, memory, disk, availability, and the incident routine for Laravel apps and their queue workers.',
-    chips: ['Prometheus', 'Grafana', 'Uptime Kuma', 'on-call'],
-  },
-  {
-    no: '03',
-    href: '/work/linux-ops',
-    kicker: 'Infra operations',
-    from: 'bare VPS',
-    to: 'running service',
-    title: 'Running the Linode VPS fleet',
-    text: 'Provisioning and scaling Linode VPS, domains and DNS, SSL, web server config, IAM and SSH access, hardening, secrets, databases and backups.',
-    chips: ['domains & SSL', 'IAM', 'hardening', 'backups'],
-  },
+  ...credentials.map((c) => ({
+    k: 'cert',
+    icon: c.name.startsWith('Best Presenter') || c.name.startsWith('NetAcad') ? 'f-award' : 'f-doc',
+    name: c.name.replace(/ — /g, ', '),
+    sub: c.issuer,
+    kind: c.name.startsWith('Best Presenter') || c.name.startsWith('NetAcad') ? 'Award' : 'Certificate',
+    date: c.period.split('–')[0].trim() || years(c.period),
+  })),
 ];
+const count = (k: string) => files.filter((f) => f.k === k).length;
 
 const profileSchema = {
   '@context': 'https://schema.org',
@@ -89,355 +90,560 @@ const profileSchema = {
 };
 ---
 
-<Base structuredData={profileSchema}>
-  <!-- ============ HERO ============ -->
-  <section class="hero wrap" aria-labelledby="hero-title">
-    <div class="hero-top">
-      <p class="kicker">Jakarta · open to DevOps roles</p>
-      <button type="button" class="exec-btn" data-exec-open>
-        <span aria-hidden="true">⏱</span> One-minute summary
-      </button>
-    </div>
-    <h1 id="hero-title">{person.name} <span>DevOps Engineer</span></h1>
-    <BoardingPass />
-  </section>
-
+<Base structuredData={profileSchema} deskClass="home">
   <!-- ============ ABOUT ============ -->
-  <section class="section band" id="about" aria-labelledby="about-title">
-    <div class="wrap">
-      <SectionHead index="01" label="About" title="What I do" id="about-title" />
-
-      <div class="about">
-        <div class="about-copy">
-          <p>
-            I'm a DevOps Engineer at {person.employer} in Jakarta. I look after everything that happens after a pull
-            request is merged, for 20+ production services: the pipelines that ship them, the servers they land on, and
-            the monitoring that tells me when something drifts.
-          </p>
-          <p>
-            Day to day that means provisioning and scaling Linode VPS, running domains, DNS and SSL certificates,
-            managing access and IAM, hardening servers, keeping secrets out of repos, looking after databases and
-            backups, and being the one who picks up when production goes red.
-          </p>
-          <p>
-            Before DevOps I built the applications themselves in React, Node.js and Laravel, including backend
-            microservices at bank bjb and a Laravel module taught to 400+ students at Telkom University. So when
-            something breaks, I can read it from the app side as well as the server side.
-          </p>
-
-          <dl class="years">
-            <div><dt>Experience</dt><dd data-exp="total">{totalExp}</dd><dd class="sub">since Jan 2025</dd></div>
-            <div><dt>In DevOps</dt><dd data-exp="devops">{devopsExp}</dd><dd class="sub">since Jan 2026</dd></div>
-            <div><dt>Services</dt><dd>20+</dd><dd class="sub">in production</dd></div>
-          </dl>
-        </div>
-
-        <div class="job ticket">
-          <p class="kicker">What the job covers</p>
-          <dl>
-            {
-              responsibilities.map((r) => (
-                <div>
-                  <dt>{r.area}</dt>
-                  <dd>
-                    {r.items.map((i) => (
-                      <span>{i}</span>
-                    ))}
-                  </dd>
-                </div>
-              ))
-            }
-          </dl>
-        </div>
+  <Window title="About · rafif" id="about" class="w-full" focused>
+    <div class="about">
+      <div class="about-pic">
+        <Image
+          src={portrait}
+          alt={`Portrait of ${person.name}, arms crossed, in a dark shirt`}
+          widths={[240, 360, 600]}
+          sizes="(max-width: 640px) 120px, (max-width: 860px) 150px, 300px"
+          loading="eager"
+          fetchpriority="high"
+        />
       </div>
-
-      <div class="about-foot">
-        <div class="edu ticket">
-          <p class="kicker">Education</p>
-          <p class="edu-degree">{education.degree}</p>
-          <p>{education.school} · {education.faculty}</p>
-          <p class="edu-gpa">GPA {education.gpa} · <strong>{education.honours}</strong></p>
-          <p class="meta">{education.years} · {education.status}</p>
-          <div class="stamp edu-stamp" aria-hidden="true"><span>Telkom Univ.<strong>S.Kom</strong>GPA 3.87<br />Cum laude</span></div>
+      <div class="about-head">
+        <p class="about-tags"><span class="tag ok">Open to DevOps roles</span><span class="tag info">Jakarta · WIB</span></p>
+        <h1>{person.name}</h1>
+        <p class="role"><b>{person.role}</b> at {person.employer} · since Jan 2026</p>
+      </div>
+      <div class="about-body">
+        <p class="about-lede">
+          I moved every production service at PT PSM, 20+ of them, from SSH and <span class="mono">git pull</span> to
+          GitHub Actions. I also run the Linode VPS fleet, DNS, SSL, IAM, secrets, backups, databases and monitoring,
+          and I wrote the deployment SOPs our developers release with.
+        </p>
+        <div class="actions">
+          <a class="btn primary btn-lg" href={person.resumePdf} download={person.resumeFile}>
+            <svg width="16" height="16" aria-hidden="true"><use href="#g-dl"></use></svg>Download CV
+          </a>
+          <a class="btn btn-lg" href={`mailto:${person.email}`}>
+            <svg width="16" height="16" aria-hidden="true"><use href="#g-mail"></use></svg>Email me
+          </a>
+          <button class="btn btn-lg" type="button" data-exec-open>One-minute summary</button>
         </div>
-        <div class="creds-wrap ticket">
-          <p class="kicker">Credentials</p>
-          <Credentials />
+        <div class="stats">
+          <div class="panel stat">
+            <div class="panel-h"><h2>Pipelines</h2><span class="tag ok">OK</span></div>
+            <div class="panel-b">
+              <p class="metric">20+<small>services</small></p>
+              <div class="meter" aria-hidden="true"><i class="ok" style="width:100%"></i></div>
+              <p class="metric-foot">All production services on GitHub Actions</p>
+            </div>
+          </div>
+          <div class="panel stat">
+            <div class="panel-h"><h2>Failed prod runs</h2><span class="tag ok">OK</span></div>
+            <div class="panel-b">
+              <p class="metric ok">&lt;2<small>%</small></p>
+              <div class="meter" aria-hidden="true"><i class="ok" style="width:2%"></i><u style="left:10%"></u></div>
+              <p class="metric-foot">Production deploy runs, core services</p>
+            </div>
+          </div>
+          <div class="panel stat">
+            <div class="panel-h"><h2>Auto deploy</h2><span class="tag info">Gated</span></div>
+            <div class="panel-b">
+              <p class="metric">~60<small>%</small></p>
+              <div class="meter" aria-hidden="true"><i style="width:60%"></i></div>
+              <p class="metric-foot">I approve production runs for the rest</p>
+            </div>
+          </div>
         </div>
-        <div class="lang ticket">
-          <p class="kicker">Languages</p>
-          <p><strong>Indonesian</strong><br /><span class="meta">native</span></p>
-          <p><strong>English</strong><br /><span class="meta">professional working</span></p>
-        </div>
+        <p class="exp-line meta">
+          <span data-exp="total">{totalExp}</span> of work since Jan 2025 · <span data-exp="devops">{devopsExp}</span> in DevOps
+        </p>
       </div>
     </div>
-  </section>
+  </Window>
 
   <!-- ============ WORK ============ -->
-  <section class="section wrap" id="work" aria-labelledby="work-title">
-    <SectionHead index="02" label="Work" title="Work and projects" id="work-title">
-      <p class="lede">
-        Every production service goes through the same GitHub Actions pipeline. About 60% deploy on their own, and I
-        approve the production run for the rest.
-      </p>
-    </SectionHead>
-
-    <div class="route-wrap"><ReleaseRoute /></div>
-
-    <ul class="cases">
-      {
-        cases.map((c) => (
-          <li class="case ticket">
-            <a class="case-link" href={c.href}>
-              <p class="case-top">
-                <span class="meta">
-                  {c.no} · {c.kicker}
-                </span>
-                <span class="meta">Professional</span>
-              </p>
-              <p class="case-route" aria-hidden="true">
-                <span>{c.from}</span>
-                <span class="case-arrow" />
-                <span>{c.to}</span>
-              </p>
-              <h3>{c.title}</h3>
-              <p class="case-text">{c.text}</p>
-              <ul class="chips">
-                {c.chips.map((ch) => (
-                  <li>{ch}</li>
-                ))}
-              </ul>
-              <span class="arrow-link">Read the case study</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-
-    <article class="feature ticket" aria-labelledby="pw-title">
-      <a class="feature-shot" href="/work/pit-wall-on-call" tabindex="-1" aria-hidden="true">
-        <Image src={pitwall.cafe} alt="" widths={[640, 960, 1280]} sizes="(min-width: 56rem) 40rem, 100vw" />
-      </a>
-      <div class="feature-body">
-        <p class="case-top">
-          <span class="meta">04 · Pit Wall On-Call</span>
-          <span class="status status--live">Live</span>
-        </p>
-        <h3 id="pw-title">A game about being on call, running in production</h3>
-        <p class="case-text">
-          You take the page, find the cause and protect the error budget. Every merge runs 700+ tests,
-          ships SHA-tagged images to GHCR and deploys to my homelab over Tailscale. A bad release rolls
-          itself back, and I proved it by breaking production on purpose.
-        </p>
-        <ul class="chips">
-          <li>TypeScript + Postgres</li>
-          <li>GHCR + Tailscale</li>
-          <li>auto rollback, drilled</li>
-        </ul>
-        <p class="feature-links">
-          <a class="arrow-link" href="/work/pit-wall-on-call">Read the case study</a>
-          <a class="arrow-link" href="https://pitwall.rafifdzaky.com">Play it</a>
-        </p>
+  <Window title="Monitoring · release pipeline" id="work" class="w-full">
+    <p class="mon-job"><b>Your job</b> <b>Ship 20+ production services without SSH.</b> <span class="muted">Most deploy on merge; production runs for the rest wait for my approval.</span></p>
+    <div class="mon-top">
+      <div class="mon-t"><b>{person.employer}</b><small>DevOps · Jakarta · Jan 2026 to now</small></div>
+      <span class="spacer"></span>
+      <div class="kv"><span class="k">Before</span><span class="v"><s>ssh + git pull</s></span></div>
+      <div class="kv"><span class="k">Now</span><span class="v">GitHub Actions</span></div>
+      <div class="kv"><span class="k">Failed prod runs</span><span class="v ok">&lt;2%</span></div>
+    </div>
+    <div class="mon-grid">
+      <div class="panel full">
+        <div class="panel-h wrap">
+          <h3>Service map</h3>
+          <ul class="map-legend">
+            <li><span class="legend-dot ok"></span><b class="ok">Auto</b> deploys on merge</li>
+            <li><span class="legend-dot warn"></span><b class="warn">Gate</b> I approve prod</li>
+          </ul>
+          <span class="hint">every production service</span>
+        </div>
+        <div class="svc-map" data-edges="commit>build,build>test,test>package,package>auto:auto,package>gate:gate,auto>deploy:auto,gate>deploy:gate,deploy>verify">
+          <svg class="svc-edges" aria-hidden="true"></svg>
+          <ol class="svc-nodes pipe" aria-label="Release pipeline">
+            <li class="svc-node" data-id="commit"><span class="tag info svc-key">1</span><span class="svc-name">commit</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">merge to release</span></span></li>
+            <li class="svc-node" data-id="build"><span class="tag info svc-key">2</span><span class="svc-name">build</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">GitHub Actions</span></span></li>
+            <li class="svc-node" data-id="test"><span class="tag info svc-key">3</span><span class="svc-name">test</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">CI checks</span></span></li>
+            <li class="svc-node" data-id="package"><span class="tag info svc-key">4</span><span class="svc-name">package</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">one artifact</span></span></li>
+            <li class="svc-node" data-id="auto"><span class="svc-name">auto deploy</span><span class="svc-sub"><span class="svc-health ok">~60%</span><span class="svc-detail">of services</span></span></li>
+            <li class="svc-node" data-id="gate"><span class="svc-name">approval</span><span class="svc-sub"><span class="svc-health warn">Gate</span><span class="svc-detail">prod, by me</span></span></li>
+            <li class="svc-node selected" data-id="deploy"><span class="tag info svc-key">5</span><span class="svc-name">deploy</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">production</span></span></li>
+            <li class="svc-node" data-id="verify"><span class="tag info svc-key">6</span><span class="svc-name">verify</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">health check</span></span></li>
+          </ol>
+        </div>
       </div>
-    </article>
-  </section>
+
+      <div class="panel span2">
+        <div class="panel-h"><h3>Case studies</h3><span class="tag ok">{cases.length} resolved</span></div>
+        <div class="panel-b">
+          {
+            cases.map((c) => (
+              <a class="alert" href={`/work/${c.id}`}>
+                <span class="alert-h"><span class="tag ok">OK</span><b>{c.data.kicker}</b></span>
+                <span class="alert-path">/work/{c.id}</span>
+                <span class="alert-d">{blurb[c.id] ?? c.data.summary}</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="panel side">
+        <div class="panel-h"><h3>What I run</h3><span class="tag info">Linode</span></div>
+        <div class="panel-b">
+          <ul class="runs">
+            <li><span class="k">Hosts</span><span>VPS fleet, DNS, SSL</span></li>
+            <li><span class="k">Access</span><span>IAM, hardening, secrets</span></li>
+            <li><span class="k">Data</span><span>Databases and backups</span></li>
+            <li><span class="k">Observe</span><span>Prometheus, Grafana, Uptime Kuma</span></li>
+            <li><span class="k">Process</span><span>Deployment SOPs</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </Window>
+
+  <!-- ============ PIT WALL ============ -->
+  <Window title="Browser · Pit Wall On-Call" id="pitwall" class="w-full">
+    <div class="browser-tabs" aria-hidden="true">
+      <span class="browser-tab"><svg class="app-icon" width="14" height="14" style="--app-color:var(--accent)"><use href="#i-monitoring"></use></svg>Pit Wall On-Call</span>
+      <span class="browser-tab off">rafifdzaky27/pit-wall-on-call</span>
+    </div>
+    <div class="browser-toolbar">
+      <span class="tool-btn dim" aria-hidden="true"><svg width="16" height="16"><use href="#g-back"></use></svg></span>
+      <span class="tool-btn dim hide-sm" aria-hidden="true"><svg width="16" height="16"><use href="#g-fwd"></use></svg></span>
+      <span class="tool-btn" aria-hidden="true"><svg width="16" height="16"><use href="#g-reload"></use></svg></span>
+      <a class="omnibox" href="https://pitwall.rafifdzaky.com"><svg width="14" height="14" aria-hidden="true"><use href="#g-lock"></use></svg><span class="host">pitwall.rafifdzaky.com</span></a>
+    </div>
+    <div class="browser-page">
+      <figure class="shot">
+        <Image
+          src={pitwall.cafe}
+          alt="Pit Wall On-Call: the café in Jakarta where a shift starts, a laptop showing a 504 page and a phone with the page"
+          widths={[640, 960, 1280]}
+          sizes="(max-width: 860px) 100vw, 60vw"
+        />
+        <figcaption>The café where the shift starts. The laptop on the table runs PitOS.</figcaption>
+      </figure>
+      <div class="panel pw-about">
+        <div class="panel-h"><h3>Pit Wall On-Call</h3><span class="tag ok">Live</span></div>
+        <div class="panel-b">
+          <p class="pw-title">A browser game about being on call</p>
+          <p class="muted">You get paged, open Monitoring, read the logs, find the cause and fix it before the error budget runs out. I ship it the way I ship production.</p>
+          <ul class="facts">
+            <li><span class="tag ok">CI</span><span>Lint, typecheck, 700+ tests, Playwright</span></li>
+            <li><span class="tag info">Build</span><span>SHA-tagged images to GHCR</span></li>
+            <li><span class="tag info">Deploy</span><span>Over Tailscale to my homelab</span></li>
+            <li><span class="tag warn">Guard</span><span><span class="mono">deploy.sh</span> smoke test, automatic rollback</span></li>
+          </ul>
+          <div class="actions">
+            <a class="btn primary" href="https://pitwall.rafifdzaky.com">Play it<svg width="14" height="14" aria-hidden="true"><use href="#g-ext"></use></svg></a>
+            <a class="btn" href="/work/pit-wall-on-call">Case study</a>
+            <a class="btn" href="https://github.com/rafifdzaky27/pit-wall-on-call">Source</a>
+          </div>
+        </div>
+      </div>
+      <div class="panel logs">
+        <div class="panel-h"><h3>Log stream · game day, 28 Sep 2026</h3><span class="os-chip">no player impact</span></div>
+        <div class="log-lines" role="log">
+          <div class="log-line"><time>09-28</time><span class="lvl INFO">INFO</span><span class="svc">ci</span><span class="msg">lint, typecheck, tests, playwright <span class="lvl PASS">PASS</span></span></div>
+          <div class="log-line"><time>09-28</time><span class="lvl INFO">INFO</span><span class="svc">ghcr</span><span class="msg">push images tagged <a class="sha" href="https://github.com/rafifdzaky27/pit-wall-on-call/commit/5d73169">5d73169</a></span></div>
+          <div class="log-line"><time>09-28</time><span class="lvl INFO">INFO</span><span class="svc">deploy.sh</span><span class="msg">deploy 5d73169 over tailscale</span></div>
+          <div class="log-line"><time>09-28</time><span class="lvl ERROR">ERROR</span><span class="svc">smoke</span><span class="msg">smoke test failed, release 5d73169 rejected</span></div>
+          <div class="log-line"><time>09-28</time><span class="lvl WARN">WARN</span><span class="svc">deploy.sh</span><span class="msg">automatic rollback to <a class="sha" href="https://github.com/rafifdzaky27/pit-wall-on-call/commit/fd8bcf9">fd8bcf9</a></span></div>
+          <div class="log-line finding"><time>09-28</time><span class="lvl PASS">PASS</span><span class="svc">smoke</span><span class="msg">fd8bcf9 serving, no player impact</span></div>
+        </div>
+      </div>
+    </div>
+  </Window>
 
   <!-- ============ EXPERIENCE ============ -->
-  <section class="section band" id="experience" aria-labelledby="exp-title">
-    <div class="wrap">
-      <SectionHead index="03" label="Experience" title="Where I've worked" id="exp-title">
-        <p class="lede">{totalExp} of professional experience, newest first.</p>
-      </SectionHead>
-
-      <ol class="itinerary">
-        {
-          experience.map((r) => (
-            <li class={`leg leg--${r.context}`}>
-              <p class="leg-when">{r.period}</p>
-              <div class="leg-body">
-                <h3>{r.title}</h3>
-                <p class="leg-org">
-                  {r.org} · {r.place} <span class="tag">{contextLabel[r.context]}</span>
-                </p>
-                <ul>
-                  {r.points.map((p) => (
-                    <li>{p}</li>
-                  ))}
-                </ul>
-                {r.link && (
-                  <a class="arrow-link" href={r.link.href}>
-                    {r.link.label}
-                  </a>
-                )}
-              </div>
-            </li>
-          ))
-        }
-      </ol>
-
-      <div class="resume-row">
-        <p>The one-page résumé:</p>
-        <a class="btn btn--primary" href={person.resumePage}>View resume</a>
-        <a class="btn" href={person.resumePdf} download={person.resumeFile}>Download</a>
-      </div>
-
-      <h3 class="toolkit-h">Toolkit, by where I've used it</h3>
-      <div class="skills">
-        {
-          [skills.work, skills.lab, skills.learning].map((col, i) => (
-            <section class={`skill-col skill-col--${i}`} aria-label={col.label}>
-              <h4>{col.label}</h4>
-              <p class="meta">{col.note}</p>
-              <dl>
-                {col.groups.map((g) => (
-                  <div>
-                    <dt>{g.area}</dt>
-                    <dd>{g.items.join(' · ')}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-          ))
-        }
-      </div>
+  <Window title="Files · ~/experience" id="experience" class="w-exp" bodyClass="naut">
+    <div class="naut-bar" aria-hidden="true">
+      <span class="tool-btn dim"><svg width="16" height="16"><use href="#g-back"></use></svg></span>
+      <span class="naut-path"><span>rafif</span><span aria-current="location" data-crumb>experience</span></span>
     </div>
-  </section>
+    <div class="naut-side" role="group" aria-label="Filter">
+      <button type="button" class="naut-place" data-f="all" aria-pressed="true">All <span class="n">{files.length}</span></button>
+      <button type="button" class="naut-place" data-f="work" aria-pressed="false">Work <span class="n">{count('work')}</span></button>
+      <button type="button" class="naut-place" data-f="edu" aria-pressed="false">Education <span class="n">{count('edu')}</span></button>
+      <button type="button" class="naut-place" data-f="cert" aria-pressed="false">Certificates <span class="n">{count('cert')}</span></button>
+    </div>
+    <div class="naut-main">
+      <table class="naut-list">
+        <thead><tr><th>Name</th><th>Kind</th><th>Date</th></tr></thead>
+        <tbody>
+          {
+            files.map((f) => (
+              <tr data-k={f.k}>
+                <td>
+                  <div class="naut-item">
+                    <svg width="24" height="24" aria-hidden="true"><use href={`#${f.icon}`}></use></svg>
+                    <div><b>{f.name}</b><small>{f.sub}</small></div>
+                  </div>
+                </td>
+                <td class="kind">{f.kind}</td>
+                <td class="date">{f.date}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="naut-status" data-naut-status>{files.length} items · <a href="/resume">full CV</a></p>
+  </Window>
 
   <!-- ============ HOMELAB ============ -->
-  <section class="section wrap" id="homelab" aria-labelledby="lab-title">
-    <SectionHead index="04" label="Homelab" title="My homelab" id="lab-title">
-      <p class="lede">
-        One Proxmox host at home, where I learn the things I don't run at work yet. Each piece below is marked running,
-        partial or planned.
-      </p>
-    </SectionHead>
-    <p class="served">
-      <span class="served-tag">Note</span> This site runs on this homelab, behind a Cloudflare Tunnel.
-    </p>
-    <div class="map-wrap"><HomelabMap /></div>
-
-    <div class="lab-notes">
-      <p class="kicker">Latest troubleshooting notes</p>
-      <ul>
-        {
-          notes.map((n) => (
-            <li>
-              <span class="meta">{n.state === 'resolved' ? '✓ resolved' : '… investigating'}</span>
-              <span>{n.title}</span>
-            </li>
-          ))
-        }
-      </ul>
-      <a class="arrow-link" href="/homelab">Notes, statuses and the full 31-module roadmap</a>
-    </div>
-  </section>
-
-  <!-- ============ RESEARCH ============ -->
-  <section class="section band" id="research" aria-labelledby="research-title">
-    <div class="wrap">
-      <SectionHead index="05" label="Research" title="What makes small businesses adopt a POS app?" id="research-title" />
-      <div class="research ticket">
-        <div class="research-main">
-          <p class="award"><span aria-hidden="true">◆</span> Best Presenter · ICICoS 2026</p>
-          <h3>Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2</h3>
-          <p class="meta">Daniswara, Saputra & Panduwiyasa · Telkom University · presented Aug 2026 · not yet published</p>
-          <p>
-            A PLS-SEM pilot with 50 MSME practitioners in Bandung Raya. I refined a 37-item UTAUT2 questionnaire down to
-            33 reliable items. Social influence, enjoyment and price value showed the largest effects on intention to
-            use a POS app.
-          </p>
-          <a class="arrow-link" href="/research">Method, results and limits</a>
+  <Window title="Monitoring · homelab" id="homelab" class="w-side">
+    <div class="lab">
+      <div class="panel">
+        <div class="panel-h"><h3>Service map</h3><span class="tag ok">Serving</span></div>
+        <div class="svc-map" data-edges="visitors>cf,ci>ts,cf>proxmox,ts>proxmox,proxmox>site,proxmox>game">
+          <svg class="svc-edges" aria-hidden="true"></svg>
+          <ul class="svc-nodes labmap" aria-label="Homelab">
+            <li class="svc-node" data-id="visitors"><span class="svc-name">visitors</span><span class="svc-sub"><span class="svc-detail">public HTTPS</span></span></li>
+            <li class="svc-node" data-id="ci"><span class="svc-name">GitHub Actions</span><span class="svc-sub"><span class="svc-detail">deploys</span></span></li>
+            <li class="svc-node" data-id="cf"><span class="svc-name">Cloudflare Tunnel</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">no open ports</span></span></li>
+            <li class="svc-node" data-id="ts"><span class="svc-name">Tailscale</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">CI only</span></span></li>
+            <li class="svc-node selected" data-id="proxmox"><span class="svc-name">Proxmox</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">one host</span></span></li>
+            <li class="svc-node" data-id="site"><span class="svc-name">rafifdzaky.com</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">this site</span></span></li>
+            <li class="svc-node" data-id="game"><span class="svc-name">Pit Wall</span><span class="svc-sub"><span class="svc-health ok">OK</span><span class="svc-detail">the game</span></span></li>
+          </ul>
         </div>
-        <dl class="research-nums">
-          <div><dt>respondents</dt><dd>50</dd></div>
-          <div><dt>items kept</dt><dd>33 / 37</dd></div>
-          <div><dt>R² intention</dt><dd>0.844</dd></div>
-          <div><dt>R² use</dt><dd>0.548</dd></div>
-        </dl>
+      </div>
+      <div class="lab-foot">
+        <span><span class="tag info">Terraform</span> creates VMs</span>
+        <span><span class="tag info">Ansible</span> configures</span>
+        <a class="arrow-link" href="/homelab">Full map and roadmap</a>
       </div>
     </div>
-  </section>
-
-  <!-- ============ OPERATING MANUAL ============ -->
-  <section class="section" id="ops" aria-labelledby="ops-title">
-    <div class="wrap">
-      <SectionHead index="06" label="Notes" title="Postmortems and decisions" id="ops-title">
-        <p class="lede">
-          Write-ups from building and running this site: what broke, what I changed, and why I chose what I chose.
-        </p>
-      </SectionHead>
-      <ul class="manual">
-        <li>
-          <a class="man ticket" href="/postmortems">
-            <span class="man-n">{postmortems.length}</span>
-            <span class="man-t">Postmortems</span>
-            <span class="man-d">Incidents from building this site, and what I changed after each one.</span>
-          </a>
-        </li>
-        <li>
-          <a class="man ticket" href="/decisions">
-            <span class="man-n">{adrs.length}</span>
-            <span class="man-t">Architecture decisions</span>
-            <span class="man-d">The choices behind this site and their trade-offs.</span>
-          </a>
-        </li>
-        <li>
-          <a class="man ticket" href="/status" data-live-status>
-            <span class="man-n" data-live-up>live</span>
-            <span class="man-t">Status</span>
-            <span class="man-d" data-live-d>This site, checked from outside the homelab by a scheduled GitHub Action.</span>
-          </a>
-        </li>
-      </ul>
-      <FinOps />
-    </div>
-  </section>
-
-  <!-- ============ OFF THE CLOCK ============ -->
-  <section class="section band" id="off-the-clock" aria-labelledby="otc-title">
-    <div class="wrap">
-    <SectionHead index="07" label="Off the clock" title="Outside work" id="otc-title">
-      <p class="lede">
-        Formula 1, Liverpool and tennis. The board is styled like an F1 timing screen: pick a row to switch.
-      </p>
-      <p class="otc-fineprint">Lap times, tyres and radio lines are made up for fun.</p>
-    </SectionHead>
-    <OffTheClock />
-    </div>
-  </section>
+  </Window>
 
   <!-- ============ CONTACT ============ -->
-  <section class="section contact" id="contact" aria-labelledby="contact-title">
-    <div class="wrap">
-      <SectionHead index="08" label="Contact" title="Get in touch" id="contact-title" />
-      <div class="contact-card ticket">
-        <div>
-          <p class="lbl">Email</p>
-          <a class="contact-big" href={`mailto:${person.email}`}>{person.email}</a>
-        </div>
-        <div>
-          <p class="lbl">Phone</p>
-          <a class="contact-mid" href={person.phoneHref}>{person.phone}</a>
-        </div>
-        <ul class="contact-links">
-          <li><a class="btn" href={person.linkedin} target="_blank" rel="me noopener">LinkedIn ↗</a></li>
-          <li><a class="btn" href={person.github} target="_blank" rel="me noopener">GitHub ↗</a></li>
-          <li><a class="btn btn--primary" href={person.resumePage}>View resume</a></li>
-        </ul>
-        <p class="meta">Based in {person.location} · Indonesian and English</p>
+  <Window title="Settings · contact" id="contact" class="w-side">
+    <div class="contact">
+      <p>Hiring for DevOps? Email is fastest.</p>
+      <div class="setting-rows">
+        <div class="setting-row"><span class="k">Email</span><a class="v" href={`mailto:${person.email}`}>{person.email}</a><button type="button" class="btn" data-copy-email>Copy</button></div>
+        <div class="setting-row"><span class="k">Phone</span><a class="v" href={person.phoneHref}>{person.phone}</a><span></span></div>
+        <div class="setting-row"><span class="k">LinkedIn</span><a class="v" href={person.linkedin} rel="me noopener">in/rafifdzaky</a><span></span></div>
+        <div class="setting-row"><span class="k">GitHub</span><a class="v" href={person.github} rel="me noopener">rafifdzaky27</a><span></span></div>
       </div>
+      <div class="actions">
+        <a class="btn primary" href={person.resumePdf} download={person.resumeFile}><svg width="16" height="16" aria-hidden="true"><use href="#g-dl"></use></svg>Download CV</a>
+        <a class="btn" href="/resume">Read the CV</a>
+      </div>
+      <p class="meta">Based in {person.location} · Indonesian and English</p>
     </div>
-  </section>
+  </Window>
+
+  <!-- ============ NOTES ============ -->
+  <Window title="Files · ~/notes" id="notes" class="w-exp" bodyClass="naut notes">
+    <div class="naut-bar" aria-hidden="true">
+      <span class="tool-btn dim"><svg width="16" height="16"><use href="#g-back"></use></svg></span>
+      <span class="naut-path"><span>rafif</span><span aria-current="location">notes</span></span>
+    </div>
+    <div class="naut-main">
+      <table class="naut-list">
+        <thead><tr><th>Name</th><th>What it is</th><th>Items</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a class="naut-item" href="/postmortems"><svg width="24" height="24" aria-hidden="true"><use href="#f-folder"></use></svg><b>postmortems</b></a></td>
+            <td class="what">Incidents from building this site, and what I changed after each one.</td>
+            <td class="date">{postmortems.length}</td>
+          </tr>
+          <tr>
+            <td><a class="naut-item" href="/decisions"><svg width="24" height="24" aria-hidden="true"><use href="#f-folder"></use></svg><b>decisions</b></a></td>
+            <td class="what">The choices behind this site and their trade-offs.</td>
+            <td class="date">{adrs.length}</td>
+          </tr>
+          <tr data-live-status>
+            <td><a class="naut-item" href="/status"><svg width="24" height="24" aria-hidden="true"><use href="#f-doc"></use></svg><b>status</b></a></td>
+            <td class="what" data-live-d>This site, checked from outside the homelab by a scheduled GitHub Action.</td>
+            <td class="date" data-live-up>live</td>
+          </tr>
+          <tr>
+            <td><a class="naut-item" href="/homelab"><svg width="24" height="24" aria-hidden="true"><use href="#f-folder"></use></svg><b>homelab</b></a></td>
+            <td class="what">Troubleshooting notes and the full module roadmap.</td>
+            <td class="date">31</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </Window>
+
+  <!-- ============ RESEARCH ============ -->
+  <Window title="Docs · research" id="research" class="w-side">
+    <div class="research">
+      <p class="about-tags"><span class="tag warn">Best Presenter</span><span class="tag info">ICICoS 2026</span></p>
+      <p class="research-title">Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2</p>
+      <p class="meta">Daniswara, Saputra &amp; Panduwiyasa · Telkom University · presented Aug 2026 · not yet published</p>
+      <p class="muted">
+        A PLS-SEM pilot with 50 MSME practitioners in Bandung Raya. Social influence, enjoyment and price value showed the
+        largest effects on intention to use a POS app.
+      </p>
+      <a class="arrow-link" href="/research">Method, results and limits</a>
+    </div>
+  </Window>
+
+  <!-- ============ OFF THE CLOCK ============ -->
+  <Window title="Off the clock · Formula 1, Liverpool and tennis" id="off-the-clock" class="w-full" bodyClass="otc-body">
+    <OffTheClock />
+    <p class="otc-fine meta">Lap times, tyres and radio lines are made up for fun.</p>
+  </Window>
 </Base>
+
+<style>
+  /* ---------- layout on the desk ---------- */
+  .home :global(.w-full) { grid-column: 1 / -1; }
+  .home :global(.w-exp) { grid-column: 1 / span 7; }
+  .home :global(.w-side) { grid-column: 8 / -1; }
+  .home :global(#experience) { grid-row: span 2; }
+
+  @media (max-width: 1100px) {
+    .home :global(.w-exp),
+    .home :global(.w-side) { grid-column: 1 / -1; grid-row: auto; }
+    .home :global(#experience) { grid-row: auto; }
+  }
+
+  /* ---------- about ---------- */
+  .about {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-areas: 'pic head' 'pic body';
+    column-gap: 32px;
+    padding: 0 28px 0 12px;
+  }
+  .about-pic { grid-area: pic; display: flex; align-items: flex-end; justify-content: center; align-self: end; }
+  .about-pic :global(img) { width: 300px; height: auto; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.25)); }
+  .about-head { grid-area: head; display: grid; gap: 6px; padding-top: 32px; }
+  .about-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  .about h1 { font-size: var(--fs-2xl); line-height: 1.1; }
+  .role { color: var(--muted); font-size: var(--fs-md); }
+  .role b { color: var(--text); font-weight: 500; }
+  .about-body { grid-area: body; display: grid; gap: 18px; padding: 14px 0 28px; }
+  .about-lede { max-width: 62ch; font-size: var(--fs-md); line-height: 1.6; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
+  .stat .panel-b { padding-top: 12px; }
+  .metric { font: 500 var(--fs-xl) / 1.1 var(--mono); font-variant-numeric: tabular-nums; }
+  .metric small { margin-left: var(--space-1); color: var(--muted); font: 400 var(--fs-sm) var(--font); }
+  .metric.ok { color: var(--ok); }
+  .metric-foot { margin-top: 8px; color: var(--muted); font-size: var(--fs-xs); }
+  .meter { position: relative; height: 6px; margin-top: 10px; overflow: hidden; border-radius: 3px; background: var(--sunken); }
+  .meter i { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+  .meter i.ok { background: var(--ok); }
+  .meter u { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border-strong); }
+
+  /* ---------- work (Monitoring) ---------- */
+  .mon-job { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+  .mon-job b:first-child { margin-right: 10px; }
+  .mon-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .mon-t { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); min-width: 0; }
+  .mon-t b { font-size: var(--fs-md); font-weight: 500; }
+  .mon-t small { color: var(--muted); font-size: var(--fs-sm); }
+  .spacer { flex: 1; }
+  .kv { display: flex; flex-direction: column; }
+  .kv .k { color: var(--muted); font-size: var(--fs-xs); }
+  .kv .v { font: 500 var(--fs-md) var(--mono); }
+  .kv .v.ok { color: var(--ok); }
+  .kv .v s { color: var(--muted); text-decoration-color: var(--crit); }
+  .mon-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 320px; gap: var(--gap); padding: var(--gap); background: var(--bg); }
+  .mon-grid .span2 { grid-column: 1 / span 2; }
+  .mon-grid .full { grid-column: 1 / -1; }
+  .hint { color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; }
+  .pipe { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto auto; }
+  .pipe .svc-node { grid-row: 1 / 3; align-self: center; }
+  .pipe [data-id='auto'] { grid-column: 5; grid-row: 1; }
+  .pipe [data-id='gate'] { grid-column: 5; grid-row: 2; }
+  .pipe [data-id='deploy'] { grid-column: 6; }
+  .pipe [data-id='verify'] { grid-column: 7; }
+  .alert { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--space-2); padding: 10px 0; border-bottom: 1px solid var(--border); text-decoration: none; }
+  .alert:last-child { border-bottom: 0; }
+  .alert-h { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+  .alert-h b { overflow: hidden; font-size: var(--fs-md); font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+  .alert-path { color: var(--muted); font: var(--fs-sm) var(--mono); }
+  .alert-d { grid-column: 1 / -1; color: var(--muted); }
+  .alert:hover .alert-h b { text-decoration: underline; text-underline-offset: 3px; }
+  .alert:hover .alert-path { color: var(--accent-text); }
+  .runs { margin: 0; padding: 0; list-style: none; }
+  .runs li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--space-3); padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .runs li:last-child { border-bottom: 0; }
+  .runs .k { padding-top: 1px; color: var(--muted); font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* ---------- pit wall (Browser) ---------- */
+  .browser-tab .app-icon { border-radius: 3px; }
+  .browser-page { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--gap); padding: var(--gap); background: var(--bg); }
+  .shot { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); }
+  .shot :global(img) { width: 100%; height: auto; }
+  .shot figcaption { padding: 8px 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: var(--fs-xs); }
+  .pw-about .panel-b { display: grid; gap: 14px; padding-top: 14px; }
+  .pw-title { font-size: var(--fs-lg); font-weight: 600; }
+  .pw-about p { font-size: var(--fs-md); line-height: 1.55; }
+  .pw-about .pw-title { font-size: var(--fs-lg); }
+  .facts { margin: 0; padding: 0; list-style: none; }
+  .facts li { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .facts li:last-child { border-bottom: 0; }
+  .facts .tag { flex: none; min-width: 58px; text-align: center; }
+  .logs { grid-column: 1 / -1; }
+
+  /* ---------- experience and notes (Files) ---------- */
+  .home :global(.naut) { display: grid; grid-template-columns: 180px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; background: var(--panel); }
+  .home :global(.naut-bar),
+  .home :global(.naut-status) { grid-column: 1 / -1; }
+  .home :global(.notes .naut-main) { grid-column: 1 / -1; }
+  .home :global(.notes) { grid-template-rows: auto auto; }
+  .naut-side { display: grid; align-content: start; gap: 2px; padding: var(--space-2); border-right: 1px solid var(--border); background: var(--sunken); }
+  .naut-place { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 10px; border: 0; border-radius: var(--radius-md); background: transparent; text-align: left; cursor: pointer; }
+  .naut-place:hover { background: var(--raised); }
+  .naut-place[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+  .naut-place .n { margin-left: auto; color: var(--muted); font: var(--fs-xs) var(--mono); }
+  .naut-main { min-width: 0; overflow-x: auto; }
+  a.naut-item { align-items: center; color: var(--text); text-decoration: none; }
+  a.naut-item:hover b { color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
+  .what { color: var(--muted); }
+  .naut-status a { color: var(--accent-text); }
+
+  /* ---------- homelab ---------- */
+  .lab { display: grid; gap: var(--gap); padding: var(--gap); background: var(--bg); }
+  .labmap { grid-template-columns: 1fr 1fr; gap: 26px 22px; }
+  .labmap [data-id='proxmox'] { grid-column: 1 / -1; justify-self: center; width: min(260px, 100%); }
+  .lab-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; color: var(--muted); }
+  .lab-foot .arrow-link { margin-left: auto; }
+
+  /* ---------- contact, research ---------- */
+  .contact,
+  .research { display: grid; gap: var(--space-3); padding: var(--space-4); }
+  .contact > p:first-child { font-size: var(--fs-md); }
+  .research-title { font-size: var(--fs-md); font-weight: 600; line-height: 1.35; }
+  .research .muted { font-size: var(--fs); line-height: 1.55; }
+
+  /* ---------- off the clock ---------- */
+  .home :global(.otc-body) { padding: var(--space-3); background: var(--bg); }
+  .home :global(.otc-body .otc) { margin-top: 0; border-color: var(--border); border-radius: var(--radius); }
+  .otc-fine { margin-top: var(--space-2); }
+
+  .exp-line { margin-top: -4px; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1100px) {
+    .mon-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .mon-grid .side { grid-column: 1 / -1; }
+    .pipe { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: auto; }
+    .pipe .svc-node,
+    .pipe [data-id] { grid-row: auto; grid-column: auto; }
+  }
+
+  @media (max-width: 860px) {
+    .about { grid-template-columns: minmax(0, 1fr) 150px; grid-template-areas: 'head pic' 'body body'; column-gap: 12px; padding: 0 18px; }
+    .about-pic :global(img) { width: 150px; }
+    .about-head { padding-top: 22px; }
+    .browser-page { grid-template-columns: minmax(0, 1fr); }
+    .stats { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .about { grid-template-columns: minmax(0, 1fr) 104px; padding: 0 14px; }
+    .about h1 { font-size: 30px; }
+    .about-pic :global(img) { width: 116px; margin-right: -12px; }
+    .about-head { gap: 4px; padding-top: 16px; }
+    .role { font-size: var(--fs); }
+    .about-body { gap: 14px; padding: 12px 0 16px; }
+    .about-lede { font-size: 14px; }
+    .actions .btn-lg { flex: 1; padding: 10px 12px; font-size: var(--fs); }
+    .actions [data-exec-open] { flex-basis: 100%; }
+    .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .stat .panel-h { padding: 8px; font-size: 10px; letter-spacing: 0.04em; }
+    .stat .panel-b { padding: 8px; }
+    .stat .panel-h .tag,
+    .stat .metric-foot { display: none; }
+    .stat .metric { font-size: 20px; }
+    .stat .metric small { display: block; margin: 2px 0 0; font-size: var(--fs-xs); }
+    .mon-grid { grid-template-columns: minmax(0, 1fr); padding: 8px; }
+    .mon-grid .span2 { grid-column: 1; }
+    .map-legend { width: 100%; margin: 4px 0 0; }
+    .panel-h.wrap { flex-wrap: wrap; }
+    .pipe { grid-template-columns: 1fr 1fr; gap: 20px 12px; }
+    .pipe [data-id='commit'],
+    .pipe [data-id='build'],
+    .pipe [data-id='test'],
+    .pipe [data-id='package'],
+    .pipe [data-id='deploy'],
+    .pipe [data-id='verify'] { grid-column: 1 / -1; justify-self: center; width: 70%; }
+    .home :global(.naut) { grid-template-columns: minmax(0, 1fr); }
+    .naut-side { display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    .naut-place { width: auto; white-space: nowrap; }
+    .home :global(.naut-list thead) { display: none; }
+    .home :global(.naut-list tr) { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-bottom: 1px solid var(--border); }
+    .home :global(.naut-list td) { padding: 8px 12px 0; border: 0; }
+    .home :global(.naut-list td.kind) { display: none; }
+    .home :global(.naut-list td.what) { grid-column: 1 / -1; padding: 2px 12px 10px 46px; }
+    .home :global(.setting-row) { grid-template-columns: 70px minmax(0, 1fr) auto; }
+  }
+</style>
 
 <script>
   import { careerStart, devopsStart, monthsSince, formatDuration } from '../data/time';
+  import { initServiceMaps } from '../scripts/svc-map';
+  import { ago } from '../scripts/trace';
+
   const set = (sel: string, v: string) => document.querySelectorAll(sel).forEach((el) => (el.textContent = v));
   set('[data-exp="total"]', formatDuration(monthsSince(careerStart)));
   set('[data-exp="devops"]', formatDuration(monthsSince(devopsStart)));
 
-  // The Status card shows the real uptime once it scrolls into view.
-  import { ago } from '../scripts/trace';
+  initServiceMaps();
+
+  // Files: the sidebar filters the list.
+  const places = [...document.querySelectorAll<HTMLButtonElement>('.naut-place')];
+  const rows = [...document.querySelectorAll<HTMLTableRowElement>('#experience .naut-list tbody tr')];
+  const crumb = document.querySelector('[data-crumb]');
+  const status = document.querySelector('[data-naut-status]');
+  const names: Record<string, string> = { all: 'experience', work: 'work', edu: 'education', cert: 'certificates' };
+  places.forEach((p) =>
+    p.addEventListener('click', () => {
+      const f = p.dataset.f!;
+      let n = 0;
+      places.forEach((q) => q.setAttribute('aria-pressed', String(q === p)));
+      rows.forEach((r) => {
+        const show = f === 'all' || r.dataset.k === f;
+        r.hidden = !show;
+        if (show) n++;
+      });
+      if (crumb) crumb.textContent = names[f];
+      if (status?.firstChild) status.firstChild.textContent = `${n} ${n === 1 ? 'item' : 'items'} · `;
+    }),
+  );
+
+  // Contact: copy the email address.
+  const copy = document.querySelector<HTMLButtonElement>('[data-copy-email]');
+  copy?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText('rafifdzaky27@gmail.com');
+      copy.textContent = 'Copied';
+      setTimeout(() => (copy.textContent = 'Copy'), 1600);
+    } catch {}
+  });
+
+  // Notes: the status row shows the real uptime once it scrolls into view.
   const live = document.querySelector<HTMLElement>('[data-live-status]');
   if (live && 'IntersectionObserver' in window) {
     const io = new IntersectionObserver(async (entries) => {
@@ -456,7 +662,7 @@ const profileSchema = {
         const last = site.recent[site.recent.length - 1];
         live.querySelector('[data-live-up]')!.textContent = `${p >= 99.995 ? '100' : p.toFixed(2)}%`;
         live.querySelector('[data-live-d]')!.textContent =
-          `${last?.ok ? '● operational' : '▲ failing'} · ${n} outside checks · last ${ago(data.updated)}`;
+          `${last?.ok ? 'Operational' : 'Failing'} · ${n} outside checks · last ${ago(data.updated)}`;
       } catch {
         /* keep the static text */
       }
@@ -464,826 +670,3 @@ const profileSchema = {
     io.observe(live);
   }
 </script>
-
-<style>
-  .otc-fineprint {
-    margin-top: var(--s-2);
-    font: 400 0.78rem / 1.4 var(--font-mono);
-    color: var(--muted);
-  }
-
-  /* ---------- hero ---------- */
-  .hero-top {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--s-2) var(--s-4);
-  }
-
-  .exec-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.4rem 0.8rem;
-    border: var(--rule) solid var(--ink);
-    border-radius: var(--radius);
-    background: var(--card);
-    color: var(--ink);
-    font: 500 0.8rem / 1 var(--font-mono);
-    cursor: pointer;
-  }
-
-  .exec-btn:hover {
-    background: var(--ink);
-    color: var(--paper);
-  }
-
-  .exec-s {
-    padding: 0.1rem 0.35rem;
-    border-radius: var(--radius);
-    background: var(--accent-soft);
-    color: var(--accent-deep);
-    font-size: 0.7rem;
-  }
-
-  :global(html:not(.js)) .exec-btn {
-    display: none;
-  }
-
-  /* ---------- operating manual ---------- */
-  .manual {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--s-4);
-    margin-top: var(--s-6);
-    list-style: none;
-  }
-
-  .man {
-    display: grid;
-    align-content: start;
-    gap: var(--s-2);
-    height: 100%;
-    padding: var(--s-5);
-    text-decoration: none;
-    transition:
-      transform var(--dur-fast) var(--ease),
-      box-shadow var(--dur-fast) var(--ease);
-  }
-
-  .man:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0 var(--ink);
-  }
-
-  .man-n {
-    font: 600 var(--step-3) / 1 var(--font-sans);
-    letter-spacing: -0.03em;
-    color: var(--accent-deep);
-  }
-
-  .man-t {
-    font-weight: 650;
-    font-size: var(--step-1);
-  }
-
-  .man-t::after {
-    content: '→';
-    margin-left: 0.3em;
-    color: var(--accent);
-  }
-
-  .man-d {
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-
-  @media (max-width: 64rem) {
-    .manual {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  @media (max-width: 36rem) {
-    .manual {
-      grid-template-columns: 1fr;
-    }
-  }
-  .hero {
-    padding-block: var(--s-7) var(--s-7);
-  }
-
-  .hero h1 {
-    margin: var(--s-3) 0 var(--s-6);
-    font-size: var(--step-4);
-    letter-spacing: -0.035em;
-    max-width: none;
-  }
-
-  .hero h1 span {
-    color: var(--muted);
-    font-weight: 500;
-  }
-
-  /* one row, no scrollbar. Phones can swipe it; the edge fades instead of showing a bar */
-  .facts {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: var(--s-3);
-    margin-top: var(--s-6);
-    list-style: none;
-    overflow-x: auto;
-    scrollbar-width: none;
-    scroll-snap-type: x proximity;
-  }
-
-  .facts::-webkit-scrollbar {
-    display: none;
-  }
-
-  @media (max-width: 64rem) {
-    .facts {
-      mask-image: linear-gradient(90deg, #000 85%, transparent);
-    }
-  }
-
-  .facts li {
-    flex: none;
-    white-space: nowrap;
-    scroll-snap-align: start;
-    padding: 0.38rem 0.75rem;
-    border: var(--rule) solid var(--ink);
-    border-radius: var(--radius);
-    background: var(--card);
-    font: 400 0.8rem / 1.3 var(--font-mono);
-  }
-
-  .facts .k {
-    color: var(--muted);
-  }
-
-  .facts a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .facts li:has(a):hover {
-    background: var(--ink);
-    color: var(--paper);
-  }
-
-  .facts li:has(a):hover .k {
-    color: inherit;
-  }
-
-  .facts .k::after {
-    content: ':';
-  }
-
-  /* ---------- about ---------- */
-  .about {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-    gap: var(--s-7);
-    margin-top: var(--s-6);
-    align-items: start;
-  }
-
-  .about-copy {
-    display: grid;
-    gap: var(--s-4);
-    font-size: var(--step-1);
-    line-height: 1.55;
-    color: var(--muted);
-  }
-
-  .about-copy p:first-child {
-    color: var(--ink);
-  }
-
-  .years {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--s-4);
-    margin-top: var(--s-4);
-    padding-top: var(--s-4);
-    border-top: var(--rule) solid var(--ink);
-  }
-
-  .years dt {
-    font: 500 0.72rem / 1.4 var(--font-mono);
-    letter-spacing: 0.01em;
-    text-transform: none;
-    color: var(--muted);
-  }
-
-  .years dd {
-    font-size: var(--step-2);
-    font-weight: 650;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    line-height: 1.2;
-  }
-
-  .years dd.sub {
-    font: 400 0.8rem / 1.4 var(--font-mono);
-    letter-spacing: 0;
-    color: var(--muted);
-  }
-
-  .job {
-    padding: var(--s-5);
-  }
-
-  .job dl {
-    display: grid;
-    gap: var(--s-3);
-    margin-top: var(--s-3);
-  }
-
-  .job dl div {
-    display: grid;
-    grid-template-columns: 8.5rem minmax(0, 1fr);
-    gap: var(--s-3);
-    padding-top: var(--s-3);
-    border-top: var(--hair) solid var(--line);
-  }
-
-  .job dt {
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-
-  .job dd {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .job dd span {
-    padding: 0.15rem 0.45rem;
-    border: var(--hair) solid var(--line-strong);
-    border-radius: var(--radius);
-    background: var(--paper);
-    font-size: 0.85rem;
-  }
-
-  .about-foot {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.55fr);
-    gap: var(--s-4);
-    margin-top: var(--s-6);
-    align-items: stretch;
-  }
-
-  .about-foot .ticket {
-    padding: var(--s-5);
-  }
-
-  .about-foot .kicker {
-    margin-bottom: var(--s-3);
-  }
-
-  .edu {
-    padding-bottom: var(--s-7) !important;
-  }
-
-  .edu-degree {
-    font-size: var(--step-1);
-    font-weight: 650;
-    line-height: 1.25;
-  }
-
-  .edu > p:not(.kicker):not(.edu-degree) {
-    margin-top: var(--s-2);
-    max-width: 22rem;
-  }
-
-  .edu-gpa strong {
-    color: var(--stamp);
-  }
-
-  /* hangs over the card's bottom edge; nothing clips it */
-  .edu-stamp {
-    --stamp-size: 7.5rem;
-    right: 1.25rem;
-    bottom: -2.25rem;
-    z-index: 1;
-    rotate: -14deg;
-    opacity: 0.9;
-  }
-
-  .lang p + p {
-    margin-top: var(--s-3);
-  }
-
-  /* ---------- work ---------- */
-  .route-wrap {
-    margin-top: var(--s-6);
-  }
-
-  .cases {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--s-4);
-    margin-top: var(--s-5);
-    list-style: none;
-  }
-
-  .case {
-    transition:
-      transform var(--dur-fast) var(--ease),
-      box-shadow var(--dur-fast) var(--ease);
-  }
-
-  .case:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 var(--ink);
-  }
-
-  .case-link {
-    display: flex;
-    flex-direction: column;
-    gap: var(--s-3);
-    height: 100%;
-    padding: var(--s-5);
-    text-decoration: none;
-  }
-
-  .case-top {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--s-2);
-    padding-bottom: var(--s-3);
-    border-bottom: var(--hair) dashed var(--ink);
-  }
-
-  .case-route {
-    display: grid;
-    grid-template-columns: auto minmax(1.5rem, 1fr) auto;
-    align-items: center;
-    gap: var(--s-2);
-    font: 500 0.8rem / 1.2 var(--font-mono);
-  }
-
-  .case-route span:last-child {
-    color: var(--accent-deep);
-  }
-
-  .case-arrow {
-    height: 2px;
-    background: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 10px);
-  }
-
-  .case h3 {
-    font-size: var(--step-1);
-    line-height: var(--leading-snug);
-  }
-
-  .case-text {
-    color: var(--muted);
-    font-size: 0.96rem;
-  }
-
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin-top: auto;
-    list-style: none;
-  }
-
-  .chips li {
-    padding: 0.15rem 0.45rem;
-    border: var(--hair) solid var(--line-strong);
-    border-radius: var(--radius);
-    font: 400 0.75rem / 1.4 var(--font-mono);
-  }
-
-  .case .arrow-link {
-    align-self: flex-start;
-  }
-
-  /* Pit Wall On-Call: the one personal project, full width under the work cards */
-  .feature {
-    display: grid;
-    margin-top: var(--s-4);
-    overflow: hidden;
-  }
-
-  .feature-shot {
-    display: block;
-    border-bottom: var(--rule) dashed var(--ink);
-  }
-
-  .feature-shot :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 50% 60%;
-  }
-
-  .feature-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--s-3);
-    padding: var(--s-5);
-  }
-
-  .feature h3 {
-    font-size: var(--step-1);
-    line-height: var(--leading-snug);
-  }
-
-  .feature .chips {
-    margin-top: 0;
-  }
-
-  .feature-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2) var(--s-5);
-    margin-top: auto;
-  }
-
-  @media (min-width: 56rem) {
-    .feature {
-      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    }
-    .feature-shot {
-      border-bottom: 0;
-      border-right: var(--rule) dashed var(--ink);
-    }
-  }
-
-  /* ---------- experience ---------- */
-  .itinerary {
-    margin-top: var(--s-6);
-    list-style: none;
-    border-left: var(--rule) dashed var(--ink);
-  }
-
-  .leg {
-    position: relative;
-    display: grid;
-    grid-template-columns: 10rem minmax(0, 1fr);
-    gap: var(--s-5);
-    padding: 0 0 var(--s-6) var(--s-5);
-  }
-
-  .leg::before {
-    content: '';
-    position: absolute;
-    left: calc(-0.45rem - 0.75px);
-    top: 0.3rem;
-    width: 0.9rem;
-    height: 0.9rem;
-    border: var(--rule) solid var(--ink);
-    border-radius: 50%;
-    background: var(--paper-2);
-  }
-
-  .leg--professional::before {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-
-  .leg-when {
-    font: 500 0.85rem / 1.6 var(--font-mono);
-    white-space: nowrap;
-  }
-
-  .leg h3 {
-    font-size: var(--step-1);
-    line-height: var(--leading-snug);
-  }
-
-  .leg-org {
-    margin-top: var(--s-1);
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-
-  .tag {
-    display: inline-block;
-    margin-left: var(--s-2);
-    padding: 0.05rem 0.45rem;
-    border: var(--hair) solid var(--ink);
-    border-radius: var(--radius);
-    font: 500 0.7rem / 1.5 var(--font-mono);
-    letter-spacing: 0.03em;
-    color: var(--ink);
-    vertical-align: 0.1em;
-  }
-
-  .leg--professional .tag {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--on-accent);
-  }
-
-  .leg ul {
-    display: grid;
-    gap: var(--s-2);
-    margin-top: var(--s-3);
-    padding-left: 1.1rem;
-    color: var(--muted);
-    max-width: 46rem;
-  }
-
-  .leg .arrow-link {
-    margin-top: var(--s-3);
-    font-size: 0.95rem;
-  }
-
-  .resume-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--s-3);
-    padding: var(--s-4) var(--s-5);
-    border: var(--rule) solid var(--ink);
-    border-radius: var(--radius-ticket);
-    background: var(--card);
-  }
-
-  .resume-row p {
-    margin-right: auto;
-    font-weight: 600;
-  }
-
-  .toolkit-h {
-    margin-top: var(--s-8);
-    font-size: var(--step-2);
-  }
-
-  .skills {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--s-5);
-    margin-top: var(--s-5);
-  }
-
-  .skill-col {
-    padding-top: var(--s-4);
-    border-top: 2px solid var(--ink);
-  }
-
-  .skill-col--1 {
-    border-top-color: var(--accent);
-  }
-
-  .skill-col--2 {
-    border-top: 2px dashed var(--muted);
-  }
-
-  .skill-col h4 {
-    font-size: var(--step-1);
-  }
-
-  .skill-col dl {
-    margin-top: var(--s-4);
-  }
-
-  .skill-col dl div + div {
-    margin-top: var(--s-3);
-  }
-
-  .skill-col dt {
-    font: 500 0.75rem / 1.4 var(--font-mono);
-    color: var(--muted);
-  }
-
-  .skill-col dd {
-    font-size: 0.96rem;
-    line-height: 1.5;
-  }
-
-  /* ---------- homelab ---------- */
-  .served {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--s-2) var(--s-3);
-    margin-top: var(--s-5);
-    padding: 0.55rem 0.9rem;
-    border: var(--rule) dashed var(--ok);
-    border-radius: var(--radius);
-    background: var(--card);
-    font-size: 0.95rem;
-  }
-
-  .served-tag {
-    padding: 0.1rem 0.5rem;
-    border-radius: var(--radius);
-    background: var(--ok-ink);
-    color: #fff;
-    font: 500 0.72rem / 1.5 var(--font-mono);
-    letter-spacing: 0.06em;
-    text-transform: none;
-  }
-
-  .map-wrap {
-    margin-top: var(--s-5);
-  }
-
-  .lab-notes {
-    display: grid;
-    gap: var(--s-3);
-    margin-top: var(--s-5);
-  }
-
-  .lab-notes ul {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--s-2) var(--s-5);
-    list-style: none;
-  }
-
-  .lab-notes li {
-    display: grid;
-    grid-template-columns: 8.5rem 1fr;
-    gap: var(--s-3);
-    padding-block: var(--s-2);
-    border-bottom: var(--hair) solid var(--line);
-  }
-
-  .lab-notes .arrow-link {
-    justify-self: start;
-  }
-
-  /* ---------- research ---------- */
-  .research {
-    display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    margin-top: var(--s-6);
-  }
-
-  .research-main {
-    display: grid;
-    gap: var(--s-3);
-    padding: var(--s-6);
-  }
-
-  .research-main h3 {
-    font-size: var(--step-2);
-    line-height: var(--leading-snug);
-  }
-
-  .research-main > p:not(.award):not(.meta) {
-    color: var(--muted);
-  }
-
-  .award {
-    justify-self: start;
-    padding: 0.3rem 0.6rem;
-    border: var(--rule) solid var(--stamp);
-    border-radius: 2px;
-    color: var(--stamp);
-    font: 500 0.78rem / 1.2 var(--font-mono);
-    letter-spacing: 0.04em;
-    rotate: -1.5deg;
-  }
-
-  .research .arrow-link {
-    justify-self: start;
-  }
-
-  .research-nums {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border-left: var(--rule) dashed var(--ink);
-  }
-
-  .research-nums div {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: var(--s-4) var(--s-5);
-  }
-
-  .research-nums div:nth-child(-n + 2) {
-    border-bottom: var(--hair) solid var(--line);
-  }
-
-  .research-nums div:nth-child(odd) {
-    border-right: var(--hair) solid var(--line);
-  }
-
-  .research-nums dt {
-    font: 500 0.72rem / 1.4 var(--font-mono);
-    letter-spacing: 0.01em;
-    text-transform: none;
-    color: var(--muted);
-  }
-
-  .research-nums dd {
-    font-size: var(--step-2);
-    font-weight: 650;
-    letter-spacing: -0.02em;
-  }
-
-  /* ---------- contact ---------- */
-  .contact-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: var(--s-5);
-    margin-top: var(--s-6);
-    padding: var(--s-6);
-  }
-
-  .lbl {
-    font: 500 0.72rem / 1.4 var(--font-mono);
-    letter-spacing: 0.01em;
-    text-transform: none;
-    color: var(--muted);
-  }
-
-  .contact-big {
-    display: inline-block;
-    margin-top: var(--s-2);
-    font-size: var(--step-3);
-    font-weight: 650;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    text-decoration-color: var(--accent);
-    text-decoration-thickness: 2px;
-    overflow-wrap: anywhere;
-  }
-
-  .contact-mid {
-    display: inline-block;
-    margin-top: var(--s-2);
-    font-size: var(--step-2);
-    font-weight: 650;
-    letter-spacing: -0.01em;
-    text-decoration-color: var(--accent);
-  }
-
-  .contact-links {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-3);
-    list-style: none;
-  }
-
-  .contact .meta {
-    grid-column: 1 / -1;
-  }
-
-  /* ---------- responsive ---------- */
-  @media (max-width: 64rem) {
-    .about,
-    .about-foot {
-      grid-template-columns: 1fr;
-    }
-    .edu {
-      margin-bottom: var(--s-6);
-      padding-bottom: 6.5rem !important;
-    }
-    .cases {
-      grid-template-columns: 1fr;
-    }
-    .skills {
-      grid-template-columns: 1fr;
-    }
-    .research {
-      grid-template-columns: 1fr;
-    }
-    .research-nums {
-      border-left: 0;
-      border-top: var(--rule) dashed var(--ink);
-    }
-    .contact-card {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 44rem) {
-    .leg {
-      grid-template-columns: 1fr;
-      gap: var(--s-1);
-    }
-    .lab-notes ul {
-      grid-template-columns: 1fr;
-    }
-    .lab-notes li {
-      grid-template-columns: 1fr;
-      gap: 0;
-    }
-    .job dl div {
-      grid-template-columns: 1fr;
-      gap: var(--s-2);
-    }
-    .years {
-      grid-template-columns: 1fr 1fr;
-    }
-    .research-main,
-    .contact-card {
-      padding: var(--s-5);
-    }
-  }
-</style>
