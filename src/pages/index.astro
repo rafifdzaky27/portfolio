@@ -1,5 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
+import { Image } from 'astro:assets';
+import pwCafe from '../assets/pitwall/cafe.png';
 import BoardingPass from '../components/BoardingPass.astro';
 import ReleaseRoute from '../components/ReleaseRoute.astro';
 import HomelabMap from '../components/HomelabMap.astro';
@@ -200,7 +202,7 @@ const profileSchema = {
 
   <!-- ============ WORK ============ -->
   <section class="section wrap" id="work" aria-labelledby="work-title">
-    <SectionHead index="02" label="Work" title="Three routes I run every week" id="work-title">
+    <SectionHead index="02" label="Work" title="Three routes I run every week, and one I run for fun" id="work-title">
       <p class="lede">
         One pipeline for every service, two ways to board it. Here's how a release actually travels.
       </p>
@@ -237,6 +239,33 @@ const profileSchema = {
         ))
       }
     </ul>
+
+    <article class="feature ticket" aria-labelledby="pw-title">
+      <a class="feature-shot" href="/work/pit-wall-on-call" tabindex="-1" aria-hidden="true">
+        <Image src={pwCafe} alt="" widths={[640, 960, 1280]} sizes="(min-width: 56rem) 40rem, 100vw" />
+      </a>
+      <div class="feature-body">
+        <p class="case-top">
+          <span class="meta">04 · Pit Wall On-Call</span>
+          <span class="status status--live">Live</span>
+        </p>
+        <h3 id="pw-title">A game about being on call, and I run it like production</h3>
+        <p class="case-text">
+          You take the page, find the cause and protect the error budget. Every merge runs 700+ tests,
+          ships SHA-tagged images to GHCR and deploys to my homelab over Tailscale. A bad release rolls
+          itself back, and I proved it by breaking production on purpose.
+        </p>
+        <ul class="chips">
+          <li>TypeScript + Postgres</li>
+          <li>GHCR + Tailscale</li>
+          <li>auto rollback, drilled</li>
+        </ul>
+        <p class="feature-links">
+          <a class="arrow-link" href="/work/pit-wall-on-call">Read the case study</a>
+          <a class="arrow-link" href="https://pitwall.rafifdzaky.com">Play it</a>
+        </p>
+      </div>
+    </article>
   </section>
 
   <!-- ============ EXPERIENCE ============ -->
@@ -872,6 +901,58 @@ const profileSchema = {
 
   .case .arrow-link {
     align-self: flex-start;
+  }
+
+  /* Pit Wall On-Call: the one personal project, full width under the work cards */
+  .feature {
+    display: grid;
+    margin-top: var(--s-4);
+    overflow: hidden;
+  }
+
+  .feature-shot {
+    display: block;
+    border-bottom: var(--rule) dashed var(--ink);
+  }
+
+  .feature-shot :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 60%;
+  }
+
+  .feature-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    padding: var(--s-5);
+  }
+
+  .feature h3 {
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+  }
+
+  .feature .chips {
+    margin-top: 0;
+  }
+
+  .feature-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-5);
+    margin-top: auto;
+  }
+
+  @media (min-width: 56rem) {
+    .feature {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    }
+    .feature-shot {
+      border-bottom: 0;
+      border-right: var(--rule) dashed var(--ink);
+    }
   }
 
   /* ---------- experience ---------- */

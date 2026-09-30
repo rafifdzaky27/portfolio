@@ -1,0 +1,76 @@
+---
+title: A browser game about being on call, run like production
+kicker: Pit Wall On-Call
+summary: I built Pit Wall On-Call, a game where you take the page, find the cause and protect the error budget, and I run it the way I'd run a production service. Every merge is tested, shipped as SHA-tagged images and deployed to my homelab, and a bad release rolls itself back. I proved that with a game day.
+order: 4
+context: Personal project · live at pitwall.rafifdzaky.com
+period: Sep 2026 – present
+role: Sole author. I designed the game, wrote the code and run the infrastructure it lives on.
+stack: [TypeScript, React, Hono, PostgreSQL, Docker, GitHub Actions, GHCR, Tailscale, Cloudflare Tunnel, Caddy, Playwright]
+glance:
+  - { k: Status, v: 'Live at pitwall.rafifdzaky.com' }
+  - { k: Tests, v: '700+ tests plus Playwright browser tests on every pull request' }
+  - { k: Rollback, v: 'Automatic, proven in a game day on 28 Sep 2026' }
+---
+
+import { Image } from 'astro:assets';
+import cafe from '../../assets/pitwall/cafe.png';
+import monitoring from '../../assets/pitwall/monitoring.png';
+import Callout from '../../components/Callout.astro';
+
+## What it is
+
+The pager goes off, a customer page is failing, and the loudest service is not always the cause. You acknowledge the page, dig through monitoring, logs, deploys and chat, act while the clock runs, and then read a postmortem of where your error budget went. There are nine incidents, each based on failures from public postmortems: a leaking connection pool, a full disk, an expired certificate, a retry storm, replica lag and more.
+
+<figure>
+  <Image src={cafe} alt="The café scene at the start of a shift: a laptop showing a 502 Bad Gateway page, a phone on the table with a page, rain on the window" widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>Each shift starts in a café. The laptop shows what customers see, and the phone on the table has the page.</figcaption>
+</figure>
+
+<figure>
+  <Image src={monitoring} alt="The Monitoring app during a cache stampede: three firing alerts, a service map with storefront, catalog-api and postgres critical, and a log stream with Postgres connection errors" widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>Monitoring during a cache stampede. The storefront is failing, but the cause is further down, in Postgres.</figcaption>
+</figure>
+
+## Why I built it
+
+I wanted a project that exercises the same things my job does: a pipeline, a deploy path into my own network, and a way to prove a bad release can't take the site down. A game gave me all three, and a reason to read a lot of real postmortems.
+
+## How it ships
+
+- **Every pull request** runs lint, type checks, 700+ tests, Playwright browser tests, shellcheck and tests for the deploy script itself, and builds both Docker images.
+- **Merging to main** builds the API and web images, tags them with the commit SHA and pushes them to GHCR.
+- **The deploy job** joins my tailnet with a tag that can reach one host on port 22 only, and runs `deploy.sh` on the VM. Players reach the game through a Cloudflare Tunnel, so nothing at home is exposed to the internet.
+- **`deploy.sh`** migrates the database, starts the new release, runs a smoke test that replays a known game through the whole stack, and rolls back to the last good release if anything fails.
+
+## Game day, 28 September 2026
+
+To prove the rollback works, I merged a release whose readiness check always failed. I wrote the hypotheses in the pull request before merging it.
+
+<div class="table-scroll">
+
+| Hypothesis | Result | Evidence |
+|---|---|---|
+| The smoke test rejects the broken release | Pass | `smoke test failed for 5d73169` |
+| `deploy.sh` rolls back to the last good release | Pass | `rollback ok: fd8bcf9` |
+| The deploy job goes red | Pass | exit code 1 |
+| Players see no impact | Pass | the site served `fd8bcf9` throughout |
+
+</div>
+
+During the rollback only the API and web containers were recreated. Postgres kept running, so no data was touched. The drill was reverted through a normal pull request, and that deploy went green.
+
+<Callout kind="note">
+At work I approve production releases by hand for about 40% of services. This drill is the kind of evidence that lets a team trust an automatic path instead.
+</Callout>
+
+## Scores the browser can't fake
+
+Each run is a seed plus a list of actions. The API replays that list with the same deterministic engine and stores the score it computes, not the one the browser sends. An action the player could not have taken at that moment is rejected.
+
+## What I'd do next
+
+- A public status page for the game, fed by the same checks that gate the deploy.
+- Move the VM's deploy user to an SSH forced command, so the CI key can only run the deploy script.
+
+[Play it](https://pitwall.rafifdzaky.com) · [Source code](https://github.com/rafifdzaky27/pit-wall-on-call) · [Runbook](https://github.com/rafifdzaky27/pit-wall-on-call/blob/main/docs/runbooks/srv-pitwall-01.md)
