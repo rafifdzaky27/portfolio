@@ -134,6 +134,20 @@ jobs:
 
           echo "PASS: origin is serving the new release"
 
+      - name: Remove deployment key
+        if: always()
+        run: rm -f ~/.ssh/portfolio_deploy
+
+  # Public checks run on a fresh runner that never joined the tailnet. On the
+  # deploy runner, Tailscale takes over DNS and public names can fail to
+  # resolve, which marked a good deploy as failed.
+  verify:
+    name: Verify public site
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
       - name: Verify public website
         run: |
           curl \
@@ -168,7 +182,3 @@ jobs:
           fi
           curl -sSf https://rafifdzaky.com/cli.txt -o /dev/null
           echo "PASS: /cli.txt deployed"
-
-      - name: Remove deployment key
-        if: always()
-        run: rm -f ~/.ssh/portfolio_deploy

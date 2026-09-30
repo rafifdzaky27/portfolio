@@ -35,6 +35,10 @@ svg {
   max-width: 100%;
 }
 
+img {
+  height: auto;
+}
+
 h1,
 h2,
 h3,

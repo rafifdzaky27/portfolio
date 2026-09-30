@@ -38,9 +38,25 @@ const cases = (await getCollection('work')).sort((a, b) => a.data.order - b.data
 
 const years = (period: string) => period.replace(/^.*?(\d{4}).*$/, '$1');
 
-const files = [
+// Each row opens a detail view. Text comes from the CV (src/data/profile.ts).
+interface FileRow {
+  k: 'work' | 'edu' | 'cert';
+  icon: string;
+  name: string;
+  sub: string;
+  kind: string;
+  date: string;
+  points?: string[];
+  lines?: string[];
+  link?: { href: string; label: string };
+  image?: ImageMetadata;
+  alt?: string;
+}
+const files: FileRow[] = [
   ...experience.map((r) => ({
-    k: 'work',
+    k: 'work' as const,
+    points: r.points,
+    link: r.link,
     icon: 'f-folder',
     name: r.title.replace(/ \(Freelance\)$/, ''),
     sub: `${r.org}${r.place ? `, ${r.place}` : ''}`,
@@ -50,13 +66,23 @@ const files = [
   {
     k: 'edu',
     icon: 'f-doc',
+    lines: [
+      `${education.degree}, ${education.school}`,
+      `${education.faculty}, Bandung · ${education.years}`,
+      `GPA ${education.gpa} · ${education.honours}`,
+      `${education.status}.`,
+    ],
     name: 'S.Kom, Information Systems',
     sub: `${education.school} · GPA ${education.gpa.split(' ')[0]}, ${education.honours.toLowerCase()}`,
     kind: 'Degree',
     date: education.years.split('–').pop()!.trim(),
   },
   ...credentials.map((c) => ({
-    k: 'cert',
+    k: 'cert' as const,
+    lines: [c.detail],
+    link: c.link,
+    image: c.image,
+    alt: c.alt,
     icon: c.name.startsWith('Best Presenter') || c.name.startsWith('NetAcad') ? 'f-award' : 'f-doc',
     name: c.name.replace(/ — /g, ', '),
     sub: c.issuer,
@@ -283,17 +309,36 @@ const profileSchema = {
         <thead><tr><th>Name</th><th>Kind</th><th>Date</th></tr></thead>
         <tbody>
           {
-            files.map((f) => (
-              <tr data-k={f.k}>
-                <td>
-                  <div class="naut-item">
-                    <svg width="24" height="24" aria-hidden="true"><use href={`#${f.icon}`}></use></svg>
-                    <div><b>{f.name}</b><small>{f.sub}</small></div>
-                  </div>
-                </td>
-                <td class="kind">{f.kind}</td>
-                <td class="date">{f.date}</td>
-              </tr>
+            files.map((f, i) => (
+              <>
+                <tr data-k={f.k} class="naut-row">
+                  <td>
+                    <button type="button" class="naut-item naut-open" aria-expanded="false" aria-controls={`file-${i}`}>
+                      <svg width="24" height="24" aria-hidden="true"><use href={`#${f.icon}`}></use></svg>
+                      <span><b>{f.name}</b><small>{f.sub}</small></span>
+                      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    </button>
+                  </td>
+                  <td class="kind">{f.kind}</td>
+                  <td class="date">{f.date}</td>
+                </tr>
+                <tr data-k={f.k} class="naut-detail" id={`file-${i}`} hidden>
+                  <td colspan="3">
+                    <div class:list={['detail', { 'has-img': f.image }]}>
+                      <div class="detail-text">
+                        {f.points && <ul>{f.points.map((p) => <li>{p}</li>)}</ul>}
+                        {f.lines?.map((l) => <p>{l}</p>)}
+                        {f.link && <a class="arrow-link" href={f.link.href}>{f.link.label}</a>}
+                      </div>
+                      {f.image && (
+                        <a class="detail-img" href={f.image.src} aria-label={`Open the certificate for ${f.name} at full size`}>
+                          <Image src={f.image} alt={f.alt ?? ''} widths={[320, 640]} sizes="320px" loading="lazy" />
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              </>
             ))
           }
         </tbody>
@@ -476,6 +521,20 @@ const profileSchema = {
   .naut-place .n { margin-left: auto; color: var(--muted); font: var(--fs-xs) var(--mono); }
   .naut-main { min-width: 0; overflow-x: auto; }
   a.naut-item { align-items: center; color: var(--text); text-decoration: none; }
+  :global(.notes) .naut-list td:first-child { width: 1%; white-space: nowrap; }
+
+  /* experience rows open a detail view */
+  .naut-open { width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .naut-open .chev { flex: none; margin: 6px 0 0 auto; color: var(--muted); transition: transform var(--motion-fast); }
+  .naut-open:hover b { color: var(--accent-text); }
+  .naut-row.open td { background: var(--raised); }
+  .naut-row.open .chev { transform: rotate(90deg); color: var(--text); }
+  .naut-detail td { padding: 4px 16px 16px 46px; background: var(--raised); }
+  .detail { display: grid; gap: var(--space-4); align-items: start; }
+  .detail.has-img { grid-template-columns: minmax(0, 1fr) 200px; }
+  .detail-text { display: grid; gap: var(--space-2); color: var(--muted); line-height: 1.55; }
+  .detail-text ul { display: grid; gap: 6px; padding-left: 1.1rem; }
+  .detail-img { display: block; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: #fff; cursor: zoom-in; }
   a.naut-item:hover b { color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
   .what { color: var(--muted); }
   .naut-status a { color: var(--accent-text); }
@@ -553,6 +612,11 @@ const profileSchema = {
     :global(.home) :global(.naut-list td) { padding: 8px 12px 0; border: 0; }
     :global(.home) :global(.naut-list td.kind) { display: none; }
     :global(.home) :global(.naut-list td.what) { grid-column: 1 / -1; padding: 2px 12px 10px 46px; }
+    :global(.home) :global(.naut-list tr[hidden]) { display: none; }
+    :global(.home) :global(.naut-list tr.naut-detail) { grid-template-columns: minmax(0, 1fr); }
+    .naut-detail td { padding: 4px 12px 14px 46px; }
+    .detail.has-img { grid-template-columns: minmax(0, 1fr); }
+    .detail-img { max-width: 240px; }
     :global(.home) :global(.setting-row) { grid-template-columns: 70px minmax(0, 1fr) auto; }
   }
 </style>
@@ -570,7 +634,7 @@ const profileSchema = {
 
   // Files: the sidebar filters the list.
   const places = [...document.querySelectorAll<HTMLButtonElement>('.naut-place')];
-  const rows = [...document.querySelectorAll<HTMLTableRowElement>('#experience .naut-list tbody tr')];
+  const rows = [...document.querySelectorAll<HTMLTableRowElement>('#experience .naut-row')];
   const crumb = document.querySelector('[data-crumb]');
   const status = document.querySelector('[data-naut-status]');
   const names: Record<string, string> = { all: 'experience', work: 'work', edu: 'education', cert: 'certificates' };
@@ -582,12 +646,27 @@ const profileSchema = {
       rows.forEach((r) => {
         const show = f === 'all' || r.dataset.k === f;
         r.hidden = !show;
+        const btn = r.querySelector<HTMLButtonElement>('.naut-open')!;
+        const detail = document.getElementById(btn.getAttribute('aria-controls')!)!;
+        detail.hidden = !show || btn.getAttribute('aria-expanded') !== 'true';
         if (show) n++;
       });
       if (crumb) crumb.textContent = names[f];
       if (status?.firstChild) status.firstChild.textContent = `${n} ${n === 1 ? 'item' : 'items'} · `;
     }),
   );
+
+  // Files: a row opens its details underneath.
+  rows.forEach((r) => {
+    const btn = r.querySelector<HTMLButtonElement>('.naut-open')!;
+    const detail = document.getElementById(btn.getAttribute('aria-controls')!)!;
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      btn.setAttribute('aria-expanded', String(open));
+      r.classList.toggle('open', open);
+      detail.hidden = !open;
+    });
+  });
 
   // Contact: copy the email address.
   const copy = document.querySelector<HTMLButtonElement>('[data-copy-email]');
