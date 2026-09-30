@@ -32,21 +32,34 @@ const url = `http://127.0.0.1:${server.address().port}${process.env.LH_PATH || '
 
 const flags = process.env.CI ? '--headless=new --no-sandbox' : '--headless=new';
 // Async on purpose: the server above runs in this same process.
-const out = await new Promise((resolve) => {
-  const child = spawn(
-    'npx',
-    ['--yes', LIGHTHOUSE, url, '--quiet', '--output=json', '--output-path=stdout', `--chrome-flags="${flags}"`, '--only-categories=performance,accessibility,best-practices,seo'],
-    { shell: true },
-  );
-  let stdout = '';
-  let stderr = '';
-  child.stdout.on('data', (d) => (stdout += d));
-  child.stderr.on('data', (d) => (stderr += d));
-  child.on('close', (status) => resolve({ status, stdout, stderr }));
-});
-server.close();
-if (out.status !== 0 || !out.stdout.trim().startsWith('{')) {
+const runOnce = () =>
+  new Promise((resolve) => {
+    const child = spawn(
+      'npx',
+      ['--yes', LIGHTHOUSE, url, '--quiet', '--output=json', '--output-path=stdout', `--chrome-flags="${flags}"`, '--only-categories=performance,accessibility,best-practices,seo'],
+      { shell: true },
+    );
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (d) => (stdout += d));
+    child.stderr.on('data', (d) => (stderr += d));
+    child.on('close', (status) => resolve({ status, stdout, stderr }));
+  });
+const ran = (o) => o.status === 0 && o.stdout.trim().startsWith('{');
+
+// Chrome sometimes fails to start on a CI runner ("waiting for dynamic
+// debugging port"). That says nothing about the site, so try again. A run
+// that completes is never retried: a score below budget still fails below.
+const ATTEMPTS = 3;
+let out;
+for (let i = 1; i <= ATTEMPTS; i++) {
+  out = await runOnce();
+  if (ran(out)) break;
   console.error(out.stderr || out.stdout);
+  if (i < ATTEMPTS) console.error(`Lighthouse did not run (attempt ${i} of ${ATTEMPTS}), retrying`);
+}
+server.close();
+if (!ran(out)) {
   console.error('✖ Lighthouse did not run');
   process.exit(1);
 }
