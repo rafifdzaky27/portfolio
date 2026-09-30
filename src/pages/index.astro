@@ -380,7 +380,8 @@ const profileSchema = {
       <span class="naut-path"><span>rafif</span><span aria-current="location">notes</span></span>
     </div>
     <div class="naut-main">
-      <table class="naut-list">
+      <table class="naut-list notes-list">
+        <colgroup><col class="c-name" /><col /><col class="c-items" /></colgroup>
         <thead><tr><th>Name</th><th>What it is</th><th>Items</th></tr></thead>
         <tbody>
           <tr>
@@ -398,7 +399,7 @@ const profileSchema = {
             <td class="what" data-live-d>This site, checked from outside the homelab by a scheduled GitHub Action.</td>
             <td class="date" data-live-up>live</td>
           </tr>
-        <tr>
+          <tr>
             <td><a class="naut-item" href="/research"><svg width="24" height="24" aria-hidden="true"><use href="#f-doc"></use></svg><b>research</b></a></td>
             <td class="what">UTAUT2 pilot on POS adoption. Best Presenter, ICICoS 2026.</td>
             <td class="date">1</td>
@@ -522,7 +523,11 @@ const profileSchema = {
   .naut-place .n { margin-left: auto; color: var(--muted); font: var(--fs-xs) var(--mono); }
   .naut-main { min-width: 0; overflow-x: auto; }
   a.naut-item { align-items: center; color: var(--text); text-decoration: none; }
-  :global(.notes) .naut-list td:first-child { width: 1%; white-space: nowrap; }
+  /* fixed columns, so a long name never runs into the description (Safari too) */
+  .notes-list { table-layout: fixed; }
+  .notes-list .c-name { width: 10.5rem; }
+  .notes-list .c-items { width: 4.5rem; }
+  .notes-list td:first-child { white-space: nowrap; }
 
   /* experience rows open a detail view */
   .naut-open { width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -616,6 +621,16 @@ const profileSchema = {
     :global(.home) :global(.naut-list td.what) { grid-column: 1 / -1; padding: 2px 12px 10px 46px; }
     :global(.home) :global(.naut-list tr[hidden]) { display: none; }
     :global(.home) :global(.naut-list tr.naut-detail) { grid-template-columns: minmax(0, 1fr); }
+    /* every row gets the same date column, so the chevrons line up */
+    :global(.home) :global(#experience .naut-row) { grid-template-columns: minmax(0, 1fr) 7.5rem; }
+    :global(.home) :global(#experience .naut-row td.date) { text-align: right; }
+    /* notes: name and count on one line, the description under it */
+    .notes-list,
+    .notes-list tbody { display: block; width: 100%; }
+    .notes-list colgroup { display: none; }
+    .notes-list td:first-child { grid-row: 1; grid-column: 1; }
+    .notes-list td.date { grid-row: 1; grid-column: 2; text-align: right; }
+    .notes-list td.what { grid-row: 2; }
     .naut-detail td { padding: 4px 12px 14px 46px; }
     .detail.has-img { grid-template-columns: minmax(0, 1fr); }
     .detail-img { max-width: 240px; }
