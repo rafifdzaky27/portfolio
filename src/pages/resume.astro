@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
+import Window from '../components/os/Window.astro';
 import resumePage from '../assets/resume-page.jpg';
 import { person } from '../data/profile';
 
@@ -14,10 +15,9 @@ import { person } from '../data/profile';
   description="One-page résumé of Rafif Dzaky Daniswara, DevOps Engineer. View it in the browser or download the PDF."
   current="resume"
 >
-  <section class="wrap rs">
-    <div class="rs-head">
+  <Window title="Docs · résumé" as="p" id="top" bodyClass="page-top rs-head">
       <div>
-        <p class="kicker">Boarding document · résumé</p>
+        <p class="kicker">Résumé · one page</p>
         <h1>{person.name}</h1>
         <p class="meta">DevOps Engineer · one page · updated Aug 2026</p>
       </div>
@@ -25,8 +25,9 @@ import { person } from '../data/profile';
         <a class="btn btn--primary" href={person.resumePdf} download={person.resumeFile}>Download PDF</a>
         <a class="btn" href="#resume-text">Text version</a>
       </div>
-    </div>
+  </Window>
 
+  <Window title={`Document viewer · ${person.resumeFile}`} id="sheet" bodyClass="viewer">
     <figure class="sheet">
       <a href={resumePage.src} class="sheet-link" aria-label="Open the résumé image at full size">
         <Image
@@ -39,8 +40,10 @@ import { person } from '../data/profile';
       </a>
       <figcaption class="meta">Click the page to open it at full size.</figcaption>
     </figure>
+  </Window>
 
-    <details class="text ticket" id="resume-text">
+  <Window title="Text version" id="resume-text" bodyClass="pad">
+    <details class="text panel" open>
       <summary>Text version</summary>
       <div class="text-body">
         <h2>Rafif Dzaky Daniswara</h2>
@@ -123,16 +126,12 @@ import { person } from '../data/profile';
         <p>Bahasa Indonesia (native), English (professional working proficiency)</p>
       </div>
     </details>
-  </section>
+  </Window>
 </Base>
 
 <style>
-  .rs {
-    padding-block: var(--s-7) var(--s-8);
-  }
-
-  .rs-head {
-    display: flex;
+  :global(.rs-head) {
+    display: flex !important;
     flex-wrap: wrap;
     align-items: end;
     justify-content: space-between;
@@ -140,8 +139,7 @@ import { person } from '../data/profile';
   }
 
   h1 {
-    margin: var(--s-2) 0 var(--s-2);
-    font-size: var(--step-3);
+    margin: var(--s-2) 0;
   }
 
   .rs-actions {
@@ -150,19 +148,22 @@ import { person } from '../data/profile';
     gap: var(--s-3);
   }
 
-  /* the résumé as a sheet of paper on the desk */
+  /* the résumé shown in a document viewer window */
+  :global(.viewer) {
+    padding: var(--s-6) var(--s-4);
+    background: var(--sunken);
+  }
+
   .sheet {
-    max-width: 58rem;
-    margin: var(--s-6) auto 0;
+    max-width: 52rem;
+    margin: 0 auto;
   }
 
   .sheet-link {
     display: block;
-    border: var(--hair) solid var(--line-strong);
+    border-radius: 2px;
     background: #fff;
-    box-shadow:
-      0 1px 0 var(--line),
-      0 24px 48px -30px rgba(31, 42, 46, 0.45);
+    box-shadow: var(--shadow-window-rest);
     cursor: zoom-in;
   }
 
@@ -176,45 +177,40 @@ import { person } from '../data/profile';
     text-align: center;
   }
 
-  .text {
-    max-width: 58rem;
-    margin: var(--s-6) auto 0;
-  }
-
   .text summary {
-    padding: var(--s-4) var(--s-5);
-    font-weight: 650;
+    padding: var(--s-3) var(--s-4);
+    font-weight: 600;
     cursor: pointer;
   }
 
   .text-body {
     display: grid;
     gap: var(--s-3);
-    padding: 0 var(--s-5) var(--s-5);
-    font-size: 0.95rem;
+    max-width: 52rem;
+    padding: 0 var(--s-4) var(--s-4);
     color: var(--muted);
   }
 
   .text-body h2 {
-    font-size: var(--step-1);
-    color: var(--ink);
+    font-size: var(--fs-lg);
+    color: var(--text);
   }
 
   .text-body h3 {
     margin-top: var(--s-4);
-    font: 500 0.78rem / 1.4 var(--font-mono);
-    letter-spacing: 0.01em;
-    text-transform: none;
-    color: var(--accent-deep);
+    font: 600 var(--fs-xs) / 1.4 var(--font);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-text);
   }
 
   .text-body h4 {
-    font-size: 1rem;
-    color: var(--ink);
+    font-size: var(--fs-md);
+    color: var(--text);
   }
 
   .text-body strong {
-    color: var(--ink);
+    color: var(--text);
   }
 
   .text-body ul {
@@ -224,6 +220,6 @@ import { person } from '../data/profile';
   }
 
   .text-body a {
-    color: var(--accent-deep);
+    color: var(--accent-text);
   }
 </style>

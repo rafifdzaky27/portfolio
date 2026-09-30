@@ -14,7 +14,7 @@ glance:
 ---
 
 import { Image } from 'astro:assets';
-import { pitwall } from '../../data/pitwall';
+import { pitwall, pitwallShots } from '../../data/pitwall';
 import Callout from '../../components/Callout.astro';
 
 ## What it is
@@ -26,9 +26,14 @@ The pager goes off, a customer page is failing, and the loudest service is not a
   <figcaption>Each shift starts in a café, here in Jakarta. The laptop shows what customers see, and the phone on the table has the page.</figcaption>
 </figure>
 
-<figure>
-  <Image src={pitwall.monitoring} alt={pitwall.monitoringAlt} widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
-  <figcaption>{pitwall.monitoringCaption}</figcaption>
+<figure class="only-dark">
+  <Image src={pitwallShots.dark.monitoring} alt={pitwallShots.dark.monitoringAlt} widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>{pitwallShots.dark.monitoringCaption}</figcaption>
+</figure>
+
+<figure class="only-light">
+  <Image src={pitwallShots.light.monitoring} alt={pitwallShots.light.monitoringAlt} widths={[720, 1200, 1440]} sizes="(min-width: 60rem) 48rem, 100vw" />
+  <figcaption>{pitwallShots.light.monitoringCaption}</figcaption>
 </figure>
 
 ## Why I built it

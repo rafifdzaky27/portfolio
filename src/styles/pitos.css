@@ -53,6 +53,11 @@
   min-width: 0;
 }
 
+.desk > .w-half { grid-column: span 6; }
+@media (max-width: 900px) {
+  .desk > .w-half { grid-column: 1 / -1; }
+}
+
 @media (max-width: 640px) {
   .desk {
     padding: 12px 10px 14px;
@@ -119,7 +124,7 @@
 
 .window-body {
   min-width: 0;
-  overflow: hidden;
+  overflow: clip;
   border-radius: 0 0 var(--radius-window) var(--radius-window);
 }
 
@@ -372,3 +377,15 @@ a.omnibox:hover { box-shadow: 0 0 0 2px var(--accent); }
 
 /* ---------- app icons ---------- */
 .app-icon { display: block; flex: none; color: #fff; }
+
+/* ---------- inner pages ---------- */
+.pad { padding: 24px 28px; }
+.page-top { display: grid; justify-items: start; gap: 12px; padding: 28px 28px 26px; }
+.page-top h1 { max-width: 28ch; font-size: clamp(28px, 1.4vw + 18px, 40px); line-height: 1.12; }
+.page-top .lede { max-width: 68ch; }
+.page-top .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: 4px; }
+
+@media (max-width: 640px) {
+  .pad { padding: 16px; }
+  .page-top { padding: 20px 16px; }
+}

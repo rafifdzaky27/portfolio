@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import OpsNav from '../components/OpsNav.astro';
+import Window from '../components/os/Window.astro';
 import { postmortems } from '../data/ops';
 
 // Written by .github/workflows/status.yml to the `status` branch.
@@ -10,10 +11,10 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
 <Base
   title="Status"
   description="Live uptime for rafifdzaky.com, checked from outside the homelab by GitHub Actions about every 15 minutes."
-  current="other"
+  current="status"
 >
-  <OpsNav current="status" />
-  <header class="wrap page-head">
+  <Window title="Monitoring · status" as="p" id="top" bodyClass="page-top">
+    <OpsNav current="status" />
     <p class="kicker">Public status · checked from outside the homelab</p>
     <h1>rafifdzaky.com status</h1>
 
@@ -22,19 +23,18 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
       <span data-banner-text>Loading monitor data…</span>
     </p>
     <noscript><p class="banner" data-state="stale">This page needs JavaScript to load the monitor data. Raw data: <a href={feed}>uptime.json</a></p></noscript>
-  </header>
+  </Window>
 
-  <section class="wrap" aria-label="Components">
+  <Window title="Monitoring · checks, last 90 days" id="checks" bodyClass="pad">
     <div class="comps" data-comps data-feed={feed}></div>
     <p class="how meta">
       Checked by a scheduled GitHub Action about every 15 minutes (GitHub can delay scheduled runs). A check passes when the
       page returns 200 and contains the expected text. Days before monitoring started show as "no data".
       <a href={feed} rel="noopener" target="_blank">Raw data</a> · <a href="/decisions#adr-006">why it works this way</a>
     </p>
-  </section>
+  </Window>
 
-  <section class="section wrap" aria-labelledby="inc-t">
-    <h2 id="inc-t" class="h2">Incident history</h2>
+  <Window title="Incident history" id="incidents" bodyClass="pad">
     <p class="meta">Written up as postmortems. None of these reached public visitors; each one says why.</p>
     <ol class="inc">
       {
@@ -47,10 +47,10 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
         ))
       }
     </ol>
-  </section>
+  </Window>
 
   <template id="comp-tpl">
-    <article class="comp ticket">
+    <article class="comp panel">
       <div class="comp-head">
         <h2 class="comp-name"></h2>
         <p class="comp-state"></p>
@@ -68,26 +68,18 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
 </Base>
 
 <style>
-  .page-head {
-    padding-block: var(--s-6);
-  }
-
-  h1 {
-    margin-top: var(--s-3);
-    font-size: var(--step-3);
-  }
-
   .banner {
     display: flex;
     align-items: center;
     gap: var(--s-3);
-    margin-top: var(--s-5);
-    padding: var(--s-4) var(--s-5);
-    border: var(--rule) solid var(--ink);
+    width: 100%;
+    margin-top: var(--s-2);
+    padding: var(--s-3) var(--s-4);
+    border: var(--rule) solid var(--border-strong);
     border-radius: var(--radius);
-    background: var(--card);
+    background: var(--raised);
     font-weight: 600;
-    font-size: var(--step-1);
+    font-size: var(--fs-md);
   }
 
   .dot {
@@ -100,14 +92,14 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
 
   .banner[data-state='ok'] {
     border-color: var(--ok);
-    background: #eef6f0;
+    background: var(--ok-soft);
   }
   .banner[data-state='ok'] .dot {
     background: var(--ok);
   }
   .banner[data-state='down'] {
     border-color: var(--stamp);
-    background: #fdf1ef;
+    background: var(--crit-soft);
   }
   .banner[data-state='down'] .dot {
     background: var(--stamp);
@@ -133,7 +125,7 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
   }
 
   .comps :global(.comp-name) {
-    font-size: var(--step-1);
+    font-size: var(--fs-md);
     margin-right: auto;
   }
 
@@ -179,7 +171,7 @@ const feed = 'https://raw.githubusercontent.com/rafifdzaky27/portfolio/status/up
   }
   .comps :global(.bars i:hover),
   .comps :global(.bars i:focus-visible) {
-    outline: 2px solid var(--ink);
+    outline: 2px solid var(--text);
     outline-offset: 1px;
   }
 

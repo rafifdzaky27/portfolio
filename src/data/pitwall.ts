@@ -1,14 +1,14 @@
 // Screenshots of Pit Wall On-Call come in the game's light and dark themes.
-// Match this to the site's palette: 'light' for a light palette, 'dark' for a dark one.
+// The site shows the set that matches its own theme (.only-dark / .only-light).
 import monitoringLight from '../assets/pitwall/monitoring-light.png';
 import monitoringDark from '../assets/pitwall/monitoring-dark.png';
 import desktopLight from '../assets/pitwall/desktop-light.png';
 import desktopDark from '../assets/pitwall/desktop-dark.png';
 import cafe from '../assets/pitwall/cafe.png';
 
-export const pitwallTheme: 'light' | 'dark' = 'light';
+export const pitwallTheme: 'light' | 'dark' = 'dark';
 
-const shots = {
+export const pitwallShots = {
   light: {
     monitoring: monitoringLight,
     monitoringAlt: 'The Monitoring app during a retry storm: two alerts, a service map with edge-gateway and checkout-api critical, a 5xx rate of 44 percent, and gateway timeout errors in the log stream',
@@ -23,4 +23,4 @@ const shots = {
   },
 };
 
-export const pitwall = { cafe, ...shots[pitwallTheme] };
+export const pitwall = { cafe, ...pitwallShots[pitwallTheme] };
