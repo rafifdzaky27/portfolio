@@ -6,14 +6,14 @@ import { person, education, careerStart, monthsSince, formatDuration } from '../
 const duration = formatDuration(monthsSince(careerStart));
 
 const fields = [
-  { k: 'Passenger', v: person.short },
+  { k: 'Name', v: person.short },
   { k: 'Role', v: person.role },
-  { k: 'Flight time', v: duration, duration: true },
-  { k: 'Gate', v: '20+ prod services' },
-  { k: 'Carrier', v: `${person.employerShort} · Jakarta` },
-  { k: 'Delays', v: '<2% failed deploys' },
-  { k: 'Baggage', v: 'Linux · Docker · GH Actions' },
-  { k: 'Base', v: 'West Java, ID' },
+  { k: 'Experience', v: duration, duration: true },
+  { k: 'Services', v: '20+ in production' },
+  { k: 'Employer', v: `${person.employerShort}, Jakarta` },
+  { k: 'Failed prod deploys', v: 'under 2%' },
+  { k: 'Stack', v: 'Linux · Docker · GitHub Actions' },
+  { k: 'Based in', v: 'West Java, Indonesia' },
 ];
 ---
 
@@ -53,8 +53,8 @@ const fields = [
 
     <div class="actions">
       <a class="btn btn--primary" href="#work">View work</a>
-      <a class="btn" href={person.resumePage}>View resume</a>
-      <a class="btn" href="#contact">Get in touch</a>
+      <a class="btn" href={person.resumePage}>Resume</a>
+      <a class="btn" href="#contact">Contact</a>
     </div>
   </div>
 
@@ -68,9 +68,9 @@ const fields = [
     >
       <span>Telkom Univ.<strong>S.Kom</strong>GPA 3.87<br />Cum laude</span>
     </div>
-    <p class="stub-bottom"><span class="lbl">Seat</span>on-call, aisle</p>
+    <p class="stub-bottom"><span class="lbl">Status</span>open to DevOps roles</p>
     <button class="hold" type="button" aria-pressed="false">
-      <span class="hold-on">❚❚ Hold departure</span><span class="hold-off">▶ Resume boarding</span>
+      <span class="hold-on">❚❚ Pause animation</span><span class="hold-off">▶ Play animation</span>
     </button>
   </div>
 

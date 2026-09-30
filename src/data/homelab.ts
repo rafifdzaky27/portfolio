@@ -151,7 +151,7 @@ export const labMap: { outside: MapZone[]; host: MapZone[]; offHost: MapZone[] }
       key: 'home',
       label: 'Home services',
       nodes: [
-        { name: 'This portfolio (rafif.ops)', id: 'site', state: 'live' },
+        { name: 'This portfolio (rafifdzaky.com)', id: 'site', state: 'live' },
         { name: 'Jellyfin', id: 'P05', state: 'partial' },
         { name: 'Seerr + Arr stack', id: 'P05B', state: 'planned' },
         { name: 'Nextcloud', id: 'P07', state: 'planned' },

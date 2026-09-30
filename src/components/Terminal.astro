@@ -49,16 +49,16 @@ const json = JSON.stringify(data).replace(/</g, '\\u003c');
 const chips = ['help', 'tldr', 'whoami', 'neofetch', 'status', 'sudo hire rafif'];
 ---
 
-<dialog class="term" aria-label="rafif.ops shell">
+<dialog class="term" aria-label="rafifdzaky.com shell">
   <div class="term-bar">
     <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-    <p>recruiter@rafif.ops: ~</p>
+    <p>recruiter@rafifdzaky: ~</p>
     <button type="button" class="term-x" data-term-close aria-label="Close terminal">esc</button>
   </div>
   <div class="term-out" role="log" aria-live="polite"></div>
   <form class="term-in" method="dialog">
     <label>
-      <span class="ps1" aria-hidden="true">recruiter@rafif.ops:~$</span>
+      <span class="ps1" aria-hidden="true">recruiter@rafifdzaky:~$</span>
       <input name="cmd" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" aria-label="Command" />
     </label>
   </form>
@@ -447,7 +447,7 @@ const chips = ['help', 'tldr', 'whoami', 'neofetch', 'status', 'sudo hire rafif'
       run: () => {
         const logo = ['┌──────┬──────┐', '│  R   │   D  │', '│      │      │', '└──────┴──────┘'];
         const info: Part[][] = [
-          [bold('recruiter@rafif.ops')],
+          [bold('recruiter@rafifdzaky')],
           [dim('───────────────────')],
           [teal('OS: '), 'Astro 7, static HTML'],
           [teal('Host: '), 'homelab VM, behind Cloudflare Tunnel'],
@@ -631,7 +631,7 @@ const chips = ['help', 'tldr', 'whoami', 'neofetch', 'status', 'sudo hire rafif'
     dlg.showModal();
     if (!greeted) {
       greeted = true;
-      print(bold('rafif.ops shell'), dim(' · a working terminal, not a video. Type '), teal('help'), dim('.'));
+      print(bold('rafifdzaky.com shell'), dim(' · a working terminal, not a video. Type '), teal('help'), dim('.'));
       print(dim(`Last login: ${new Date().toDateString()} · release ${D.build.sha}`));
       print('');
     }
