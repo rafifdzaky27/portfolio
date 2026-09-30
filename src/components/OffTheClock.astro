@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import SectorIcon from './SectorIcon.astro';
-import { offTheClock, lapTime, sessionClock, logoF1, person } from '../data/profile';
+import { offTheClock, lapTime, sessionClock, person } from '../data/profile';
 
 // Pin anchor on the circuit for each sector (viewBox units).
 const pins: Record<string, [number, number]> = { S1: [200, 170], S2: [781, 215], S3: [150, 394] };
@@ -19,7 +19,7 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
   <div class="otc-left">
     <div class="tower" role="group" aria-label="Timing tower. Choose a row to see that interest.">
       <div class="tower-head">
-        <Image src={logoF1} alt="Formula 1" height={22} format="webp" class="f1-logo" />
+        <span class="f1-logo">Timing</span>
         <span class="clock">{sessionClock}</span>
         <span class="sess">Q3 · Off the clock GP</span>
       </div>
@@ -35,7 +35,7 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
           >
             <span class={`pos ${s.pos === 1 ? 'pos--lead' : ''}`}>{s.pos}</span>
             <span class="badge">
-              {s.badge ? <Image src={s.badge} alt="" height={44} format="webp" /> : <Fragment set:html={tennisBall} />}
+              {s.icon === 'tennis' ? <Fragment set:html={tennisBall} /> : <i class="team-dot" />}
             </span>
             <span class="code">{s.code}</span>
             <span class="gap">{s.gap}</span>
@@ -58,18 +58,9 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
 
     <div class="radio">
       <div class="radio-head">
-        <button type="button" class="radio-sound" data-sound="on" aria-pressed="true" aria-label="Team radio sound">
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-            <path d="M4 9h3l5-4v14l-5-4H4z" fill="currentColor"></path>
-            <path class="rs-on" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-            <path class="rs-off" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-          </svg>
-          <span class="rs-text">Sound on</span>
-        </button>
         <p class="radio-name">{person.name.split(' ')[0]}</p>
         <p class="radio-sub">
-          <Image src={first.badge!} alt="" height={40} format="webp" class="radio-bulls" />
-          <span>Radio</span>
+                    <span>Radio</span>
         </p>
       </div>
       <div class="wave" aria-hidden="true">
@@ -116,12 +107,8 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
                 {s.status} · {s.tyreName}
               </span>
             </p>
-            <div class={`card-logo ${s.logoWide ? 'is-wide' : ''}`}>
-              {s.logo ? (
-                <Image src={s.logo} alt={s.logoAlt ?? ''} {...(s.logoWide ? { width: 520 } : { height: 150 })} format="webp" loading="lazy" />
-              ) : (
-                <SectorIcon kind={s.icon} />
-              )}
+            <div class="card-logo">
+              <SectorIcon kind={s.icon} />
             </div>
             <p class="card-kind">Hobby {s.pos} of {offTheClock.length}</p>
             <h3>{s.title}</h3>
@@ -245,6 +232,18 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
     background: var(--soft);
   }
 
+  .tower-head .f1-logo {
+    font: 700 0.8rem/1 var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .team-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--team);
+  }
   .badge {
     display: grid;
     place-items: center;
@@ -783,134 +782,19 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
     const pins = JSON.parse(pin.dataset.pins || '{}');
     const driver = root.querySelector('[data-radio="driver"]')!;
     const reply = root.querySelector('[data-radio="reply"]')!;
-    const soundBtn = root.querySelector<HTMLButtonElement>('.radio-sound')!;
-    const soundText = soundBtn.querySelector('.rs-text')!;
-    const bars = [...root.querySelectorAll<HTMLElement>('.wave i')];
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     let talkTimer: number | undefined;
-
-    /* ---------- team radio audio ----------
-       One <audio> element for the whole board, so two clips can never overlap.
-       It plays when the board comes into view, switches clip when another row
-       is chosen, and stops as soon as the board leaves the screen or the tab
-       is hidden. Browsers only allow sound after the visitor has interacted
-       with the page, so if autoplay is refused the button asks for a tap. */
-    const audio = new Audio();
-    audio.preload = 'none';
-    audio.volume = 0.7;
-    let soundOn = true;
-    try {
-      soundOn = localStorage.getItem('otc-radio') !== 'off';
-    } catch {}
     let inView = false;
 
-    const setSound = (state: 'on' | 'off' | 'blocked') => {
-      soundBtn.dataset.sound = state;
-      soundBtn.setAttribute('aria-pressed', String(state !== 'off'));
-      soundText.textContent = state === 'on' ? 'Sound on' : state === 'off' ? 'Muted' : 'Tap to listen';
-    };
-    setSound(soundOn ? 'on' : 'off');
-
-    // Real-signal soundwave: an analyser drives the bars while a clip plays.
-    // Only set up inside a click or keypress, because an AudioContext created
-    // without one starts suspended and would silence the clip.
-    let analyser: AnalyserNode | undefined;
-    let ctx: AudioContext | undefined;
-    let raf = 0;
-    const hookAnalyser = () => {
-      if (analyser || reduce.matches || !('AudioContext' in window)) return;
-      try {
-        ctx = new AudioContext();
-        const src = ctx.createMediaElementSource(audio);
-        analyser = ctx.createAnalyser();
-        analyser.fftSize = 128;
-        analyser.smoothingTimeConstant = 0.6;
-        src.connect(analyser);
-        analyser.connect(ctx.destination);
-      } catch {
-        analyser = undefined;
-      }
-    };
-    const draw = () => {
-      if (!analyser) return;
-      const bins = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(bins);
-      const mid = (bars.length - 1) / 2;
-      bars.forEach((b, i) => {
-        // speech energy sits in the low bins: put those in the middle
-        const v = bins[2 + Math.round(Math.abs(i - mid) * 1.1)] / 255;
-        b.style.transform = `scaleY(${Math.max(0.12, v).toFixed(2)})`;
-      });
-      raf = requestAnimationFrame(draw);
-    };
-    const stopDraw = () => {
-      cancelAnimationFrame(raf);
-      bars.forEach((b) => (b.style.transform = ''));
-      root.classList.remove('is-live');
-    };
-
-    const stop = () => {
-      if (!audio.paused) audio.pause();
-      stopDraw();
-      root.classList.remove('is-talking', 'is-waiting');
-    };
-
-    const play = (key: string) => {
-      const url = data[key]?.audio;
-      if (!soundOn || !inView || !url) return;
-      stop();
-      if (!audio.src.endsWith(url)) audio.src = url;
-      audio.currentTime = 0;
-      ctx?.resume();
-      root.classList.add('is-waiting');
-      audio.play().then(
-        () => setSound('on'),
-        (err: DOMException) => {
-          root.classList.remove('is-waiting');
-          if (err.name === 'NotAllowedError') setSound('blocked');
-        },
-      );
-    };
-
-    audio.addEventListener('playing', () => {
-      window.clearTimeout(talkTimer);
-      root.classList.add('is-talking');
-      if (analyser && ctx?.state === 'running') {
-        root.classList.add('is-live');
-        cancelAnimationFrame(raf);
-        draw();
-      }
-    });
-    audio.addEventListener('ended', stop);
-    audio.addEventListener('pause', stopDraw);
-
-    // Unlock sound and the analyser on the visitor's first interaction.
-    const unlock = () => {
-      hookAnalyser();
-      ctx?.resume();
-    };
-    ['pointerdown', 'keydown'].forEach((t) => document.addEventListener(t, unlock, { once: true, capture: true }));
-
-    soundBtn.addEventListener('click', () => {
-      const wasBlocked = soundBtn.dataset.sound === 'blocked';
-      soundOn = wasBlocked || !soundOn;
-      try {
-        localStorage.setItem('otc-radio', soundOn ? 'on' : 'off');
-      } catch {}
-      setSound(soundOn ? 'on' : 'off');
-      if (soundOn) play(root.dataset.active!);
-      else stop();
-    });
-
-    // Visual-only "talking" when there's no sound.
+    // The soundwave animates briefly when a new radio line appears.
     const talk = () => {
-      if (reduce.matches || !audio.paused) return;
+      if (reduce.matches) return;
       root.classList.add('is-talking');
       window.clearTimeout(talkTimer);
       talkTimer = window.setTimeout(() => root.classList.remove('is-talking'), 3200);
     };
 
-    const select = (key: string, withSound = true) => {
+    const select = (key: string) => {
       const d = data[key];
       if (!d) return;
       rows.forEach((r) => {
@@ -927,7 +811,6 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
       pin.style.transform = `translate(${x}px, ${y}px)`;
       root.dataset.active = key;
 
-      if (withSound) play(key);
       root.classList.add('is-switching');
       window.setTimeout(() => {
         driver.textContent = `"${d.driver}"`;
@@ -937,7 +820,6 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
       }, reduce.matches ? 0 : 180);
     };
 
-    // Clicking the row that's already on replays its radio.
     rows.forEach((r) => r.addEventListener('click', () => select(r.dataset.key!)));
 
     // Up/Down arrows move through the tower like a list.
@@ -952,51 +834,17 @@ const tennisBall = `<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden=
       select(next.dataset.key!);
     });
 
-    select(rows[0].dataset.key!, false);
+    select(rows[0].dataset.key!);
 
     if ('IntersectionObserver' in window) {
-      // Fetch the current clip shortly before the board arrives.
-      const near = new IntersectionObserver(
+      new IntersectionObserver(
         (entries) => {
-          if (!entries.some((e) => e.isIntersecting)) return;
-          audio.preload = 'auto';
-          audio.src = data[root.dataset.active!]?.audio;
-          near.disconnect();
-        },
-        { rootMargin: '600px 0px' },
-      );
-      near.observe(root);
-
-      // The radio belongs to whatever sits in the middle of the screen.
-      // It starts once the board reaches the middle 20% of the viewport and
-      // stops once it has left the middle 60%, so a neighbouring section that
-      // takes over the screen always silences it. The gap between the two
-      // bands keeps it from restarting when someone parks at the edge.
-      const enter = new IntersectionObserver(
-        (entries) => {
-          if (inView || !entries.some((e) => e.isIntersecting)) return;
-          inView = true;
-          talk();
-          play(root.dataset.active!);
+          const now = entries.some((e) => e.isIntersecting);
+          if (now && !inView) talk();
+          inView = now;
         },
         { rootMargin: '-40% 0px -40% 0px' },
-      );
-      const leave = new IntersectionObserver(
-        (entries) => {
-          if (!inView || entries.some((e) => e.isIntersecting)) return;
-          inView = false;
-          stop();
-          if (soundBtn.dataset.sound === 'blocked') setSound('on');
-        },
-        { rootMargin: '-20% 0px -20% 0px' },
-      );
-      enter.observe(root);
-      leave.observe(root);
+      ).observe(root);
     }
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stop();
-    });
-    window.addEventListener('pagehide', stop);
   }
 </script>
