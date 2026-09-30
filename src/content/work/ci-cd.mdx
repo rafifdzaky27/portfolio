@@ -20,32 +20,24 @@ import Incident from '../../components/Incident.astro';
 
 ## Situation
 
-Before, releasing a service meant someone with server access opened an SSH session to the VPS, ran `git pull`, and then did whatever else that app needed by hand. The steps varied from person to person and from service to service. Developers had to wait for an operator to be free.
+Releasing a service meant someone with server access opened SSH, ran `git pull`, and did the rest by hand. The steps differed per person and per service, and developers waited for an operator.
 
 ## My role
 
-I built the pipelines, debugged them when they were unstable, and standardized the workflow templates they share. I also wrote the SOPs developers follow to release. For production I kept one manual step. Nothing reaches production until I start the run and confirm it.
+I built the pipelines, debugged them, standardized the shared workflow templates and wrote the release SOPs.
 
 ## Results
 
-- **All 20+ production services** release through GitHub Actions instead of SSH and `git pull`. About 60% deploy automatically; production releases go through my approval.
+- **All 20+ production services** release through GitHub Actions. Nobody logs into a server to deploy anymore.
+- **About 60% deploy automatically** on merge. For the rest, I start the production run (`workflow_dispatch`) and confirm it. Same pipeline, same checks; the only manual part is the decision to go.
 - **Under 2% of production deploy runs failed** on core services, measured from GitHub Actions run history.
 - Release steps are written down, in the workflow and in the SOP, instead of living in one person's head.
-
-## What "60%" means
-
-**Every service has a pipeline.** The difference is how a run starts:
-
-- **~60% of services deploy automatically.** A change lands and the pipeline builds, checks and ships it without anyone touching it.
-- **The rest are production releases that I start by hand** (`workflow_dispatch`) and confirm. It's the same pipeline doing the same build, checks and deploy. The only manual part is the decision to go.
-
-The manual part is an approval step. Nobody logs into a server to deploy anymore.
 
 ## What the pipeline does today (v1)
 
 <ReleaseCompare />
 
-The steps below come from the real workflow files, with names and hosts removed. Pipelines differ a little from service to service, so this list combines the two most complete ones.
+From the real workflow files, names and hosts removed. This combines the two most complete pipelines.
 
 1. **Gate.** Production runs start from `workflow_dispatch` and stop at once unless the operator types a confirmation word. A concurrency group stops two production deploys from overlapping, and the workflow token is read-only.
 2. **Build.** PHP and Node.js 22 are set up. Composer and npm dependencies are installed with caching, and Vite builds the frontend assets.
@@ -62,7 +54,7 @@ The steps below come from the real workflow files, with names and hosts removed.
 
 ## Sixteen failures that shaped the template
 
-Almost every step in the list above exists because something went wrong without it. These are the failure modes I hit while rolling pipelines out across the services, mostly on Laravel apps with background queues. Each one became a permanent step, so the fix no longer depends on someone remembering it.
+Almost every step above exists because something broke without it. Each failure became a permanent step, so the fix no longer depends on someone remembering it.
 
 <details class="fold">
 <summary>Before it ships · 7 failures</summary>
@@ -201,7 +193,7 @@ Known problems in v1:
 ## Next iteration: v2 template
 
 <Callout kind="draft" title="Written, not yet running in production">
-  <p>I've drafted v2 as a separate template. I'll prove it in my homelab first (roadmap P06 and P11), then move one real service onto it. Until then, treat everything below as design, not results.</p>
+  <p>v2 is a drafted template. I'll prove it in my homelab first (roadmap P06 and P11), then move one real service onto it. Everything below is design.</p>
 </Callout>
 
 <PipelineV2 />
@@ -210,6 +202,9 @@ Known problems in v1:
 - **Ship only what CI tested.** One reusable CI workflow runs on every pull request, testing against PostgreSQL rather than SQLite. The deploy calls that workflow and ships its artifact.
 - **Release directories and an atomic switch.** Each deploy goes to `releases/<id>`, and `current` flips with a single rename. If the health check fails, `current` is pointed back at the previous release automatically.
 - **Fail loudly.** `set -Eeuo pipefail` replaces `|| true`, and the host key is pinned. `sudo` is limited to a single `systemctl reload`.
+
+<details class="fold">
+<summary>Deploy script excerpt</summary>
 
 ```bash
 # remote-deploy.sh (excerpt): one rename, no half-deployed state
@@ -221,6 +216,8 @@ trap 'switch_to "$previous"; reload_runtime || true' ERR
 reload_runtime
 trap - ERR
 ```
+
+</details>
 
 <details class="fold">
 <summary>The containerized variant</summary>

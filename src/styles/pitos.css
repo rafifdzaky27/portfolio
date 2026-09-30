@@ -349,6 +349,7 @@ a.omnibox:hover { box-shadow: 0 0 0 2px var(--accent); }
 .naut-list tbody tr:hover td { background: var(--accent-soft); }
 .naut-list tr[hidden] { display: none; }
 .naut-item { display: flex; align-items: flex-start; gap: 10px; }
+.naut-item > svg { flex: none; }
 .naut-item b { display: block; font-weight: 500; }
 .naut-item small { display: block; color: var(--muted); font-size: var(--fs-sm); }
 .naut-list .date { color: var(--muted); font: var(--fs-sm) var(--mono); white-space: nowrap; }

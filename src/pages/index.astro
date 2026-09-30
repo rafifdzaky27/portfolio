@@ -328,22 +328,8 @@ const profileSchema = {
     </div>
   </Window>
 
-  <!-- ============ RESEARCH ============ -->
-  <Window title="Docs · research" id="research" class="w-side">
-    <div class="research">
-      <p class="about-tags"><span class="tag warn">Best Presenter</span><span class="tag info">ICICoS 2026</span></p>
-      <p class="research-title">Explaining Digital POS Adoption Among MSMEs: A Pilot Study Using UTAUT2</p>
-      <p class="meta">Daniswara, Saputra &amp; Panduwiyasa · Telkom University · presented Aug 2026 · not yet published</p>
-      <p class="muted">
-        A PLS-SEM pilot with 50 MSME practitioners in Bandung Raya. Social influence, enjoyment and price value showed the
-        largest effects on intention to use a POS app.
-      </p>
-      <a class="arrow-link" href="/research">Method, results and limits</a>
-    </div>
-  </Window>
-
   <!-- ============ NOTES ============ -->
-  <Window title="Files · ~/notes" id="notes" class="w-exp" bodyClass="naut notes">
+  <Window title="Files · ~/notes" id="notes" class="w-side" bodyClass="naut notes">
     <div class="naut-bar" aria-hidden="true">
       <span class="tool-btn dim"><svg width="16" height="16"><use href="#g-back"></use></svg></span>
       <span class="naut-path"><span>rafif</span><span aria-current="location">notes</span></span>
@@ -367,13 +353,18 @@ const profileSchema = {
             <td class="what" data-live-d>This site, checked from outside the homelab by a scheduled GitHub Action.</td>
             <td class="date" data-live-up>live</td>
           </tr>
+        <tr>
+            <td><a class="naut-item" href="/research"><svg width="24" height="24" aria-hidden="true"><use href="#f-doc"></use></svg><b>research</b></a></td>
+            <td class="what">UTAUT2 pilot on POS adoption. Best Presenter, ICICoS 2026.</td>
+            <td class="date">1</td>
+          </tr>
         </tbody>
       </table>
     </div>
   </Window>
 
   <!-- ============ CONTACT ============ -->
-  <Window title="Settings · contact" id="contact" class="w-side">
+  <Window title="Settings · contact" id="contact" class="w-full">
     <div class="contact">
       <p>Hiring for DevOps? Email is fastest.</p>
       <div class="setting-rows">
@@ -393,15 +384,15 @@ const profileSchema = {
 
 <style>
   /* ---------- layout on the desk ---------- */
-  .home :global(.w-full) { grid-column: 1 / -1; }
-  .home :global(.w-exp) { grid-column: 1 / span 7; }
-  .home :global(.w-side) { grid-column: 8 / -1; }
-  .home :global(#experience) { grid-row: span 2; }
+  :global(.home) :global(.w-full) { grid-column: 1 / -1; }
+  :global(.home) :global(.w-exp) { grid-column: 1 / span 7; }
+  :global(.home) :global(.w-side) { grid-column: 8 / -1; }
+  :global(.home) :global(#experience) { grid-row: span 2; }
 
   @media (max-width: 1100px) {
-    .home :global(.w-exp),
-    .home :global(.w-side) { grid-column: 1 / -1; grid-row: auto; }
-    .home :global(#experience) { grid-row: auto; }
+    :global(.home) :global(.w-exp),
+    :global(.home) :global(.w-side) { grid-column: 1 / -1; grid-row: auto; }
+    :global(.home) :global(#experience) { grid-row: auto; }
   }
 
   /* ---------- about ---------- */
@@ -473,11 +464,11 @@ const profileSchema = {
   .logs { grid-column: 1 / -1; }
 
   /* ---------- experience and notes (Files) ---------- */
-  .home :global(.naut) { display: grid; grid-template-columns: 180px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; background: var(--panel); }
-  .home :global(.naut-bar),
-  .home :global(.naut-status) { grid-column: 1 / -1; }
-  .home :global(.notes .naut-main) { grid-column: 1 / -1; }
-  .home :global(.notes) { grid-template-rows: auto auto; }
+  :global(.home) :global(.naut) { display: grid; grid-template-columns: 180px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; background: var(--panel); }
+  :global(.home) :global(.naut-bar),
+  :global(.home) :global(.naut-status) { grid-column: 1 / -1; }
+  :global(.home) :global(.notes .naut-main) { grid-column: 1 / -1; }
+  :global(.home) :global(.notes) { grid-template-rows: auto auto; }
   .naut-side { display: grid; align-content: start; gap: 2px; padding: var(--space-2); border-right: 1px solid var(--border); background: var(--sunken); }
   .naut-place { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 10px; border: 0; border-radius: var(--radius-md); background: transparent; text-align: left; cursor: pointer; }
   .naut-place:hover { background: var(--raised); }
@@ -496,12 +487,16 @@ const profileSchema = {
   .lab-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; color: var(--muted); }
   .lab-foot .arrow-link { margin-left: auto; }
 
-  /* ---------- contact, research ---------- */
-  .contact,
-  .research { display: grid; gap: var(--space-3); padding: var(--space-4); }
-  .contact > p:first-child { font-size: var(--fs-md); }
-  .research-title { font-size: var(--fs-md); font-weight: 600; line-height: 1.35; }
-  .research .muted { font-size: var(--fs); line-height: 1.55; }
+  /* ---------- contact: rows on the left, actions on the right ---------- */
+  .contact { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-content: start; gap: var(--space-3) var(--space-6); padding: var(--space-4); }
+  .contact > p:first-child { grid-column: 1 / -1; font-size: var(--fs-md); }
+  .contact .setting-rows { grid-row: span 2; }
+  .contact .actions { align-self: start; }
+  .contact > .meta { align-self: start; }
+  @media (max-width: 860px) {
+    .contact { grid-template-columns: minmax(0, 1fr); }
+    .contact .setting-rows { grid-row: auto; }
+  }
 
   .exp-line { margin-top: -4px; }
 
@@ -550,15 +545,15 @@ const profileSchema = {
     .pipe [data-id='package'],
     .pipe [data-id='deploy'],
     .pipe [data-id='verify'] { grid-column: 1 / -1; justify-self: center; width: 70%; }
-    .home :global(.naut) { grid-template-columns: minmax(0, 1fr); }
+    :global(.home) :global(.naut) { grid-template-columns: minmax(0, 1fr); }
     .naut-side { display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); }
     .naut-place { width: auto; white-space: nowrap; }
-    .home :global(.naut-list thead) { display: none; }
-    .home :global(.naut-list tr) { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-bottom: 1px solid var(--border); }
-    .home :global(.naut-list td) { padding: 8px 12px 0; border: 0; }
-    .home :global(.naut-list td.kind) { display: none; }
-    .home :global(.naut-list td.what) { grid-column: 1 / -1; padding: 2px 12px 10px 46px; }
-    .home :global(.setting-row) { grid-template-columns: 70px minmax(0, 1fr) auto; }
+    :global(.home) :global(.naut-list thead) { display: none; }
+    :global(.home) :global(.naut-list tr) { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-bottom: 1px solid var(--border); }
+    :global(.home) :global(.naut-list td) { padding: 8px 12px 0; border: 0; }
+    :global(.home) :global(.naut-list td.kind) { display: none; }
+    :global(.home) :global(.naut-list td.what) { grid-column: 1 / -1; padding: 2px 12px 10px 46px; }
+    :global(.home) :global(.setting-row) { grid-template-columns: 70px minmax(0, 1fr) auto; }
   }
 </style>
 
