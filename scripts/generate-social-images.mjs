@@ -2,7 +2,7 @@
 // Run `npm run generate:og` after changing the copy or visual system.
 import sharp from 'sharp';
 import { fileURLToPath } from 'node:url';
-import { copyFile } from 'node:fs/promises';
+import { copyFile, readFile } from 'node:fs/promises';
 
 const escapeXml = (value) => String(value).replace(/[&<>"']/g, (char) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;',
@@ -177,3 +177,12 @@ await copyFile(
   fileURLToPath(new URL('../public/og-pitos.png', import.meta.url)),
   fileURLToPath(new URL('../public/og-image.png', import.meta.url)),
 );
+
+// Google Search lists PNG among its supported favicon formats. Render the
+// existing PitOS mark at 96px; keep the SVG for other existing references.
+const faviconSvg = await readFile(new URL('../public/favicon.svg', import.meta.url));
+await sharp(faviconSvg, { density: 384 })
+  .resize(96, 96)
+  .png()
+  .toFile(fileURLToPath(new URL('../public/favicon.png', import.meta.url)));
+console.log('Generated public/favicon.png');
