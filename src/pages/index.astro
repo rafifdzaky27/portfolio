@@ -310,42 +310,61 @@ const profileSchema = {
         <tbody>
           {
             files.map((f, i) => (
-              <>
-                <tr data-k={f.k} class="naut-row">
-                  <td>
-                    <button type="button" class="naut-item naut-open" aria-expanded="false" aria-controls={`file-${i}`}>
-                      <svg width="24" height="24" aria-hidden="true"><use href={`#${f.icon}`}></use></svg>
-                      <span><b>{f.name}</b><small>{f.sub}</small></span>
-                      <svg class="chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4 2.5 7.5 6 4 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                    </button>
-                  </td>
-                  <td class="kind">{f.kind}</td>
-                  <td class="date">{f.date}</td>
-                </tr>
-                <tr data-k={f.k} class="naut-detail" id={`file-${i}`} hidden>
-                  <td colspan="3">
-                    <div class:list={['detail', { 'has-img': f.image }]}>
-                      <div class="detail-text">
-                        {f.points && <ul>{f.points.map((p) => <li>{p}</li>)}</ul>}
-                        {f.lines?.map((l) => <p>{l}</p>)}
-                        {f.link && <a class="arrow-link" href={f.link.href}>{f.link.label}</a>}
-                      </div>
-                      {f.image && (
-                        <a class="detail-img" href={f.image.src} aria-label={`Open the certificate for ${f.name} at full size`}>
-                          <Image src={f.image} alt={f.alt ?? ''} widths={[320, 640]} sizes="320px" loading="lazy" />
-                        </a>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              </>
+              <tr data-k={f.k} class="naut-row">
+                <td>
+                  <button type="button" class="naut-item naut-open" data-file={i} aria-haspopup="dialog" aria-controls="file-win">
+                    <svg width="24" height="24" aria-hidden="true"><use href={`#${f.icon}`}></use></svg>
+                    <span><b>{f.name}</b><small>{f.sub}</small></span>
+                  </button>
+                </td>
+                <td class="kind">{f.kind}</td>
+                <td class="date">{f.date}</td>
+              </tr>
             ))
           }
         </tbody>
       </table>
     </div>
     <p class="naut-status" data-naut-status>{files.length} items · <a href="/resume">full CV</a></p>
+
+    {/* One template per file; the file window shows a copy of it. */}
+    {
+      files.map((f, i) => (
+        <template data-file-doc={i} data-title={`${f.k === 'cert' ? 'Image viewer' : 'Docs'} · ${f.name}`}>
+          <article class:list={['doc', { 'has-img': f.image }]}>
+            <header class="doc-head">
+              <p class="kicker">{f.kind} · {f.date}</p>
+              <h3>{f.name}</h3>
+              <p class="doc-sub">{f.sub}</p>
+            </header>
+            <div class="doc-text">
+              {f.points && <ul>{f.points.map((pt) => <li>{pt}</li>)}</ul>}
+              {f.lines?.map((l) => <p>{l}</p>)}
+              {f.link && <a class="arrow-link" href={f.link.href}>{f.link.label}</a>}
+            </div>
+            {f.image && (
+              <a class="doc-img" href={f.image.src} aria-label={`Open the certificate for ${f.name} at full size`}>
+                <Image src={f.image} alt={f.alt ?? ''} widths={[400, 800]} sizes="400px" loading="lazy" />
+              </a>
+            )}
+          </article>
+        </template>
+      ))
+    }
   </Window>
+
+  <!-- The file window: opened from ~/experience, dragged by its title bar on wider screens. -->
+  <section class="window file-win focused" id="file-win" role="dialog" aria-labelledby="file-win-t" hidden>
+    <header class="titlebar" data-drag>
+      <h2 class="titlebar-title" id="file-win-t">Docs</h2>
+      <div class="titlebar-controls">
+        <button type="button" class="win-x" data-file-close aria-label="Close this file">
+          <svg width="16" height="16" aria-hidden="true"><use href="#g-close"></use></svg>
+        </button>
+      </div>
+    </header>
+    <div class="window-body file-win-body" data-file-body tabindex="-1"></div>
+  </section>
 
   <!-- ============ HOMELAB ============ -->
   <Window title="Monitoring · homelab" id="homelab" class="w-side">
@@ -529,18 +548,36 @@ const profileSchema = {
   .notes-list .c-items { width: 4.5rem; }
   .notes-list td:first-child { white-space: nowrap; }
 
-  /* experience rows open a detail view */
   .naut-open { width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-  .naut-open .chev { flex: none; margin: 6px 0 0 auto; color: var(--muted); transition: transform var(--motion-fast); }
-  .naut-open:hover b { color: var(--accent-text); }
-  .naut-row.open td { background: var(--raised); }
-  .naut-row.open .chev { transform: rotate(90deg); color: var(--text); }
-  .naut-detail td { padding: 4px 16px 16px 46px; background: var(--raised); }
-  .detail { display: grid; gap: var(--space-4); align-items: start; }
-  .detail.has-img { grid-template-columns: minmax(0, 1fr) 200px; }
-  .detail-text { display: grid; gap: var(--space-2); color: var(--muted); line-height: 1.55; }
-  .detail-text ul { display: grid; gap: 6px; padding-left: 1.1rem; }
-  .detail-img { display: block; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: #fff; cursor: zoom-in; }
+  .naut-open:hover b { color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
+  .naut-row.current td { background: var(--accent-soft); }
+
+  /* a file manager has a fixed size: ~/experience ends where ~/notes ends, and its list scrolls */
+  :global(.home) :global(#experience) { height: 0; min-height: 100%; grid-template-rows: var(--titlebar-h) minmax(0, 1fr); }
+  :global(.home) :global(#experience .naut) { min-height: 0; }
+  :global(.home) :global(#experience .naut-main) { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  :global(.home) :global(#experience .naut-list thead th) { position: sticky; top: 0; z-index: 1; }
+  @media (max-width: 1100px) {
+    /* stacked: no neighbour to line up with, so the window gets its own fixed height */
+    :global(.home) :global(#experience) { height: min(600px, 78vh); min-height: 0; }
+  }
+
+  /* the file window */
+  .file-win { position: fixed; z-index: 1200; top: 120px; left: 16px; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 160px); grid-template-rows: var(--titlebar-h) minmax(0, 1fr); box-shadow: var(--shadow-window); }
+  .file-win[hidden] { display: none; }
+  .file-win .titlebar { cursor: grab; touch-action: none; user-select: none; }
+  .file-win.dragging .titlebar { cursor: grabbing; }
+  .win-x { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 12px; background: var(--raised); color: var(--text); cursor: pointer; }
+  .win-x:hover { background: var(--crit); color: #fff; }
+  .file-win-body { overflow-y: auto; padding: 20px 22px 22px; }
+  .file-win-body:focus { outline: none; }
+  .file-win-body :global(.doc) { display: grid; gap: var(--space-4); }
+  .file-win-body :global(.doc-head) { display: grid; gap: 4px; }
+  .file-win-body :global(.doc-head h3) { font-size: var(--fs-lg); }
+  .file-win-body :global(.doc-sub) { color: var(--muted); }
+  .file-win-body :global(.doc-text) { display: grid; gap: var(--space-2); color: var(--muted); line-height: 1.55; }
+  .file-win-body :global(.doc-text ul) { display: grid; gap: 8px; padding-left: 1.1rem; }
+  .file-win-body :global(.doc-img) { display: block; max-width: 400px; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: #fff; cursor: zoom-in; }
   a.naut-item:hover b { color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
   .what { color: var(--muted); }
   .naut-status a { color: var(--accent-text); }
@@ -611,7 +648,8 @@ const profileSchema = {
     .pipe [data-id='package'],
     .pipe [data-id='deploy'],
     .pipe [data-id='verify'] { grid-column: 1 / -1; justify-self: center; width: 70%; }
-    :global(.home) :global(.naut) { grid-template-columns: minmax(0, 1fr); }
+    :global(.home) :global(.naut) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; }
+    :global(.home) :global(.notes.naut) { grid-template-rows: auto auto; }
     .naut-side { display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); }
     .naut-place { width: auto; white-space: nowrap; }
     :global(.home) :global(.naut-list thead) { display: none; }
@@ -620,8 +658,10 @@ const profileSchema = {
     :global(.home) :global(.naut-list td.kind) { display: none; }
     :global(.home) :global(.naut-list td.what) { grid-column: 1 / -1; padding: 2px 12px 10px 46px; }
     :global(.home) :global(.naut-list tr[hidden]) { display: none; }
-    :global(.home) :global(.naut-list tr.naut-detail) { grid-template-columns: minmax(0, 1fr); }
-    /* every row gets the same date column, so the chevrons line up */
+    .file-win { top: auto !important; right: 8px; bottom: calc(76px + env(safe-area-inset-bottom)); left: 8px !important; width: auto; max-height: 72vh !important; }
+    .file-win .titlebar { cursor: default; }
+    .file-win-body { padding: 16px; }
+    /* every row gets the same date column, so the rows line up */
     :global(.home) :global(#experience .naut-row) { grid-template-columns: minmax(0, 1fr) 7.5rem; }
     :global(.home) :global(#experience .naut-row td.date) { text-align: right; }
     /* notes: name and count on one line, the description under it */
@@ -631,9 +671,6 @@ const profileSchema = {
     .notes-list td:first-child { grid-row: 1; grid-column: 1; }
     .notes-list td.date { grid-row: 1; grid-column: 2; text-align: right; }
     .notes-list td.what { grid-row: 2; }
-    .naut-detail td { padding: 4px 12px 14px 46px; }
-    .detail.has-img { grid-template-columns: minmax(0, 1fr); }
-    .detail-img { max-width: 240px; }
     :global(.home) :global(.setting-row) { grid-template-columns: 70px minmax(0, 1fr) auto; }
   }
 </style>
@@ -663,9 +700,6 @@ const profileSchema = {
       rows.forEach((r) => {
         const show = f === 'all' || r.dataset.k === f;
         r.hidden = !show;
-        const btn = r.querySelector<HTMLButtonElement>('.naut-open')!;
-        const detail = document.getElementById(btn.getAttribute('aria-controls')!)!;
-        detail.hidden = !show || btn.getAttribute('aria-expanded') !== 'true';
         if (show) n++;
       });
       if (crumb) crumb.textContent = names[f];
@@ -673,16 +707,73 @@ const profileSchema = {
     }),
   );
 
-  // Files: a row opens its details underneath.
-  rows.forEach((r) => {
-    const btn = r.querySelector<HTMLButtonElement>('.naut-open')!;
-    const detail = document.getElementById(btn.getAttribute('aria-controls')!)!;
-    btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') !== 'true';
-      btn.setAttribute('aria-expanded', String(open));
-      r.classList.toggle('open', open);
-      detail.hidden = !open;
-    });
+  // Files: a row opens the file in its own window. Esc or X closes it, and on
+  // wider screens the title bar drags it around, like a desktop file viewer.
+  const win = document.getElementById('file-win') as HTMLElement;
+  const winBody = win.querySelector<HTMLElement>('[data-file-body]')!;
+  const winTitle = win.querySelector<HTMLElement>('#file-win-t')!;
+  const phone = matchMedia('(max-width: 640px)');
+  let opener: HTMLButtonElement | null = null;
+  let placed = false;
+
+  const place = (x: number, y: number) => {
+    // keep the window on screen: at least 260px of it stays visible, and its
+    // height shrinks to fit below its top edge (the body scrolls)
+    const w = win.offsetWidth;
+    const nx = Math.min(Math.max(8, x), innerWidth - w - 8);
+    const ny = Math.min(Math.max(40, y), innerHeight - 260 - 16);
+    win.style.left = `${nx}px`;
+    win.style.top = `${ny}px`;
+    win.style.maxHeight = `${innerHeight - ny - 16}px`;
+  };
+  const closeFile = () => {
+    if (win.hidden) return;
+    win.hidden = true;
+    rows.forEach((r) => r.classList.remove('current'));
+    opener?.focus();
+  };
+  const openFile = (btn: HTMLButtonElement) => {
+    const tpl = document.querySelector<HTMLTemplateElement>(`template[data-file-doc="${btn.dataset.file}"]`);
+    if (!tpl) return;
+    opener = btn;
+    winTitle.textContent = tpl.dataset.title ?? 'Docs';
+    winBody.replaceChildren(tpl.content.cloneNode(true));
+    winBody.scrollTop = 0;
+    rows.forEach((r) => r.classList.toggle('current', r.contains(btn)));
+    win.hidden = false;
+    if (!placed && !phone.matches) {
+      place((innerWidth - win.offsetWidth) / 2, Math.max(60, (innerHeight - win.offsetHeight) / 2));
+      placed = true;
+    }
+    winBody.focus({ preventScroll: true });
+  };
+  rows.forEach((r) => r.querySelector<HTMLButtonElement>('.naut-open')!.addEventListener('click', (e) => openFile(e.currentTarget as HTMLButtonElement)));
+  win.querySelector('[data-file-close]')!.addEventListener('click', closeFile);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !win.hidden) closeFile();
+  });
+
+  const bar = win.querySelector<HTMLElement>('[data-drag]')!;
+  bar.addEventListener('pointerdown', (e) => {
+    if (phone.matches || (e.target as HTMLElement).closest('button')) return;
+    const r = win.getBoundingClientRect();
+    const dx = e.clientX - r.left;
+    const dy = e.clientY - r.top;
+    bar.setPointerCapture(e.pointerId);
+    win.classList.add('dragging');
+    const move = (ev: PointerEvent) => place(ev.clientX - dx, ev.clientY - dy);
+    const up = () => {
+      win.classList.remove('dragging');
+      bar.removeEventListener('pointermove', move);
+      bar.removeEventListener('pointerup', up);
+      bar.removeEventListener('pointercancel', up);
+    };
+    bar.addEventListener('pointermove', move);
+    bar.addEventListener('pointerup', up);
+    bar.addEventListener('pointercancel', up);
+  });
+  addEventListener('resize', () => {
+    if (!win.hidden && !phone.matches) place(win.offsetLeft, win.offsetTop);
   });
 
   // Contact: copy the email address.
