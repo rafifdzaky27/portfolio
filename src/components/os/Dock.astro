@@ -192,7 +192,7 @@ const items = [
 <script>
   // Home page: the window in view gets the focused look, and its dock icon runs.
   const items = [...document.querySelectorAll<HTMLAnchorElement>('[data-dock-spy]')];
-  const wins = [...document.querySelectorAll<HTMLElement>('main .window')];
+  const wins = [...document.querySelectorAll<HTMLElement>('main .window:not(.file-win)')];
   if (wins.length) {
     const update = () => {
       const mid = window.innerHeight * 0.35;
