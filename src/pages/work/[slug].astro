@@ -32,7 +32,7 @@ const seo = {
   },
   'pit-wall-on-call': {
     title: 'Pit Wall On-Call: a game run like production',
-    description: 'How Rafif Dzaky Daniswara builds, tests and deploys Pit Wall On-Call, a browser game about on-call incidents, with SHA-tagged images, a Tailscale deploy path and automatic rollback proven in a game day.',
+    description: 'How Rafif builds and runs Pit Wall On-Call, an on-call browser game with automated tests, SHA-tagged releases and a game-day-proven rollback.',
   },
   'linux-ops': {
     title: 'Linux and VPS operations',
@@ -40,9 +40,22 @@ const seo = {
   },
 } as Record<string, { title: string; description: string }>;
 const pageSeo = seo[entry.id] ?? { title: d.kicker, description: d.summary };
+const socialImage = {
+  'ci-cd': '/og-ci-cd.png',
+  monitoring: '/og-monitoring.png',
+  'linux-ops': '/og-linux-ops.png',
+  'pit-wall-on-call': '/og-pit-wall-on-call.png',
+}[entry.id] ?? '/og-pitos.png';
 ---
 
-<Base title={pageSeo.title} description={pageSeo.description} ogType="article" current="work">
+<Base
+  title={pageSeo.title}
+  description={pageSeo.description}
+  socialImage={socialImage}
+  socialImageAlt={`PitOS share card for ${d.kicker}, a case study by ${person.name}`}
+  ogType="article"
+  current="work"
+>
   <Window title={`Docs · ~/work/${entry.id}`} as="p" id="top" bodyClass="page-top">
     <p class="meta crumbs"><a href="/#work">Work</a> <span aria-hidden="true">/</span> {index} · {d.kicker}</p>
     <h1>{d.title}</h1>
